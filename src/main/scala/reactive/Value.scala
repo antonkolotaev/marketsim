@@ -49,25 +49,16 @@ abstract class Value[T](protected var value_ : T)
      * Recalculates the value if needed and if it has changed notifies our external listeners about it
      * and also tells to dependent observables to notify their listeners with their new values
      */
-    private def notifyExternalListenersIfValueChanged() : Unit =
+    def notifyExternalListenersIfValueChanged() : Unit =
     {
-        if (dirty) {
+        if (external.nonEmpty) {
             val oldValue = value_
-            dirty = false
-            validate()
+            apply()
             println(s"notifyExternalListeners $this: $oldValue -> $value_")
             if (oldValue != value_)
             {
-                if (external.nonEmpty)
-                    external foreach { _ apply value_ }
-                tellDependentsToNotifyExternalListeners()
+                external foreach { _ apply value_ }
             }
-        }
-    }
-
-    protected def tellDependentsToNotifyExternalListeners() = {
-        internal foreach {
-            _ notifyExternalListenersIfValueChanged()
         }
     }
 
@@ -83,8 +74,10 @@ abstract class Value[T](protected var value_ : T)
      * @return
      */
     def apply() = {
-        notifyExternalListenersIfValueChanged()
+        if (dirty) {
+            dirty = false
+            validate()
+        }
         value_
     }
-
 }

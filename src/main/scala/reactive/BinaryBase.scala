@@ -5,10 +5,10 @@ abstract class BinaryBase[A,B, Result](a : Value[A], b : Value[B], initialValue 
 {
     protected def F(a : A, b : B) : Result
 
-    /*if (apply() != initialValue) {
+    if (apply() != initialValue) {
         println(s"${apply()} != $initialValue")
         assert(apply() == initialValue)
-    }*/
+    }
 
     /**
      * Last known value of the input observable A

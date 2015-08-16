@@ -3,11 +3,10 @@ package reactive
 abstract class UnaryBase[A,Result](a : Value[A], initialValue : Result)
     extends Value[Result](initialValue)
 {
-    /*
-    if (F(a()) != initialValue){
-        println(s"${F(a())} != $initialValue")
-        assert(F(a()) == initialValue)
-    }*/
+    if (apply() != initialValue){
+        println(s"${apply()} != $initialValue")
+        assert(apply() == initialValue)
+    }
 
     protected def F(a : A) : Result
 

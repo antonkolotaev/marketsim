@@ -11,7 +11,17 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
     // variables don't have any inputs
     val inputs = Nil
 
+    private val dependent = collection.mutable.Set.empty[Value[_]]
+
     finalConstruct()
+
+    protected override def registerInRoot(what : Value[_], visited : collection.mutable.Set[Value[_]]) = {
+        dependent += what
+    }
+
+    protected override def removeFromRoot(what : Value[_], visited : collection.mutable.Set[Value[_]]) = {
+        dependent -= what
+    }
 
     /**
      * Variable state is always consistent so we don't need 
@@ -28,7 +38,7 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
         {
             invalidate()
             external foreach { _ apply x }
-            tellDependentsToNotifyExternalListeners()
+            dependent foreach { _ notifyExternalListenersIfValueChanged() }
         }
     }
 }
