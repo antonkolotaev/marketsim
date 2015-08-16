@@ -38,6 +38,12 @@ class IfTHenElseSpec extends TestBase {
         C.back expects "X" once ()
 
         assert(C.value() == "X")
+
+        A.value dispose ()
+
+        a.handler expects "z" once()
+
+        a.value set "z"
     }
 
     "condition <- false" should "change the result to B" in new Fork {

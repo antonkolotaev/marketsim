@@ -50,6 +50,12 @@ class BinarySpec extends TestBase {
         assert(ab.value() == "(AY)")
         assert(bc.value() == "(YC)")
 
+        ab.value dispose ()
+        b.handler expects "z" once()
+        bc.back expects ("z", "c") once ()
+        bc.handler expects "(ZC)" once()
+
+        b.value set "z"
     }
 
 }

@@ -28,16 +28,25 @@ trait HasInternalSubscribers
         registerInRoot(this, collection.mutable.Set.empty[Value[_]])
     }
 
+    private var disposed = false
+
     /**
      * This method should be called when a node is removed from dependent observables graph
      */
-    def dispose() = {
-        // remove itself from its inputs
-        inputs foreach { _.internal remove this }
-        // and from roots where it can be reached from
-        removeFromRoot(this, collection.mutable.Set.empty[Value[_]])
+    def dispose() : Unit = {
 
-        // TODO: we need to dispose also all reachable nodes
+        if (!disposed)
+        {
+            // first we dispose all dependent nodes
+            internal foreach { _ dispose () }
+
+            // then we remove itself from roots where it can be reached from
+            removeFromRoot(this, collection.mutable.Set.empty[Value[_]])
+            // and also from its inputs
+            inputs foreach { _.internal remove this }
+
+            disposed = true
+        }
     }
 
     /**

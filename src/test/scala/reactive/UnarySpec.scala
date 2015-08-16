@@ -40,7 +40,13 @@ class UnarySpec extends TestBase
         assert(f2.value() == "B")
         assert(f1.value() == "B")
         assert(v.value() == "b")
+
+        f1.value dispose()
+        v.handler expects "c" once()
+        v.value set "c"
+
     }
+
     "v <- A in a" should "cause only f1 re-evaluation" in new Chain {
 
         /// ------------------------- v <- "B"
@@ -55,4 +61,5 @@ class UnarySpec extends TestBase
         assert(f1.value() == "A")
         assert(v.value() == "A")
     }
+
 }
