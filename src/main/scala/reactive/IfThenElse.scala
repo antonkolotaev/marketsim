@@ -42,4 +42,6 @@ case class IfThenElse[Result](condition  : Value[Boolean],
         // update current value and if changed notify all dependent observables and listeners
         updateValue(if (cachedCondition) cachedIf else cachedElse)
     }
+
+    override def toString() = s"if $condition then $ifBranch else $elseBranch"
 }

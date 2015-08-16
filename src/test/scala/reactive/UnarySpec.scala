@@ -6,8 +6,8 @@ class UnarySpec extends TestBase
     {
         val v = variable("a")
 
-        val f1 = toUpperCase(v.value, "a")
-        val f2 = toUpperCase(f1.value, "A")
+        val f1 = toUpperCaseHandled(v.value, "a")
+        val f2 = toUpperCaseHandled(f1.value, "A")
 
         assert(f2.value() == "A")
         assert(f1.value() == "A")

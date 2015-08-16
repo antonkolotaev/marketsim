@@ -16,11 +16,13 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
     finalConstruct()
 
     protected override def registerInRoot(what : Value[_], visited : collection.mutable.Set[Value[_]]) = {
-        dependent += what
+        if (this != what)
+            dependent += what
     }
 
     protected override def removeFromRoot(what : Value[_], visited : collection.mutable.Set[Value[_]]) = {
-        dependent -= what
+        if (this != what)
+            dependent -= what
     }
 
     /**

@@ -5,16 +5,17 @@ package object reactive {
 
     trait TestBase extends FlatSpec with MockFactory
     {
-        def variable(initialValue : String) = new {
+        def variable[T](initialValue : T) = new {
             class Var extends Variable(initialValue){
-                override def toString() = initialValue
+                override def toString() = initialValue.toString
             }
             val value = new Var()
-            val handler = mockFunction[String, Unit]("event")
+            val handler = mockFunction[T, Unit]("event")
             value += handler
         }
-
-        def toUpperCase(source : Value[String], initialValue : String) = new {
+        
+        class ToUpperCaseBase(source : Value[String], initialValue : String)
+        {
             val back = mockFunction[String, Unit]("back")
             back expects initialValue once ()
 
@@ -29,12 +30,19 @@ package object reactive {
 
                 override def toString() = s"ToUpperCase($source)"
             }
-
+            
             val value = new ToUpperCase
-
-            val handler = mockFunction[String, Unit]
-            value += handler
         }
+
+        def toUpperCase(source : Value[String], initialValue : String) =
+            new ToUpperCaseBase(source, initialValue)
+
+        def toUpperCaseHandled(source : Value[String], initialValue : String) =
+            new ToUpperCaseBase(source, initialValue) 
+            {
+                val handler = mockFunction[String, Unit]
+                value += handler
+            }
 
         def concat(a : Value[String],
                    b : Value[String],
