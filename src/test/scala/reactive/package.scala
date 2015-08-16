@@ -9,11 +9,20 @@ package object reactive {
             class Var extends Variable(initialValue){
                 override def toString() = initialValue.toString
             }
-            val value = new Var()
+            val value : Variable[T] = new Var()
             val handler = mockFunction[T, Unit]("event")
             value += handler
         }
-        
+
+        def ifThenElse[T](condition     : Value[Boolean],
+                          ifBranch      : Value[T],
+                          elseBranch    : Value[T])
+        = new {
+            val value = IfThenElse(condition, ifBranch, elseBranch)
+            val handler = mockFunction[T, Unit]("event")
+            value += handler
+        }
+
         class ToUpperCaseBase(source : Value[String], initialValue : String)
         {
             val back = mockFunction[String, Unit]("back")
