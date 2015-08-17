@@ -24,7 +24,7 @@ class UnarySpec extends TestBase
     }
 
 
-    "v <- b in a" should "make f1 <- B and f2 <- B" in new Chain {
+    /*"v <- b in a" should "make f1 <- B and f2 <- B" in new Chain {
 
         /// ------------------------- v <- "b"
 
@@ -45,7 +45,7 @@ class UnarySpec extends TestBase
         v.handler expects "c" once()
         v.value set "c"
 
-    }
+    }*/
 
     "v <- A in a" should "cause only f1 re-evaluation" in new Chain {
 
