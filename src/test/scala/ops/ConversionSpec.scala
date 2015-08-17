@@ -13,4 +13,6 @@ class ConversionSpec extends FlatSpec {
     "Int" should "convert to Option[Int]" in { assert(convert[Int, Option[Int]](1) == Some(1)) }
 
     "Int" should "convert to Option[Double]" in { assert(convert[Int, Option[Double]](1) == Some(1.0)) }
+
+    "Int" should "convert to Option[Option[Double]]" in { assert(convert[Int, Option[Option[Double]]](1) == Some(Some(1.0))) }
 }
