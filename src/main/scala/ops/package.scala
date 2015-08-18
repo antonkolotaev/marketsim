@@ -7,7 +7,8 @@ package object ops
         def convert(from : From) : To
     }
 
-    trait Conversions_Level1 {
+    object Conversions {
+
         implicit def toOption[T, U](implicit ev : Conversion[T,U]) : Conversion[T, Option[U]] =
             new Conversion[T, Option[U]]
             {
@@ -23,9 +24,6 @@ package object ops
             {
                 def convert(x : Option[T]) = x map { y => ev.convert(y) }
             }
-    }
-
-    object Conversions extends Conversions_Level1 {
 
         implicit val int2double     = new Conversion[Int,  Double]{  def convert(x : Int) = x  }
         implicit val int2long       = new Conversion[Int,  Long]  {  def convert(x : Int) = x  }

@@ -40,7 +40,10 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
         {
             invalidate()
             external foreach { _ apply x }
-            dependent foreach { _ notifyExternalListenersIfValueChanged() }
+            internal foreach { _ notifyExternalListenersIfValueChanged () }
         }
     }
+
+    override def apply() = value_
+
 }

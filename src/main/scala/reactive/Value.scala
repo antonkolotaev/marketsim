@@ -51,13 +51,30 @@ abstract class Value[T](protected var value_ : T)
      */
     def notifyExternalListenersIfValueChanged() : Unit =
     {
-        if (external.nonEmpty) {
-            val oldValue = value_
-            apply()
+        if (dirty) {
+            if (external.nonEmpty) {
+                validateAndNotifyExternal()
+            }
+            println(s"notifyExternalListeners $this: notifyDependent begin")
+            internal foreach { _ notifyExternalListenersIfValueChanged () }
+            println(s"notifyExternalListeners $this: notifyDependent end")
+        }
+        else
+            println(s"notifyExternalListeners $this: dirty is already false")
+
+    }
+
+    private def validateAndNotifyExternal(): Unit = {
+        val oldValue = value_
+        validate()
+        if (dirty) {
+            // we need this check since validate() can call our code again
+            dirty = false
             println(s"notifyExternalListeners $this: $oldValue -> $value_")
-            if (oldValue != value_)
-            {
-                external foreach { _ apply value_ }
+            if (oldValue != value_) {
+                external foreach {
+                    _ apply value_
+                }
             }
         }
     }
@@ -74,10 +91,15 @@ abstract class Value[T](protected var value_ : T)
      * @return
      */
     def apply() = {
+        println(s"$this.apply")
         if (dirty) {
-            dirty = false
-            validate()
+            validateAndNotifyExternal()
+            println(s"$this.apply: notifyDependent begin")
+            internal foreach { _ notifyExternalListenersIfValueChanged () }
+            println(s"$this.apply: notifyDependent end")
         }
+        else
+            println(s"$this.apply: dirty is already false")
         value_
     }
 }

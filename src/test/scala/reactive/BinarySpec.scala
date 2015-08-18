@@ -49,7 +49,9 @@ class BinarySpec extends TestBase {
         assert(abbc.value() == "((AY)(YC))")
         assert(ab.value() == "(AY)")
         assert(bc.value() == "(YC)")
+    }
 
+    "ab.dispose() in (AB)(BC)" should "leave only BC" in new ABBC {
         ab.value dispose ()
         b.handler expects "z" once()
         bc.back expects ("z", "c") once ()

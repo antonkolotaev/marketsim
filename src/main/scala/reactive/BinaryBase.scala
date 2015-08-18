@@ -31,10 +31,12 @@ abstract class BinaryBase[A,B, Result](a : Value[A], b : Value[B], initialValue 
     def validate() = {
         println(s"validate $this")
         // if any input observables changed
-        if (cachedA != a() || cachedB != b()) {
+        val newA = a()
+        val newB = b()
+        if (cachedA != newA || cachedB != newB) {
             // let's cache them
-            cachedA = a()
-            cachedB = b()
+            cachedA = newA
+            cachedB = newB
             // and recalculate our value
             updateValue(F(cachedA, cachedB))
         }

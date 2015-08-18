@@ -75,7 +75,7 @@ package object reactive {
 
             val value = Concat()
 
-            val handler = mockFunction[String, Unit]
+            val handler = mockFunction[String, Unit]("concatHandler")
             value += handler
         }
     }
