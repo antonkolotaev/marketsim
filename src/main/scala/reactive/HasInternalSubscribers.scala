@@ -26,14 +26,16 @@ trait HasInternalSubscribers
         inputs foreach { _.internal add this }
     }
 
-    private var disposed = false
+    private var disposed_ = false
+
+    def disposed = disposed_
 
     /**
      * This method should be called when a node is removed from dependent observables graph
      */
     def dispose() : Unit = {
 
-        if (!disposed)
+        if (!disposed_)
         {
             // first we dispose all dependent nodes
             internal foreach { _ dispose () }
@@ -41,7 +43,7 @@ trait HasInternalSubscribers
             // and also from its inputs
             inputs foreach { _.internal remove this }
 
-            disposed = true
+            disposed_ = true
         }
     }
 }

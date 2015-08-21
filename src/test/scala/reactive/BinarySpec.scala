@@ -58,6 +58,14 @@ class BinarySpec extends TestBase {
         bc.handler expects "(ZC)" once()
 
         b.value set "z"
+
+        assert(ab.value.disposed)
+        assert(abbc.value.disposed)
+
+        assert(!a.value.disposed)
+        assert(!b.value.disposed)
+        assert(!c.value.disposed)
+        assert(!bc.value.disposed)
     }
 
 }

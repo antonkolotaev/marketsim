@@ -41,9 +41,18 @@ class UnarySpec extends TestBase
         assert(f1.value() == "B")
         assert(v.value() == "b")
 
+    }
+
+    "f1.dispose" should "release f1 and f2" in new Chain {
+
         f1.value dispose()
         v.handler expects "c" once()
         v.value set "c"
+
+        assert(!v.value.disposed)
+        assert(f1.value.disposed)
+        assert(f2.value.disposed)
+
     }
 
     "v <- A in a" should "cause only f1 re-evaluation" in new Chain {
