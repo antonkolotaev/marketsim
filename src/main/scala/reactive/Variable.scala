@@ -11,19 +11,7 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
     // variables don't have any inputs
     val inputs = Nil
 
-    private val dependent = collection.mutable.Set.empty[Value[_]]
-
     finalConstruct()
-
-    protected override def registerInRoot(what : Value[_], visited : collection.mutable.Set[Value[_]]) = {
-        if (this != what)
-            dependent += what
-    }
-
-    protected override def removeFromRoot(what : Value[_], visited : collection.mutable.Set[Value[_]]) = {
-        if (this != what)
-            dependent -= what
-    }
 
     /**
      * Variable state is always consistent so we don't need 
