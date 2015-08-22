@@ -6,114 +6,101 @@ class OrderQueueSpec extends FlatSpec {
 
     val emptyListener = new OrderListener {}
 
-    class Initial(side : Side) {
-
-        val initialPrice = side makeSigned 100
-
-        val q = new PriceLevel(initialPrice, None, None)
-
-        assert(q.totalVolume == 0)
-        assert(q.price == initialPrice)
-        assert(q.side == side)
-        assert(q.allOrders.isEmpty)
-
-        val v1 = 9
-        val v2 = 8
-
-        q store (LimitOrder(side, initialPrice, v1), emptyListener)
-
-        assert(q.totalVolume == v1)
-        assert(q.price == initialPrice)
-        assert(q.side == side)
-        assert(q.allOrders.toList == LimitOrderInfo(side, initialPrice, v1, emptyListener) :: Nil)
-    }
-    
     Side.choices foreach { side =>
-        s"PriceLevel($side)" should "be constructed properly with one order" in new Initial(side) {}
 
-        it should "accept orders of the same price" in new Initial(side) {
+        case class LevelInfo(price : SignedTicks, volumes : List[Quantity])
+
+        def checkResultImpl(mostAggressive : Option[PriceLevel], expected : List[LevelInfo]) : Unit =
+        {
+            expected match {
+                case Nil =>
+                    assert(mostAggressive.isEmpty)
+                case LevelInfo(price, volumes) :: tail =>
+                    assert(mostAggressive.nonEmpty)
+                    val level = mostAggressive.get
+                    assert(side == level.side)
+                    assert(price == level.price)
+                    val volumeTotal = volumes.sum
+                    assert(volumeTotal == level.totalVolume)
+                    val actual = level.ownOrders
+                    actual forall { o => o.side == side && o.price == price }
+                    val actualVolumes = (actual map { _.unmatchedVolume }).toList
+                    assert(volumes == actualVolumes)
+                    level.getNext foreach { N => assert(level == N.getPrevious.get) }
+
+                    checkResultImpl(level.getNext, tail)
+            }
+        }
+
+        def checkResult(mostAggressive : PriceLevel, expected : LevelInfo*) =
+            checkResultImpl(Some(mostAggressive), expected.toList)
+
+        class Initial {
+
+            val initialPrice = side makeSigned 100
+
+            val q = new PriceLevel(initialPrice, None, None)
+
+            assert(q.totalVolume == 0)
+            assert(q.price == initialPrice)
+            assert(q.side == side)
+            assert(q.allOrders.isEmpty)
+
+            val v1 = 9
+            val v2 = 8
+
+            q store (LimitOrder(side, initialPrice, v1), emptyListener)
+
+            checkResult(q, LevelInfo(initialPrice, v1 :: Nil))
+        }
+
+        s"PriceLevel($side)" should "be constructed properly with one order" in new Initial {}
+
+        it should "accept orders of the same price" in new Initial {
 
             q store (LimitOrder(side, initialPrice, v2), emptyListener)
 
-            assert(q.totalVolume == v1 + v2)
-            assert(q.price == initialPrice)
-            assert(q.side == side)
-            assert(q.allOrders.toList == LimitOrderInfo(side, initialPrice, v1, emptyListener) ::
-                                         LimitOrderInfo(side, initialPrice, v2, emptyListener) :: Nil)
+            checkResult(q, LevelInfo(initialPrice, v1 :: v2 :: Nil))
         }
 
-        it should "accept orders of more aggressive price" in new Initial(side) {
-
+        class WithMoreAggressive extends Initial {
             val moreAggressivePrice = initialPrice - 3
 
             q store (LimitOrder(side, moreAggressivePrice, v2), emptyListener)
 
-            assert(q.totalVolume == v1)
-            assert(q.price == initialPrice)
-            assert(q.side == side)
-            assert(q.allOrders.toList == LimitOrderInfo(side, initialPrice, v1, emptyListener) :: Nil)
-
             val p = q.getPrevious.get
 
-            assert(p.totalVolume == v2)
-            assert(p.price == moreAggressivePrice)
-            assert(p.side == side)
-            assert(p.allOrders.toList == LimitOrderInfo(side, moreAggressivePrice, v2, emptyListener) ::
-                                         LimitOrderInfo(side, initialPrice, v1, emptyListener) :: Nil)
+            checkResult(p, LevelInfo(moreAggressivePrice, v2 :: Nil), LevelInfo(initialPrice, v1 :: Nil))
+
         }
 
-        class WithNext(side : Side) extends Initial(side) {
+        it should "accept orders of more aggressive price" in new WithMoreAggressive {}
+
+        class WithLessAggressive extends Initial {
 
             val lessAggressivePrice = initialPrice + 5
 
             q store (LimitOrder(side, lessAggressivePrice, v2), emptyListener)
 
-            assert(q.totalVolume == v1)
-            assert(q.price == initialPrice)
-            assert(q.side == side)
-            assert(q.allOrders.toList == LimitOrderInfo(side, initialPrice, v1, emptyListener) ::
-                                         LimitOrderInfo(side, lessAggressivePrice, v2, emptyListener) :: Nil)
-
-            val p = q.getNext.get
-
-            assert(p.totalVolume == v2)
-            assert(p.price == lessAggressivePrice)
-            assert(p.side == side)
-            assert(p.allOrders.toList == LimitOrderInfo(side, lessAggressivePrice, v2, emptyListener)  :: Nil)
+            checkResult(q, LevelInfo(initialPrice, v1 :: Nil), LevelInfo(lessAggressivePrice, v2 :: Nil))
         }
 
-        it should "accept orders of less aggressive price" in new WithNext(side) {}
+        it should "accept orders of less aggressive price" in new WithLessAggressive {}
 
-        it should "accept orders of less aggressive price when there are following levels" in new WithNext(side) {
-
+        class WithTwoLessAggressive extends WithLessAggressive {
             val slightlyLessAggressivePrice = initialPrice + 1
 
             val v3 = 7
 
             q store (LimitOrder(side, slightlyLessAggressivePrice, v3), emptyListener)
 
-            assert(q.totalVolume == v1)
-            assert(q.price == initialPrice)
-            assert(q.side == side)
-            assert(q.allOrders.toList == LimitOrderInfo(side, initialPrice, v1, emptyListener) ::
-                                         LimitOrderInfo(side, slightlyLessAggressivePrice, v3, emptyListener) ::
-                                         LimitOrderInfo(side, lessAggressivePrice, v2, emptyListener) :: Nil)
-
-            val r = q.getNext.get
-
-            assert(r.totalVolume == v3)
-            assert(r.price == slightlyLessAggressivePrice)
-            assert(r.side == side)
-            assert(r.allOrders.toList == LimitOrderInfo(side, slightlyLessAggressivePrice, v3, emptyListener) ::
-                                         LimitOrderInfo(side, lessAggressivePrice, v2, emptyListener) :: Nil)
-
-            val s = r.getNext.get
-
-            assert(s.totalVolume == v2)
-            assert(s.price == lessAggressivePrice)
-            assert(s.side == side)
-            assert(s.allOrders.toList == LimitOrderInfo(side, lessAggressivePrice, v2, emptyListener) :: Nil)
+            checkResult(q,
+                LevelInfo(initialPrice, v1 :: Nil),
+                LevelInfo(slightlyLessAggressivePrice, v3 :: Nil),
+                LevelInfo(lessAggressivePrice, v2 :: Nil))
         }
+
+        it should "accept orders of less aggressive price when there are following levels" in new WithTwoLessAggressive {}
     }
 
 }
