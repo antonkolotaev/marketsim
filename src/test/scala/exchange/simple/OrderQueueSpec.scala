@@ -1,8 +1,9 @@
 package exchange.simple
 
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 
-class OrderQueueSpec extends FlatSpec {
+class OrderQueueSpec extends FlatSpec with MockFactory {
 
     val emptyListener = new OrderListener {}
 
@@ -35,6 +36,15 @@ class OrderQueueSpec extends FlatSpec {
         def checkResult(mostAggressive : PriceLevel, expected : LevelInfo*) =
             checkResultImpl(Some(mostAggressive), expected.toList)
 
+        class Listener() extends OrderListener
+        {
+            val onCancelled = mockFunction[Quantity, Unit]("onCancelled")
+            val onCompleted = mockFunction[Unit]("onCompleted")
+
+            override def cancelled(amount : Quantity) = onCancelled(amount)
+            override def completed() = onCompleted()
+        }
+
         class Initial {
 
             val initialPrice = side makeSigned 100
@@ -49,7 +59,8 @@ class OrderQueueSpec extends FlatSpec {
             val v1 = 9
             val v2 = 8
 
-            val cancellation1 = q store (LimitOrder(side, initialPrice, v1), emptyListener)
+            val events1 = new Listener
+            val cancellation1 = q store (LimitOrder(side, initialPrice, v1), events1)
 
             checkResult(q, LevelInfo(initialPrice, v1 :: Nil))
         }
@@ -57,16 +68,21 @@ class OrderQueueSpec extends FlatSpec {
         s"PriceLevel($side)" should "be constructed properly with one order" in new Initial {}
 
         it should "allow cancel small part of order" in new Initial {
+            events1.onCancelled expects 5 once ()
             cancellation1(5)
             checkResult(q, LevelInfo(initialPrice, v1 - 5 :: Nil))
         }
 
         it should "allow cancel order completely" in new Initial {
+            events1.onCancelled expects v1 once ()
+            events1.onCompleted expects() once()
             cancellation1(v1)
             checkResult(q, LevelInfo(initialPrice, 0 :: Nil))
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
+            events1.onCancelled expects v1 once ()
+            events1.onCompleted expects() once()
             cancellation1(v1 + 5)
             checkResult(q, LevelInfo(initialPrice, 0 :: Nil))
         }

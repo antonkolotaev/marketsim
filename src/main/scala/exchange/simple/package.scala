@@ -67,6 +67,9 @@ package object simple {
         {
             val toCancel = amount min unmatchedVolume
             unmatched -= toCancel
+            sender cancelled toCancel
+            if (unmatched == 0)
+                sender completed ()
             toCancel
         }
     }
