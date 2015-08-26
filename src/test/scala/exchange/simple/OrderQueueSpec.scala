@@ -49,12 +49,27 @@ class OrderQueueSpec extends FlatSpec {
             val v1 = 9
             val v2 = 8
 
-            q store (LimitOrder(side, initialPrice, v1), emptyListener)
+            val cancellation1 = q store (LimitOrder(side, initialPrice, v1), emptyListener)
 
             checkResult(q, LevelInfo(initialPrice, v1 :: Nil))
         }
 
         s"PriceLevel($side)" should "be constructed properly with one order" in new Initial {}
+
+        it should "allow cancel small part of order" in new Initial {
+            cancellation1(5)
+            checkResult(q, LevelInfo(initialPrice, v1 - 5 :: Nil))
+        }
+
+        it should "allow cancel order completely" in new Initial {
+            cancellation1(v1)
+            checkResult(q, LevelInfo(initialPrice, 0 :: Nil))
+        }
+
+        it should "allow cancel more than unmatched amount of order" in new Initial {
+            cancellation1(v1 + 5)
+            checkResult(q, LevelInfo(initialPrice, 0 :: Nil))
+        }
 
         it should "accept orders of the same price" in new Initial {
 

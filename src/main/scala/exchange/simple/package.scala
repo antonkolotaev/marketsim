@@ -62,6 +62,18 @@ package object simple {
 
         def createInfo(side : Side, price : SignedTicks) =
             LimitOrderInfo(side, price, unmatched, sender)
+
+        def cancel(amount : Quantity) =
+        {
+            val toCancel = amount min unmatchedVolume
+            unmatched -= toCancel
+            toCancel
+        }
+    }
+
+    case class CancellationToken(priceLevel: PriceLevel, entry: Entry)
+    {
+        def apply(amountToCancel : Quantity) = priceLevel cancel (entry, amountToCancel)
     }
 
     class PriceLevel(val price : SignedTicks,
@@ -79,23 +91,25 @@ package object simple {
 
         private def storeImpl(volume : Quantity, sender : OrderListener) =
         {
-            entries enqueue new Entry(volume, sender)
+            val e = new Entry(volume, sender)
+            entries enqueue e
             totalVolume_ += volume
+            CancellationToken(this, e)
         }
 
-        def store(order : LimitOrder, sender : OrderListener) : Unit =
-            if (order.price < price)
-            {
-                new PriceLevel(order.price, prev, Some(this)) storeImpl (order.volume, sender)
-            }
-            else if (order.price == price)
-                storeImpl(order.volume, sender)
-            else {
-                if (next.isEmpty) {
-                    new PriceLevel(order.price, Some(this), None) storeImpl (order.volume, sender)
-                } else
-                    next.get store (order, sender)
-            }
+        def store(order : LimitOrder, sender : OrderListener) : CancellationToken =
+
+            if (order.price > price && next.isDefined)
+                next.get store (order, sender)
+            else
+                (if (order.price  < price) new PriceLevel(order.price, prev, Some(this)) else
+                 if (order.price == price) this else
+                                           new PriceLevel(order.price, Some(this), None)
+                    ) storeImpl (order.volume, sender)
+
+        def cancel(e : Entry, amountToCancel : Quantity) = {
+            totalVolume_ -= e cancel amountToCancel
+        }
 
         val side = Side of price
 
