@@ -5,39 +5,17 @@ import org.scalatest.FlatSpec
 
 class PriceLevelSpec extends FlatSpec with MockFactory {
 
+    import common._
+
     val emptyListener = new OrderListener {}
 
     Side.choices foreach { side =>
 
-        case class LevelInfo(price : SignedTicks, volumes : List[Quantity])
-
-        def checkResultImpl(mostAggressive : Option[PriceLevel], expected : List[LevelInfo]) : Unit =
-        {
-            expected match {
-                case Nil =>
-                    assert(mostAggressive.isEmpty)
-                case LevelInfo(price, volumes) :: tail =>
-                    assert(mostAggressive.nonEmpty)
-                    val level = mostAggressive.get
-                    assert(side == level.side)
-                    assert(price == level.price)
-                    val volumeTotal = volumes.sum
-                    assert(volumeTotal == level.totalVolume)
-                    val actual = level.ownOrders
-                    actual forall { o => o.side == side && o.price == price }
-                    val actualVolumes = (actual map { _.unmatchedVolume }).toList
-                    assert(volumes == actualVolumes)
-                    level.getNext foreach { N => assert(level == N.getPrevious.get) }
-
-                    checkResultImpl(level.getNext, tail)
-            }
-        }
-
         def checkResult(mostAggressive : PriceLevel, expected : LevelInfo*) =
-            checkResultImpl(Some(mostAggressive), expected.toList)
+            checkResultImpl(side)(Some(mostAggressive), expected.toList)
 
         def check(queue : OrderQueue, expected : LevelInfo*) =
-            checkResultImpl(Some(queue.bestLevel), expected.toList)
+            checkResultImpl(side)(Some(queue.bestLevel), expected.toList)
 
         class Listener() extends OrderListener
         {
