@@ -39,6 +39,8 @@ package object linear {
         val volume  : Quantity
     }
 
+    type CancellationToken = Quantity => Unit
+
     /**
      *  Interface for order event listeners
      */
@@ -48,92 +50,10 @@ package object linear {
         def completed() {}
     }
 
-
     case class MarketOrder(side : Side, volume : Quantity) extends Order
 
     case class LimitOrder(side : Side, price : SignedTicks, volume : Quantity) extends Order
 
     case class LimitOrderInfo(side : Side, price : SignedTicks, unmatchedVolume : Quantity, sender : OrderListener)
 
-    class Entry(private var unmatched : Quantity,
-                        val sender : OrderListener)
-    {
-        def unmatchedVolume = unmatched
-
-        def createInfo(side : Side, price : SignedTicks) =
-            LimitOrderInfo(side, price, unmatched, sender)
-
-        def cancel(amount : Quantity) =
-        {
-            val toCancel = amount min unmatchedVolume
-            unmatched -= toCancel
-            sender cancelled toCancel
-            if (unmatched == 0)
-                sender completed ()
-            toCancel
-        }
-    }
-
-    case class CancellationToken(priceLevel: PriceLevel, entry: Entry)
-    {
-        def apply(amountToCancel : Quantity) = priceLevel cancel (entry, amountToCancel)
-    }
-
-    class PriceLevel(val price : SignedTicks,
-                     private var prev : Option[PriceLevel],
-                     private var next : Option[PriceLevel])
-    {
-        prev foreach { _.next = Some(this) }
-        next foreach { _.prev = Some(this) }
-
-        private val entries = collection.mutable.Queue.empty[Entry]
-        private var totalVolume_ : Quantity = 0
-
-        def getPrevious = prev
-        def getNext = next
-
-        private def storeImpl(volume : Quantity, sender : OrderListener) =
-        {
-            val e = new Entry(volume, sender)
-            entries enqueue e
-            totalVolume_ += volume
-            CancellationToken(this, e)
-        }
-
-        def store(order : LimitOrder, sender : OrderListener) : CancellationToken =
-
-            if (order.price >= next.get.price) // we assume that an order with infinite price ends the queue
-                next.get store (order, sender)
-            else
-                (if (order.price == price)  this else
-                 /*  order.price > price */ new PriceLevel(order.price, Some(this), next)
-                    ) storeImpl (order.volume, sender)
-
-        def cancel(e : Entry, amountToCancel : Quantity) = {
-            totalVolume_ -= e cancel amountToCancel
-        }
-
-        val side = Side of price
-
-        def totalVolume = totalVolume_
-
-        def ownOrders = entries map { _ createInfo (side, price) }
-        
-        def allOrders : Iterable[LimitOrderInfo] = ownOrders ++ (next map { _.allOrders } getOrElse Nil)
-    }
-
-    class OrderQueue(side : Side)
-    {
-        private var bestPriceLevel = new PriceLevel(Int.MaxValue, None, None)
-
-        def store(order : LimitOrder, sender : OrderListener) = {
-            if (order.price < bestPriceLevel.price)
-                bestPriceLevel = new PriceLevel(order.price, None, Some(bestPriceLevel))
-            bestPriceLevel store(order, sender)
-        }
-
-        def bestLevel = bestPriceLevel
-
-        def allOrders = bestPriceLevel.allOrders
-    }
 }
