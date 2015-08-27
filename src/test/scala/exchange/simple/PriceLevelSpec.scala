@@ -3,7 +3,7 @@ package exchange.simple
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 
-class OrderQueueSpec extends FlatSpec with MockFactory {
+class PriceLevelSpec extends FlatSpec with MockFactory {
 
     val emptyListener = new OrderListener {}
 
@@ -35,6 +35,9 @@ class OrderQueueSpec extends FlatSpec with MockFactory {
 
         def checkResult(mostAggressive : PriceLevel, expected : LevelInfo*) =
             checkResultImpl(Some(mostAggressive), expected.toList)
+
+        def check(queue : OrderQueue, expected : LevelInfo*) =
+            checkResultImpl(Some(queue.bestLevel), expected.toList)
 
         class Listener() extends OrderListener
         {
