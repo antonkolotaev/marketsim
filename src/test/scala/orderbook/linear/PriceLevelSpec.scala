@@ -1,27 +1,13 @@
 package orderbook.linear
 
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.FlatSpec
-
-class PriceLevelSpec extends FlatSpec with MockFactory {
+class PriceLevelSpec extends common.Base {
 
     import common._
-
-    val emptyListener = new OrderListener {}
 
     Side.choices foreach { side =>
 
         def checkResult(mostAggressive : PriceLevel, expected : LevelInfo*) =
             checkResultImpl(side)(Some(mostAggressive), expected.toList)
-
-        class Listener() extends OrderListener
-        {
-            val onCancelled = mockFunction[Quantity, Unit]("onCancelled")
-            val onCompleted = mockFunction[Unit]("onCompleted")
-
-            override def cancelled(amount : Quantity) = onCancelled(amount)
-            override def completed() = onCompleted()
-        }
 
         class Initial {
 

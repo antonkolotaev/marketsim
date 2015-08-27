@@ -1,23 +1,10 @@
 package orderbook.linear
 
 import orderbook.linear.common._
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.FlatSpec
 
-class OrderQueueSpec extends FlatSpec with MockFactory {
+class OrderQueueSpec extends Base {
 
     Side.choices foreach { side =>
-
-        class Listener() extends OrderListener
-        {
-            val onCancelled = mockFunction[Quantity, Unit]("onCancelled")
-            val onCompleted = mockFunction[Unit]("onCompleted")
-
-            override def cancelled(amount : Quantity) = onCancelled(amount)
-            override def completed() = onCompleted()
-        }
-
-        val emptyListener = new OrderListener {}
 
         class Initial {
 
