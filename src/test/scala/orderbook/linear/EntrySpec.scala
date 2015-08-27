@@ -17,7 +17,7 @@ class EntrySpec extends common.Base {
 
         val C = 5
         L.onCancelled expects C once()
-        assert((e cancel C) == 5)
+        assert((e cancel C) == C)
 
         assert(!e.fulfilled)
         assert(e.unmatchedVolume == V - C)
@@ -43,4 +43,47 @@ class EntrySpec extends common.Base {
         assert(e.fulfilled)
         assert(e.unmatchedVolume == 0)
     }
+
+    class Matching extends Initial {
+        val P = 97
+        val incoming = new Listener
+
+        def expectTrade(amount : Quantity) = {
+            L.onTraded expects (P, amount) once()
+            incoming.onTraded expects (P, amount) once()
+        }
+    }
+
+    it should "trade with small orders" in new Matching {
+        val C = 5
+        expectTrade(C)
+
+        assert((e matchWith (P, C, incoming)) == 5)
+
+        assert(!e.fulfilled)
+        assert(e.unmatchedVolume == V - C)
+    }
+
+    it should "allow trade all amount" in new Matching {
+
+        expectTrade(V)
+        L.onCompleted expects() once()
+        assert((e matchWith (P,V, incoming)) == V)
+
+        assert(e.fulfilled)
+        assert(e.unmatchedVolume == 0)
+    }
+
+    it should "allow trade more than all amount" in new Matching {
+
+        expectTrade(V)
+        L.onCompleted expects() once()
+        assert((e matchWith (P,V + 10, incoming)) == V)
+
+        assert(e.fulfilled)
+        assert(e.unmatchedVolume == 0)
+    }
+
+
+
 }

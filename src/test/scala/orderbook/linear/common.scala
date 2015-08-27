@@ -9,9 +9,11 @@ object common {
     {
         class Listener() extends OrderListener
         {
+            val onTraded = mockFunction[SignedTicks, Quantity, Unit]("onTraded")
             val onCancelled = mockFunction[Quantity, Unit]("onCancelled")
             val onCompleted = mockFunction[Unit]("onCompleted")
 
+            override def traded(price : SignedTicks, amountTraded : Quantity) = onTraded(price, amountTraded)
             override def cancelled(amount : Quantity) = onCancelled(amount)
             override def completed() = onCompleted()
         }
