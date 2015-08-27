@@ -102,12 +102,11 @@ package object simple {
 
         def store(order : LimitOrder, sender : OrderListener) : CancellationToken =
 
-            if (order.price > price && next.isDefined)
+            if (order.price >= next.get.price) // we assume that an order with infinite price ends the queue
                 next.get store (order, sender)
             else
-                (if (order.price  < price) new PriceLevel(order.price, prev, Some(this)) else
-                 if (order.price == price) this else
-                                           new PriceLevel(order.price, Some(this), None)
+                (if (order.price == price)  this else
+                 /*  order.price > price */ new PriceLevel(order.price, Some(this), next)
                     ) storeImpl (order.volume, sender)
 
         def cancel(e : Entry, amountToCancel : Quantity) = {

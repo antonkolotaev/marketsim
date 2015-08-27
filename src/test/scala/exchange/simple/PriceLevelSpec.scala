@@ -27,7 +27,8 @@ class PriceLevelSpec extends FlatSpec with MockFactory {
 
             val initialPrice = side makeSigned 100
 
-            val q = new PriceLevel(initialPrice, None, None)
+            val bestPriceLevel = new PriceLevel(Int.MaxValue, None, None)
+            val q = new PriceLevel(initialPrice, None, Some(bestPriceLevel))
 
             assert(q.totalVolume == 0)
             assert(q.price == initialPrice)
@@ -71,19 +72,6 @@ class PriceLevelSpec extends FlatSpec with MockFactory {
 
             checkResult(q, LevelInfo(initialPrice, v1 :: v2 :: Nil))
         }
-
-        class WithMoreAggressive extends Initial {
-            val moreAggressivePrice = initialPrice - 3
-
-            q store (LimitOrder(side, moreAggressivePrice, v2), emptyListener)
-
-            val p = q.getPrevious.get
-
-            checkResult(p, LevelInfo(moreAggressivePrice, v2 :: Nil), LevelInfo(initialPrice, v1 :: Nil))
-
-        }
-
-        it should "accept orders of more aggressive price" in new WithMoreAggressive {}
 
         class WithLessAggressive extends Initial {
 
