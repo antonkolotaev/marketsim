@@ -8,7 +8,7 @@ object common {
     {
         expected match {
             case Nil =>
-                assert(mostAggressive.isEmpty)
+                assert(mostAggressive.isEmpty || mostAggressive.get.allOrders.isEmpty)
             case LevelInfo(price, volumes) :: tail =>
                 assert(mostAggressive.nonEmpty)
                 val level = mostAggressive.get

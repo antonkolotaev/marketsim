@@ -14,9 +14,6 @@ class PriceLevelSpec extends FlatSpec with MockFactory {
         def checkResult(mostAggressive : PriceLevel, expected : LevelInfo*) =
             checkResultImpl(side)(Some(mostAggressive), expected.toList)
 
-        def check(queue : OrderQueue, expected : LevelInfo*) =
-            checkResultImpl(side)(Some(queue.bestLevel), expected.toList)
-
         class Listener() extends OrderListener
         {
             val onCancelled = mockFunction[Quantity, Unit]("onCancelled")
