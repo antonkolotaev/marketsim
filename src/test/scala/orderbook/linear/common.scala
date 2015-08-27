@@ -1,4 +1,4 @@
-package exchange.simple
+package orderbook.linear
 
 object common {
 

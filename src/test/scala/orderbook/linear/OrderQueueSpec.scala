@@ -1,6 +1,6 @@
-package exchange.simple
+package orderbook.linear
 
-import exchange.simple.common._
+import orderbook.linear.common._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 

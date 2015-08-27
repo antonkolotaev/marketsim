@@ -1,6 +1,6 @@
-package exchange
+package orderbook
 
-package object simple {
+package object linear {
 
     type Ticks = Int
     type SignedTicks = Int

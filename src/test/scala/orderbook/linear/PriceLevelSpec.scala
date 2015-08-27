@@ -1,4 +1,4 @@
-package exchange.simple
+package orderbook.linear
 
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
