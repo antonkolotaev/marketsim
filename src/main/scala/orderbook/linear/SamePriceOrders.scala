@@ -26,5 +26,5 @@ class SamePriceOrders {
     }
 
     def totalVolume = totalVolume_
-    protected def entries = entries_
+    protected[linear] def entries = entries_
 }
