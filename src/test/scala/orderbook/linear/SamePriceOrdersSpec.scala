@@ -3,10 +3,10 @@ package orderbook.linear
 class SamePriceOrdersSpec extends common.Base {
 
     class Initial {
-        val level = new SamePriceOrders
+        val level = new SamePriceOrders(100)
 
         def check(volumes : Quantity*) = {
-            val actual = level.entries map { _.unmatchedVolume }
+            val actual = level.ownOrders map { _.unmatchedVolume }
             assert(actual.toList == volumes.toList)
         }
 
