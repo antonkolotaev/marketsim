@@ -35,7 +35,11 @@ class SamePriceOrders(val price : SignedTicks) {
         val e = new Entry(volume, sender)
         entries_ enqueue e
         totalVolume_ += volume
-        (amountToCancel : Quantity) => totalVolume_ -= e cancel amountToCancel
+        (amountToCancel : Quantity) => {
+            val cancelled = e cancel amountToCancel
+            totalVolume_ -= cancelled
+            cancelled
+        }
     }
 
     /**

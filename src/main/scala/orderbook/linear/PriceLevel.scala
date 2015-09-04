@@ -23,7 +23,7 @@ class PriceLevel(price : SignedTicks,
     def getPrevious = prev
     def getNext = next
 
-    def store(order : LimitOrder, sender : OrderListener) : Quantity => Unit =
+    def store(order : LimitOrder, sender : OrderListener) : Quantity => Quantity =
 
         if (order.price >= next.get.price) // we assume that an order with infinite price ends the queue
             next.get store (order, sender)
