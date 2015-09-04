@@ -23,6 +23,12 @@ class PriceLevel(price : SignedTicks,
     def getPrevious = prev
     def getNext = next
 
+    /**
+     * Stores a limit order in the queue
+     * @param order -- order to keep
+     * @param sender -- order events
+     * @return -- cancellation token: a functional object that can be used to cancel a part of the order
+     */
     def store(order : LimitOrder, sender : OrderListener) : Quantity => Quantity =
 
         if (order.price >= next.get.price) // we assume that an order with infinite price ends the queue
@@ -31,6 +37,25 @@ class PriceLevel(price : SignedTicks,
             (if (order.price == price)  this else
             /*  order.price > price */ new PriceLevel(order.price, Some(this), next)
                 ) storeImpl (order.volume, sender)
+
+    /**
+     * Matches with a limit order (volume, limitPrice, sender)
+     * Fires traded event for our orders and for the incoming one
+     * Fires completed event for our orders that were fulfilled
+     * @param volume -- volume of the incoming order
+     * @param limitPrice -- limit price of the incoming order (+inf in case of market order)
+     * @param sender -- events for the incoming order
+     * @return -- unmatched volume of the incoming order
+     */
+    def matchWith(volume : Quantity, limitPrice : SignedTicks, sender : OrderListener) : Quantity =
+        
+        if (limitPrice < price)
+            volume
+        else
+            matchImpl(volume, sender) match {
+                case 0 => 0
+                case unmatched => next.get matchWith (unmatched, limitPrice, sender)
+            }
 
     def allOrders : Iterable[LimitOrderInfo] = ownOrders ++ (next map { _.allOrders } getOrElse Nil)
 }

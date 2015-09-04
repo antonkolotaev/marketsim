@@ -59,6 +59,30 @@ class PriceLevelSpec extends common.Base {
             checkResult(q, LevelInfo(initialPrice, v1 :: v2 :: Nil))
         }
 
+        it should "ignore orders with too small price" in new Initial {
+
+            val Incoming = new Listener
+            val c1 = 5
+            assert(c1 < v1)
+
+            val incomingPrice = initialPrice - 1
+
+            assert(q.matchWith(c1, incomingPrice, Incoming) == c1)
+            checkResult(q, LevelInfo(initialPrice, v1 :: Nil))
+        }
+
+        it should "ignore orders with too small price" in new Initial {
+
+            val Incoming = new Listener
+            val c1 = 5
+            assert(c1 < v1)
+
+            val incomingPrice = initialPrice - 1
+
+            assert(q.matchWith(c1, incomingPrice, Incoming) == c1)
+            checkResult(q, LevelInfo(initialPrice, v1 :: Nil))
+        }
+
         class WithLessAggressive extends Initial {
 
             val lessAggressivePrice = initialPrice + 5
@@ -84,6 +108,7 @@ class PriceLevelSpec extends common.Base {
         }
 
         it should "accept orders of less aggressive price when there are following levels" in new WithTwoLessAggressive {}
+
     }
 
 }
