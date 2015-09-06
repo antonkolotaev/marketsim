@@ -67,8 +67,8 @@ class PriceLevelSpec extends common.Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (initialPrice, c1) once ()
-            Incoming.onTraded expects (initialPrice, c1) once ()
+            _1.events.onTraded expects (initialPrice.abs, c1) once ()
+            Incoming.onTraded expects (initialPrice.abs, c1) once ()
 
             assert(q.matchWith(initialPrice, c1, Incoming) == 0)
             checkResult(q, LevelInfo(initialPrice, _1.volume - c1 :: Nil))

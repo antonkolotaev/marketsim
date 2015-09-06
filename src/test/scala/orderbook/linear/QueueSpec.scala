@@ -61,8 +61,8 @@ class QueueSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (initialPrice, c1) once ()
-            Incoming.onTraded expects (initialPrice, c1) once ()
+            _1.events.onTraded expects (initialPrice.abs, c1) once ()
+            Incoming.onTraded expects (initialPrice.abs, c1) once ()
 
             assert(queue.matchWith(initialPrice, c1, Incoming) == 0)
             checkResult(LevelInfo(initialPrice, _1.volume - c1 :: Nil))
@@ -105,9 +105,9 @@ class QueueSpec extends Base {
 
             val Incoming = new Listener("Incoming")
 
-            _1.events.onTraded expects (initialPrice, _1.volume) once ()
+            _1.events.onTraded expects (initialPrice.abs, _1.volume) once ()
             _1.events.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice, _1.volume) once ()
+            Incoming.onTraded expects (initialPrice.abs, _1.volume) once ()
 
             assert(queue.matchWith(initialPrice, _1.volume, Incoming) == 0)
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
@@ -122,9 +122,9 @@ class QueueSpec extends Base {
             val p = initialPrice + 1
             assert(p < lessAggressivePrice)
 
-            _1.events.onTraded expects (initialPrice, _1.volume) once ()
+            _1.events.onTraded expects (initialPrice.abs, _1.volume) once ()
             _1.events.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice, _1.volume) once ()
+            Incoming.onTraded expects (initialPrice.abs, _1.volume) once ()
 
             assert(queue.matchWith(p, c, Incoming) == c - _1.volume)
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
@@ -136,14 +136,14 @@ class QueueSpec extends Base {
 
             val c = _1.volume + _2.volume + 5
 
-            _1.events.onTraded expects (initialPrice, _1.volume) once ()
+            _1.events.onTraded expects (initialPrice.abs, _1.volume) once ()
             _1.events.onCompleted expects () once ()
 
-            _2.events.onTraded expects (lessAggressivePrice, _2.volume) once ()
+            _2.events.onTraded expects (lessAggressivePrice.abs, _2.volume) once ()
             _2.events.onCompleted expects () once ()
 
-            Incoming.onTraded expects (initialPrice, _1.volume) once ()
-            Incoming.onTraded expects (lessAggressivePrice, _2.volume) once ()
+            Incoming.onTraded expects (initialPrice.abs, _1.volume) once ()
+            Incoming.onTraded expects (lessAggressivePrice.abs, _2.volume) once ()
 
             assert(queue.matchWith(MarketOrderPrice, c, Incoming) == c - _1.volume - _2.volume)
             checkResult()
