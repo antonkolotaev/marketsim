@@ -38,6 +38,12 @@ class PriceLevel(price : SignedTicks,
             /*  order.price > price */ new PriceLevel(order.price, Some(this), next)
                 ) storeImpl (order.volume, sender)
 
+    private def removeIfEmpty() = {
+        assert(prev.isEmpty)
+        if (totalVolume == 0)
+            next.get.prev = None
+    }
+
     /**
      * Matches with a limit order (volume, limitPrice, sender)
      * Fires traded event for our orders and for the incoming one
@@ -53,8 +59,10 @@ class PriceLevel(price : SignedTicks,
             volume
         else
             matchImpl(volume, sender) match {
-                case 0 => 0
-                case unmatched => next.get matchWith (unmatched, limitPrice, sender)
+                case 0 => removeIfEmpty(); 0
+                case unmatched =>
+                    removeIfEmpty()
+                    next.get matchWith (unmatched, limitPrice, sender)
             }
 
     def allOrders : Iterable[LimitOrderInfo] = ownOrders ++ (next map { _.allOrders } getOrElse Nil)

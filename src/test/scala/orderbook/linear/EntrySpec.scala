@@ -4,7 +4,7 @@ class EntrySpec extends common.Base {
 
     class Initial {
         val V = 9
-        val L = new Listener
+        val L = new Listener("Initial")
         val e = new Entry(V, L)
 
         assert(!e.fulfilled)
@@ -46,7 +46,7 @@ class EntrySpec extends common.Base {
 
     class Matching extends Initial {
         val P = 97
-        val incoming = new Listener
+        val incoming = new Listener("Incoming")
 
         def expectTrade(amount : Quantity) = {
             L.onTraded expects (P, amount) once()

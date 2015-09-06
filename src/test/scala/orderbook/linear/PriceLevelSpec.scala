@@ -24,7 +24,7 @@ class PriceLevelSpec extends common.Base {
             val v1 = 9
             val v2 = 8
 
-            val events1 = new Listener
+            val events1 = new Listener("1")
             val cancellation1 = q store (LimitOrder(side, initialPrice, v1), events1)
 
             checkResult(q, LevelInfo(initialPrice, v1 :: Nil))
@@ -59,21 +59,22 @@ class PriceLevelSpec extends common.Base {
             checkResult(q, LevelInfo(initialPrice, v1 :: v2 :: Nil))
         }
 
-        it should "ignore orders with too small price" in new Initial {
+        it should "match with orders having small price" in new Initial {
 
-            val Incoming = new Listener
+            val Incoming = new Listener("Incoming")
             val c1 = 5
             assert(c1 < v1)
 
-            val incomingPrice = initialPrice - 1
+            events1.onTraded expects (initialPrice, c1) once ()
+            Incoming.onTraded expects (initialPrice, c1) once ()
 
-            assert(q.matchWith(c1, incomingPrice, Incoming) == c1)
-            checkResult(q, LevelInfo(initialPrice, v1 :: Nil))
+            assert(q.matchWith(c1, initialPrice, Incoming) == 0)
+            checkResult(q, LevelInfo(initialPrice, v1 - c1 :: Nil))
         }
 
         it should "ignore orders with too small price" in new Initial {
 
-            val Incoming = new Listener
+            val Incoming = new Listener("Incoming")
             val c1 = 5
             assert(c1 < v1)
 
@@ -93,6 +94,20 @@ class PriceLevelSpec extends common.Base {
         }
 
         it should "accept orders of less aggressive price" in new WithLessAggressive {}
+
+/*        it should "match the first order completely with an order having the same price" in new WithLessAggressive {
+
+            val Incoming = new Listener("Incoming")
+            val c1 = v1
+
+            Incoming.onTraded expects (initialPrice, v1) once ()
+            events1.onTraded expects (initialPrice, v1) once ()
+            events1.onCompleted expects () once ()
+
+            assert(q.matchWith(c1, initialPrice, Incoming) == 0)
+            checkResult(q, LevelInfo(lessAggressivePrice, v2 :: Nil))
+
+        } */
 
         class WithTwoLessAggressive extends WithLessAggressive {
             val slightlyLessAggressivePrice = initialPrice + 1

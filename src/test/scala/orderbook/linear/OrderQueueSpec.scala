@@ -18,7 +18,7 @@ class OrderQueueSpec extends Base {
             val v1 = 9
             val v2 = 8
 
-            val events1 = new Listener
+            val events1 = new Listener("1")
             val cancellation1 = queue store (LimitOrder(side, initialPrice, v1), events1)
 
             checkResult(LevelInfo(initialPrice, v1 :: Nil))

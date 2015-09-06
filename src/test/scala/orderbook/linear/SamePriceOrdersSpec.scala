@@ -17,7 +17,7 @@ class SamePriceOrdersSpec extends common.Base {
 
         val v1 = 9
 
-        val L1 = new Listener
+        val L1 = new Listener("1")
 
         val e1 = level storeImpl (v1, L1)
 
@@ -25,7 +25,7 @@ class SamePriceOrdersSpec extends common.Base {
         check(v1)
 
         val v2 = 7
-        val L2 = new Listener
+        val L2 = new Listener("2")
 
         val e2 = level storeImpl (v2, L2)
 
@@ -79,7 +79,7 @@ class SamePriceOrdersSpec extends common.Base {
         val c1 = 5
         assert(c1 < v1)
 
-        val Incoming = new Listener
+        val Incoming = new Listener("Incoming")
 
         L1.onTraded expects (P, c1) once ()
         Incoming.onTraded expects (P, c1) once ()
@@ -93,7 +93,7 @@ class SamePriceOrdersSpec extends common.Base {
 
         val c1 = v1
 
-        val Incoming = new Listener
+        val Incoming = new Listener("Incoming")
 
         L1.onTraded expects (P, c1) once ()
         L1.onCompleted expects () once ()
@@ -109,7 +109,7 @@ class SamePriceOrdersSpec extends common.Base {
 
         val c1 = v1 + v2 + 5
 
-        val Incoming = new Listener
+        val Incoming = new Listener("Incoming")
 
         L1.onTraded expects (P, v1) once ()
         L1.onCompleted expects () once ()
