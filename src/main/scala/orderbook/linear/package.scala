@@ -39,6 +39,9 @@ package object linear {
         val volume  : Quantity
     }
 
+    val TerminalOrderPrice = Int.MaxValue
+    val MarketOrderPrice = TerminalOrderPrice - 1
+
     type CancellationToken = Quantity => Unit
 
     /**
