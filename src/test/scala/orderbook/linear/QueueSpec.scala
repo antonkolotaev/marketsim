@@ -2,7 +2,7 @@ package orderbook.linear
 
 import orderbook.linear.common._
 
-class OrderQueueSpec extends Base {
+class QueueSpec extends Base {
 
     Side.choices foreach { side =>
 
@@ -10,7 +10,7 @@ class OrderQueueSpec extends Base {
 
             val initialPrice = side makeSigned 100
 
-            val queue = new OrderQueue(side)
+            val queue = new Queue(side)
 
             def checkResult(expected: LevelInfo*) =
                 checkResultImpl(side)(Some(queue.bestLevel), expected.toList)

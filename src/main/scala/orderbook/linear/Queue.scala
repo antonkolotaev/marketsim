@@ -4,7 +4,7 @@ package orderbook.linear
  * Represents a queue of limit orders of one side
  * @param side -- side of orders held in the queue
  */
-class OrderQueue(side : Side)
+class Queue(side : Side)
 {
     // we are going to mark the end of the queue by a dummy order with infinite price
     private val terminal = new {
