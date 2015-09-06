@@ -42,7 +42,7 @@ package object linear {
     val TerminalOrderPrice = Int.MaxValue
     val MarketOrderPrice = TerminalOrderPrice - 1
 
-    type CancellationToken = Quantity => Unit
+    type CancellationToken = Quantity => Quantity
 
     /**
      *  Interface for order event listeners

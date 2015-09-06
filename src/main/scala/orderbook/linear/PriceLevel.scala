@@ -35,7 +35,7 @@ class PriceLevel(price : SignedTicks,
      * @param sender -- order events
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
-    def store(order : LimitOrder, sender : OrderListener) : Quantity => Quantity =
+    def store(order : LimitOrder, sender : OrderListener) : CancellationToken =
 
         if (order.price >= next.get.price) // we assume that an order with infinite price ends the queue
             next.get store (order, sender)

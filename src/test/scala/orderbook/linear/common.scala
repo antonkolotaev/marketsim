@@ -28,7 +28,7 @@ object common {
     {
         expected match {
             case Nil =>
-                assert(mostAggressive.isEmpty || mostAggressive.get.price == Int.MaxValue)
+                assert(mostAggressive.isEmpty || mostAggressive.get.price == TerminalOrderPrice)
             case LevelInfo(price, volumes) :: tail =>
                 assert(mostAggressive.nonEmpty)
                 val level = mostAggressive.get

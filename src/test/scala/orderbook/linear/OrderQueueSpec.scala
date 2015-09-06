@@ -36,14 +36,14 @@ class OrderQueueSpec extends Base {
             events1.onCancelled expects v1 once ()
             events1.onCompleted expects() once()
             cancellation1(v1)
-            checkResult(LevelInfo(initialPrice, 0 :: Nil))
+            checkResult()
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
             events1.onCancelled expects v1 once ()
             events1.onCompleted expects() once()
             cancellation1(v1 + 5)
-            checkResult(LevelInfo(initialPrice, 0 :: Nil))
+            checkResult()
         }
 
         it should "accept orders of the same price" in new Initial {
