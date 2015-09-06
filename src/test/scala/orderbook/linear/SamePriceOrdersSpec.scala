@@ -1,11 +1,17 @@
 package orderbook.linear
 
 class SamePriceOrdersSpec extends common.Base {
-
+    
     class Initial {
-
+        
         val P = 100
         val level = new SamePriceOrders(P)
+
+        class OrderStored(val volume : Quantity)
+        {
+            val listener = new Listener(volume.toString)
+            val canceller = level storeImpl (volume, listener)
+        }
 
         def check(volumes : Quantity*) = {
             val actual = level.ownOrders map { _.unmatchedVolume }
@@ -15,22 +21,15 @@ class SamePriceOrdersSpec extends common.Base {
         assert(level.totalVolume == 0)
         check()
 
-        val v1 = 9
+        val _1 = new OrderStored(9)
 
-        val L1 = new Listener("1")
+        assert(level.totalVolume == _1.volume)
+        check(_1.volume)
 
-        val e1 = level storeImpl (v1, L1)
+        val _2 = new OrderStored(7)
 
-        assert(level.totalVolume == v1)
-        check(v1)
-
-        val v2 = 7
-        val L2 = new Listener("2")
-
-        val e2 = level storeImpl (v2, L2)
-
-        assert(level.totalVolume == v1 + v2)
-        check(v1, v2)
+        assert(level.totalVolume == _1.volume + _2.volume)
+        check(_1.volume, _2.volume)
     }
 
     "same price orders" should "enqueue different orders" in new Initial {}
@@ -38,89 +37,89 @@ class SamePriceOrdersSpec extends common.Base {
     it should "cancel a small part of order" in new Initial {
 
         val c1 = 5
-        assert(c1 < v1)
+        assert(c1 < _1.volume)
 
-        L1.onCancelled expects c1 once ()
+        _1.listener.onCancelled expects c1 once ()
 
-        assert(e1(c1) == c1)
+        assert(_1.canceller(c1) == c1)
 
-        assert(level.totalVolume == v1 + v2 - c1)
-        check(v1 - c1, v2)
+        assert(level.totalVolume == _1.volume + _2.volume - c1)
+        check(_1.volume - c1, _2.volume)
     }
 
     it should "cancel an order completely" in new Initial {
 
-        val c1 = v1
+        val c1 = _1.volume
 
-        L1.onCancelled expects c1 once ()
-        L1.onCompleted expects () once ()
+        _1.listener.onCancelled expects c1 once ()
+        _1.listener.onCompleted expects () once ()
 
-        assert(e1(c1) == c1)
+        assert(_1.canceller(c1) == c1)
 
-        assert(level.totalVolume == v1 + v2 - c1)
-        check(v1 - c1, v2)
+        assert(level.totalVolume == _1.volume + _2.volume - c1)
+        check(_1.volume - c1, _2.volume)
     }
 
     it should "cancel more than order volume" in new Initial {
 
-        val c1 = v1 + 5
+        val c1 = _1.volume + 5
 
-        L1.onCancelled expects v1 once ()
-        L1.onCompleted expects () once ()
+        _1.listener.onCancelled expects _1.volume once ()
+        _1.listener.onCompleted expects () once ()
 
-        assert(e1(c1) == v1)
+        assert(_1.canceller(c1) == _1.volume)
 
-        assert(level.totalVolume == v2)
-        check(0, v2)
+        assert(level.totalVolume == _2.volume)
+        check(0, _2.volume)
     }
 
     it should "match with small orders" in new Initial {
 
         val c1 = 5
-        assert(c1 < v1)
+        assert(c1 < _1.volume)
 
         val Incoming = new Listener("Incoming")
 
-        L1.onTraded expects (P, c1) once ()
+        _1.listener.onTraded expects (P, c1) once ()
         Incoming.onTraded expects (P, c1) once ()
         assert(level.matchImpl(c1, Incoming) == 0)
 
-        assert(level.totalVolume == v1 + v2 - c1)
-        check(v1 - c1, v2)
+        assert(level.totalVolume == _1.volume + _2.volume - c1)
+        check(_1.volume - c1, _2.volume)
     }
 
     it should "match completely the first order with an order of the same size" in new Initial {
 
-        val c1 = v1
+        val c1 = _1.volume
 
         val Incoming = new Listener("Incoming")
 
-        L1.onTraded expects (P, c1) once ()
-        L1.onCompleted expects () once ()
+        _1.listener.onTraded expects (P, c1) once ()
+        _1.listener.onCompleted expects () once ()
         Incoming.onTraded expects (P, c1) once ()
 
         assert(level.matchImpl(c1, Incoming) == 0)
 
-        assert(level.totalVolume == v1 + v2 - c1)
-        check(v2)
+        assert(level.totalVolume == _1.volume + _2.volume - c1)
+        check(_2.volume)
     }
 
     it should "match all queue with a very big order" in new Initial {
 
-        val c1 = v1 + v2 + 5
+        val c1 = _1.volume + _2.volume + 5
 
         val Incoming = new Listener("Incoming")
 
-        L1.onTraded expects (P, v1) once ()
-        L1.onCompleted expects () once ()
+        _1.listener.onTraded expects (P, _1.volume) once ()
+        _1.listener.onCompleted expects () once ()
 
-        L2.onTraded expects (P, v2) once ()
-        L2.onCompleted expects () once ()
+        _2.listener.onTraded expects (P, _2.volume) once ()
+        _2.listener.onCompleted expects () once ()
 
-        Incoming.onTraded expects (P, v1) once ()
-        Incoming.onTraded expects (P, v2) once ()
+        Incoming.onTraded expects (P, _1.volume) once ()
+        Incoming.onTraded expects (P, _2.volume) once ()
 
-        assert(level.matchImpl(c1, Incoming) == c1 - v1 - v2)
+        assert(level.matchImpl(c1, Incoming) == c1 - _1.volume - _2.volume)
 
         assert(level.totalVolume == 0)
         check()

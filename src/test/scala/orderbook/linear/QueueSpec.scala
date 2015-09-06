@@ -14,76 +14,78 @@ class QueueSpec extends Base {
 
             def checkResult(expected: LevelInfo*) =
                 checkResultImpl(side)(Some(queue.bestLevel), expected.toList)
+            
+            class OrderPlaced(val price : SignedTicks, val volume : Quantity)
+            {
+                val events = new Listener(s"$price.$volume")
+                val canceller = queue store (price, volume, events)
+            }
 
-            val v1 = 9
-            val v2 = 8
+            val _1 = new OrderPlaced(initialPrice, 9)
 
-            val events1 = new Listener("1")
-            val cancellation1 = queue store (initialPrice, v1, events1)
-
-            checkResult(LevelInfo(initialPrice, v1 :: Nil))
+            checkResult(LevelInfo(initialPrice, _1.volume :: Nil))
         }
 
         s"OrderQueue($side)" should "be constructed properly with one order" in new Initial {}
 
         it should "allow cancel small part of order" in new Initial {
-            events1.onCancelled expects 5 once ()
-            cancellation1(5)
-            checkResult(LevelInfo(initialPrice, v1 - 5 :: Nil))
+            _1.events.onCancelled expects 5 once ()
+            _1.canceller(5)
+            checkResult(LevelInfo(initialPrice, _1.volume - 5 :: Nil))
         }
 
         it should "allow cancel order completely" in new Initial {
-            events1.onCancelled expects v1 once ()
-            events1.onCompleted expects() once()
-            cancellation1(v1)
+            _1.events.onCancelled expects _1.volume once ()
+            _1.events.onCompleted expects() once()
+            _1.canceller(_1.volume)
             checkResult()
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
-            events1.onCancelled expects v1 once ()
-            events1.onCompleted expects() once()
-            cancellation1(v1 + 5)
+            _1.events.onCancelled expects _1.volume once ()
+            _1.events.onCompleted expects() once()
+            _1.canceller(_1.volume + 5)
             checkResult()
         }
 
         it should "accept orders of the same price" in new Initial {
 
-            queue store (initialPrice, v2, emptyListener)
+            val _2 = new OrderPlaced(initialPrice, 8)
 
-            checkResult(LevelInfo(initialPrice, v1 :: v2 :: Nil))
+            checkResult(LevelInfo(initialPrice, _1.volume :: _2.volume :: Nil))
         }
 
         it should "match with orders having small price" in new Initial {
 
             val Incoming = new Listener("Incoming")
             val c1 = 5
-            assert(c1 < v1)
+            assert(c1 < _1.volume)
 
-            events1.onTraded expects (initialPrice, c1) once ()
+            _1.events.onTraded expects (initialPrice, c1) once ()
             Incoming.onTraded expects (initialPrice, c1) once ()
 
             assert(queue.matchWith(initialPrice, c1, Incoming) == 0)
-            checkResult(LevelInfo(initialPrice, v1 - c1 :: Nil))
+            checkResult(LevelInfo(initialPrice, _1.volume - c1 :: Nil))
         }
 
         it should "ignore orders with too small price" in new Initial {
 
             val Incoming = new Listener("Incoming")
             val c1 = 5
-            assert(c1 < v1)
+            assert(c1 < _1.volume)
 
             val incomingPrice = initialPrice - 1
 
             assert(queue.matchWith(incomingPrice, c1, Incoming) == c1)
-            checkResult(LevelInfo(initialPrice, v1 :: Nil))
+            checkResult(LevelInfo(initialPrice, _1.volume :: Nil))
         }
 
         class WithMoreAggressive extends Initial {
             val moreAggressivePrice = initialPrice - 3
 
-            queue store (moreAggressivePrice, v2, emptyListener)
+            val _2 = new OrderPlaced(moreAggressivePrice, 8)
 
-            checkResult(LevelInfo(moreAggressivePrice, v2 :: Nil), LevelInfo(initialPrice, v1 :: Nil))
+            checkResult(LevelInfo(moreAggressivePrice, _2.volume :: Nil), LevelInfo(initialPrice, _1.volume :: Nil))
         }
 
         it should "accept orders of more aggressive price" in new WithMoreAggressive {}
@@ -91,12 +93,10 @@ class QueueSpec extends Base {
         class WithLessAggressive extends Initial {
 
             val lessAggressivePrice = initialPrice + 5
+            
+            val _2 = new OrderPlaced(lessAggressivePrice, 8)
 
-            val events2 = new Listener("2")
-
-            queue store (lessAggressivePrice, v2, events2)
-
-            checkResult(LevelInfo(initialPrice, v1 :: Nil), LevelInfo(lessAggressivePrice, v2 :: Nil))
+            checkResult(LevelInfo(initialPrice, _1.volume :: Nil), LevelInfo(lessAggressivePrice, _2.volume :: Nil))
         }
 
         it should "accept orders of less aggressive price" in new WithLessAggressive {}
@@ -105,47 +105,47 @@ class QueueSpec extends Base {
 
             val Incoming = new Listener("Incoming")
 
-            events1.onTraded expects (initialPrice, v1) once ()
-            events1.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice, v1) once ()
+            _1.events.onTraded expects (initialPrice, _1.volume) once ()
+            _1.events.onCompleted expects () once ()
+            Incoming.onTraded expects (initialPrice, _1.volume) once ()
 
-            assert(queue.matchWith(initialPrice, v1, Incoming) == 0)
-            checkResult(LevelInfo(lessAggressivePrice, v2 :: Nil))
+            assert(queue.matchWith(initialPrice, _1.volume, Incoming) == 0)
+            checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
         }
 
         it should "match completely the first order with a big order having a less aggressive price" in new WithLessAggressive {
 
             val Incoming = new Listener("Incoming")
 
-            val c = v1 + 7
+            val c = _1.volume + 7
 
             val p = initialPrice + 1
             assert(p < lessAggressivePrice)
 
-            events1.onTraded expects (initialPrice, v1) once ()
-            events1.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice, v1) once ()
+            _1.events.onTraded expects (initialPrice, _1.volume) once ()
+            _1.events.onCompleted expects () once ()
+            Incoming.onTraded expects (initialPrice, _1.volume) once ()
 
-            assert(queue.matchWith(p, c, Incoming) == c - v1)
-            checkResult(LevelInfo(lessAggressivePrice, v2 :: Nil))
+            assert(queue.matchWith(p, c, Incoming) == c - _1.volume)
+            checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
         }
 
         it should "empty the queue being matched with a very big order" in new WithLessAggressive {
 
             val Incoming = new Listener("Incoming")
 
-            val c = v1 + v2 + 5
+            val c = _1.volume + _2.volume + 5
 
-            events1.onTraded expects (initialPrice, v1) once ()
-            events1.onCompleted expects () once ()
+            _1.events.onTraded expects (initialPrice, _1.volume) once ()
+            _1.events.onCompleted expects () once ()
 
-            events2.onTraded expects (lessAggressivePrice, v2) once ()
-            events2.onCompleted expects () once ()
+            _2.events.onTraded expects (lessAggressivePrice, _2.volume) once ()
+            _2.events.onCompleted expects () once ()
 
-            Incoming.onTraded expects (initialPrice, v1) once ()
-            Incoming.onTraded expects (lessAggressivePrice, v2) once ()
+            Incoming.onTraded expects (initialPrice, _1.volume) once ()
+            Incoming.onTraded expects (lessAggressivePrice, _2.volume) once ()
 
-            assert(queue.matchWith(MarketOrderPrice, c, Incoming) == c - v1 - v2)
+            assert(queue.matchWith(MarketOrderPrice, c, Incoming) == c - _1.volume - _2.volume)
             checkResult()
         }
 
@@ -157,9 +157,9 @@ class QueueSpec extends Base {
             queue store (slightlyLessAggressivePrice, v3, emptyListener)
 
             checkResult(
-                LevelInfo(initialPrice, v1 :: Nil),
+                LevelInfo(initialPrice, _1.volume :: Nil),
                 LevelInfo(slightlyLessAggressivePrice, v3 :: Nil),
-                LevelInfo(lessAggressivePrice, v2 :: Nil))
+                LevelInfo(lessAggressivePrice, _2.volume :: Nil))
         }
 
         it should "accept orders of less aggressive price when there are following levels" in new WithTwoLessAggressive {}
