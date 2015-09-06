@@ -57,9 +57,9 @@ package object linear {
         def completed() {}
     }
 
-    case class MarketOrder(side : Side, volume : Quantity) extends Order
+    case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener) extends Order
 
-    case class LimitOrder(side : Side, price : SignedTicks, volume : Quantity) extends Order
+    case class LimitOrder(side : Side, price : Ticks, volume : Quantity, sender : OrderListener) extends Order
 
     case class LimitOrderInfo(side : Side, price : SignedTicks, unmatchedVolume : Quantity, sender : OrderListener)
 

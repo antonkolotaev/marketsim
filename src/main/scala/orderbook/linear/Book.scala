@@ -23,15 +23,26 @@ class Book {
 
     private val emptyCancellation = (q : Quantity) => q
 
-    def processLimit(order : LimitOrder, sender : OrderListener) : CancellationToken = {
-        underLock[CancellationToken] {
-            queue(order.side.opposite) matchWith (order.price, order.volume, sender) match {
-                case 0 => emptyCancellation
-                //case unmatched =>
-                //    queue(order.side) store ()
+    def process(order : LimitOrder) : CancellationToken =
+        underLock {
+            val price = order.side makeSigned order.price
+            queue(order.side.opposite) matchWith (price, order.volume, order.sender) match {
+                case 0 =>
+                    order.sender.completed()
+                    emptyCancellation
+                case unmatched =>
+                    queue(order.side) store (price, unmatched, order.sender)
             }
-
         }
-    }
+
+    def process(order : MarketOrder) =
+        underLock {
+            queue(order.side.opposite) matchWith (MarketOrderPrice, order.volume, order.sender) match {
+                case 0 =>
+                case unmatched =>
+                    order.sender cancelled unmatched
+            }
+            order.sender.completed()
+        }
 
 }
