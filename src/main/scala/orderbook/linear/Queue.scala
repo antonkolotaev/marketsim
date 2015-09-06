@@ -24,27 +24,28 @@ class Queue(side : Side)
 
     /**
      * Stores a limit order in the queue
-     * @param order -- order to keep
+     * @param price -- price of an order to keep
+     * @param volume -- volume of an order to keep
      * @param sender -- order events
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
-    def store(order : LimitOrder, sender : OrderListener) = {
-        if (order.price < bestPriceLevel.price)
-            bestPriceLevel = new PriceLevel(order.price, None, Some(bestPriceLevel))
-        bestPriceLevel store(order, sender)
+    private[linear] def store(price : SignedTicks, volume : Quantity, sender : OrderListener) = {
+        if (price < bestPriceLevel.price)
+            bestPriceLevel = new PriceLevel(price, None, Some(bestPriceLevel))
+        bestPriceLevel store(price, volume, sender)
     }
 
     /**
      * Matches with a limit order (volume, limitPrice, sender)
      * Fires traded event for our orders and for the incoming one
      * Fires completed event for our orders that were fulfilled
-     * @param volume -- volume of the incoming order
      * @param limitPrice -- limit price of the incoming order (+inf in case of market order)
+     * @param volume -- volume of the incoming order
      * @param sender -- events for the incoming order
      * @return -- unmatched volume of the incoming order
      */
-    def matchWith(volume : Quantity, limitPrice : SignedTicks, sender : OrderListener) : Quantity = {
-        val unmatched = bestPriceLevel matchWith (volume, limitPrice, sender)
+    private[linear] def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderListener) : Quantity = {
+        val unmatched = bestPriceLevel matchWith (limitPrice, volume, sender)
         removeEmptyBestLevels()
         unmatched
     }

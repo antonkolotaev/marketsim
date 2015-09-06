@@ -19,7 +19,7 @@ class QueueSpec extends Base {
             val v2 = 8
 
             val events1 = new Listener("1")
-            val cancellation1 = queue store (LimitOrder(side, initialPrice, v1), events1)
+            val cancellation1 = queue store (initialPrice, v1, events1)
 
             checkResult(LevelInfo(initialPrice, v1 :: Nil))
         }
@@ -48,7 +48,7 @@ class QueueSpec extends Base {
 
         it should "accept orders of the same price" in new Initial {
 
-            queue store (LimitOrder(side, initialPrice, v2), emptyListener)
+            queue store (initialPrice, v2, emptyListener)
 
             checkResult(LevelInfo(initialPrice, v1 :: v2 :: Nil))
         }
@@ -62,7 +62,7 @@ class QueueSpec extends Base {
             events1.onTraded expects (initialPrice, c1) once ()
             Incoming.onTraded expects (initialPrice, c1) once ()
 
-            assert(queue.matchWith(c1, initialPrice, Incoming) == 0)
+            assert(queue.matchWith(initialPrice, c1, Incoming) == 0)
             checkResult(LevelInfo(initialPrice, v1 - c1 :: Nil))
         }
 
@@ -74,14 +74,14 @@ class QueueSpec extends Base {
 
             val incomingPrice = initialPrice - 1
 
-            assert(queue.matchWith(c1, incomingPrice, Incoming) == c1)
+            assert(queue.matchWith(incomingPrice, c1, Incoming) == c1)
             checkResult(LevelInfo(initialPrice, v1 :: Nil))
         }
 
         class WithMoreAggressive extends Initial {
             val moreAggressivePrice = initialPrice - 3
 
-            queue store (LimitOrder(side, moreAggressivePrice, v2), emptyListener)
+            queue store (moreAggressivePrice, v2, emptyListener)
 
             checkResult(LevelInfo(moreAggressivePrice, v2 :: Nil), LevelInfo(initialPrice, v1 :: Nil))
         }
@@ -94,7 +94,7 @@ class QueueSpec extends Base {
 
             val events2 = new Listener("2")
 
-            queue store (LimitOrder(side, lessAggressivePrice, v2), events2)
+            queue store (lessAggressivePrice, v2, events2)
 
             checkResult(LevelInfo(initialPrice, v1 :: Nil), LevelInfo(lessAggressivePrice, v2 :: Nil))
         }
@@ -109,7 +109,7 @@ class QueueSpec extends Base {
             events1.onCompleted expects () once ()
             Incoming.onTraded expects (initialPrice, v1) once ()
 
-            assert(queue.matchWith(v1, initialPrice, Incoming) == 0)
+            assert(queue.matchWith(initialPrice, v1, Incoming) == 0)
             checkResult(LevelInfo(lessAggressivePrice, v2 :: Nil))
         }
 
@@ -126,7 +126,7 @@ class QueueSpec extends Base {
             events1.onCompleted expects () once ()
             Incoming.onTraded expects (initialPrice, v1) once ()
 
-            assert(queue.matchWith(c, p, Incoming) == c - v1)
+            assert(queue.matchWith(p, c, Incoming) == c - v1)
             checkResult(LevelInfo(lessAggressivePrice, v2 :: Nil))
         }
 
@@ -145,7 +145,7 @@ class QueueSpec extends Base {
             Incoming.onTraded expects (initialPrice, v1) once ()
             Incoming.onTraded expects (lessAggressivePrice, v2) once ()
 
-            assert(queue.matchWith(c, MarketOrderPrice, Incoming) == c - v1 - v2)
+            assert(queue.matchWith(MarketOrderPrice, c, Incoming) == c - v1 - v2)
             checkResult()
         }
 
@@ -154,7 +154,7 @@ class QueueSpec extends Base {
 
             val v3 = 7
 
-            queue store (LimitOrder(side, slightlyLessAggressivePrice, v3), emptyListener)
+            queue store (slightlyLessAggressivePrice, v3, emptyListener)
 
             checkResult(
                 LevelInfo(initialPrice, v1 :: Nil),

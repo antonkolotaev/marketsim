@@ -16,6 +16,8 @@ package object linear {
          * To get more aggressive signed price one need to subtract positive delta from it
          */
         def makeSigned(price : Ticks) : SignedTicks
+
+        def opposite : Side
     }
     
     object Side {
@@ -26,11 +28,13 @@ package object linear {
     case object Sell extends Side
     {
         def makeSigned(price : Ticks) = price
+        def opposite = Buy
     }
 
     case object Buy extends Side
     {
         def makeSigned(price : Ticks) = -price
+        def opposite = Sell
     }
 
     trait Order
