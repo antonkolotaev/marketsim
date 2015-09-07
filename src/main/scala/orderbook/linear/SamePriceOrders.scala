@@ -30,16 +30,18 @@ class SamePriceOrders(val price : SignedTicks) {
      * @param sender -- order event listener for the order to be stored
      * @return -- order cancellation token
      */
-    protected[linear] def storeImpl(volume : Quantity, sender : OrderListener) =
+    protected[linear] def storeImpl(volume : Quantity, sender : OrderListener, cancellationKey: Option[Canceller]) =
     {
         val e = new Entry(volume, sender)
         entries_ enqueue e
         totalVolume_ += volume
-        (amountToCancel : Quantity) => {
-            val cancelled = e cancel amountToCancel
-            totalVolume_ -= cancelled
-            cancelled
-        }
+        cancellationKey foreach { _ set (e, this) }
+    }
+
+    private[linear] def cancel(e : Entry, amountToCancel : Quantity) = {
+        val cancelled = e cancel amountToCancel
+        totalVolume_ -= cancelled
+        cancelled
     }
 
     /**

@@ -24,7 +24,8 @@ class PriceLevelSpec extends common.Base {
             class OrderPlaced(val price : SignedTicks, val volume : Quantity)
             {
                 val events = new Listener(s"$price.$volume")
-                val canceller = q store (price, volume, events)
+                val canceller = new Canceller
+                q store (price, volume, events, Some(canceller))
             }
 
             val _1 = new OrderPlaced(initialPrice, 9)

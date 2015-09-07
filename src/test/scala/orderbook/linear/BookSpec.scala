@@ -24,7 +24,8 @@ class BookSpec extends Base {
             {
                 val signedPrice = side makeSigned price
                 val events = new Listener(s"$price.$volume")
-                val canceller = book process LimitOrder(side, price, volume, events)
+                val canceller = new Canceller
+                book process LimitOrder(side, price, volume, events, Some(canceller))
             }
 
             val _1 = new OrderPlaced(initialPrice, 9)
@@ -34,7 +35,7 @@ class BookSpec extends Base {
 
         s"OrderBook($side)" should s"be constructed properly with one $side order" in new Initial {}
 
-        /*it should "allow cancel small part of order" in new Initial {
+        it should "allow cancel small part of order" in new Initial {
             _1.events.onCancelled expects 5 once ()
             _1.canceller(5)
             checkResult(LevelInfo(_1.signedPrice, _1.volume - 5 :: Nil))()
@@ -56,7 +57,7 @@ class BookSpec extends Base {
 
         it should "accept orders of the same price" in new Initial {
 
-            val _2 = new OrderPlaced(unsignedPrice, 8)
+            val _2 = new OrderPlaced(initialPrice, 8)
 
             checkResult(LevelInfo(_1.signedPrice, _1.volume :: _2.volume :: Nil))()
         }
@@ -67,13 +68,14 @@ class BookSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (_1.signedPrice, c1) once ()
-            Incoming.onTraded expects (_1.signedPrice, c1) once ()
+            _1.events.onTraded expects (_1.price, c1) once ()
+            Incoming.onTraded expects (_1.price, c1) once ()
+            Incoming.onCompleted expects () once ()
 
-            book process LimitOrder(side.opposite, unsignedPrice, c1, Incoming)
+            book process LimitOrder(side.opposite, initialPrice, c1, Incoming)
 
             checkResult(LevelInfo(_1.signedPrice, _1.volume - c1 :: Nil))()
-        }*/
+        }
 
     }
 

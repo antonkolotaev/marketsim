@@ -10,7 +10,8 @@ class SamePriceOrdersSpec extends common.Base {
         class OrderStored(val volume : Quantity)
         {
             val listener = new Listener(volume.toString)
-            val canceller = level storeImpl (volume, listener)
+            val canceller = new Canceller
+            level storeImpl (volume, listener, Some(canceller))
         }
 
         def check(volumes : Quantity*) = {

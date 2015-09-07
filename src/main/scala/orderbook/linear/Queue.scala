@@ -12,7 +12,7 @@ class Queue(side : Side)
         val listener = new OrderListener {}
 
         val level = new PriceLevel(TerminalOrderPrice, None, None)
-        level storeImpl (volume, listener)
+        level storeImpl (volume, listener, None)
 
         val info = level.allOrders.head
     }
@@ -29,10 +29,14 @@ class Queue(side : Side)
      * @param sender -- order events
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
-    private[linear] def store(price : SignedTicks, volume : Quantity, sender : OrderListener) = {
+    private[linear] def store(price          : SignedTicks,
+                              volume         : Quantity,
+                              sender         : OrderListener,
+                              cancellationKey: Option[Canceller]) =
+    {
         if (price < bestPriceLevel.price)
             bestPriceLevel = new PriceLevel(price, None, Some(bestPriceLevel))
-        bestPriceLevel store(price, volume, sender)
+        bestPriceLevel store(price, volume, sender, cancellationKey)
     }
 
     /**
