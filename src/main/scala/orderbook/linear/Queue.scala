@@ -34,7 +34,7 @@ class Queue(side : Side)
                               sender         : OrderListener,
                               cancellationKey: Option[Canceller]) =
     {
-        if (price < bestPriceLevel.price)
+        if (price isMoreAggressiveThan bestPriceLevel.price)
             bestPriceLevel = new PriceLevel(price, None, Some(bestPriceLevel))
         bestPriceLevel store(price, volume, sender, cancellationKey)
     }

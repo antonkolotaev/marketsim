@@ -4,7 +4,7 @@ class SamePriceOrdersSpec extends common.Base {
     
     class Initial {
         
-        val P = 100
+        val P = SignedTicks(100)
         val level = new SamePriceOrders(P)
 
         class OrderStored(val volume : Quantity)

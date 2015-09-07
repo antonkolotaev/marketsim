@@ -8,7 +8,7 @@ class BookSpec extends Base {
 
         class Initial {
 
-            val initialPrice = 100
+            val initialPrice = Ticks(100)
 
             val book = new Book()
 

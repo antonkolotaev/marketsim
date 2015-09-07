@@ -24,7 +24,8 @@ class Book {
     def process(order : LimitOrder) =
         underLock {
             val price = order.side makeSigned order.price
-            queue(order.side.opposite) matchWith (-price, order.volume, order.sender) match {
+            val opposite_price = order.side.opposite makeSigned order.price
+            queue(order.side.opposite) matchWith (opposite_price, order.volume, order.sender) match {
                 case 0 =>
                     order.sender.completed()
                 case unmatched =>
@@ -41,5 +42,7 @@ class Book {
             }
             order.sender.completed()
         }
+
+    def cancel(token : Canceller, amountToCancel : Quantity) = token(amountToCancel)
 
 }

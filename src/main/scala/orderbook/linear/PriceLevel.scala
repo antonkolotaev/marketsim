@@ -38,7 +38,7 @@ class PriceLevel(price : SignedTicks,
      */
     def store(price : SignedTicks, volume : Quantity, sender : OrderListener, cancellationKey : Option[Canceller]) : Unit =
 
-        if (price >= next.get.price) // we assume that an order with infinite price ends the queue
+        if (!price.isMoreAggressiveThan(next.get.price)) // we assume that an order with infinite price ends the queue
             next.get store (price, volume, sender, cancellationKey)
         else
             (if (price == this.price)  this else
@@ -56,7 +56,7 @@ class PriceLevel(price : SignedTicks,
      */
     def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderListener) : Quantity =
         
-        if (limitPrice < price)
+        if (limitPrice isMoreAggressiveThan price)
             volume
         else
             matchImpl(volume, sender) match {

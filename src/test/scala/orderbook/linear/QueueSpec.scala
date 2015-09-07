@@ -8,7 +8,7 @@ class QueueSpec extends Base {
 
         class Initial {
 
-            val initialPrice = side makeSigned 100
+            val initialPrice = side makeSigned Ticks(100)
 
             val queue = new Queue(side)
 
@@ -75,14 +75,14 @@ class QueueSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            val incomingPrice = initialPrice - 1
+            val incomingPrice = initialPrice moreAggressive 1
 
             assert(queue.matchWith(incomingPrice, c1, Incoming) == c1)
             checkResult(LevelInfo(initialPrice, _1.volume :: Nil))
         }
 
         class WithMoreAggressive extends Initial {
-            val moreAggressivePrice = initialPrice - 3
+            val moreAggressivePrice = initialPrice moreAggressive 3
 
             val _2 = new OrderPlaced(moreAggressivePrice, 8)
 
@@ -93,7 +93,7 @@ class QueueSpec extends Base {
 
         class WithLessAggressive extends Initial {
 
-            val lessAggressivePrice = initialPrice + 5
+            val lessAggressivePrice = initialPrice lessAggressive 5
             
             val _2 = new OrderPlaced(lessAggressivePrice, 8)
 
@@ -120,8 +120,8 @@ class QueueSpec extends Base {
 
             val c = _1.volume + 7
 
-            val p = initialPrice + 1
-            assert(p < lessAggressivePrice)
+            val p = initialPrice lessAggressive 1
+            assert(p isMoreAggressiveThan lessAggressivePrice)
 
             _1.events.onTraded expects (initialPrice.abs, _1.volume) once ()
             _1.events.onCompleted expects () once ()
@@ -151,7 +151,7 @@ class QueueSpec extends Base {
         }
 
         class WithTwoLessAggressive extends WithLessAggressive {
-            val slightlyLessAggressivePrice = initialPrice + 1
+            val slightlyLessAggressivePrice = initialPrice lessAggressive 1
 
             val v3 = 7
 

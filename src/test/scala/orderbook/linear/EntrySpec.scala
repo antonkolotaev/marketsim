@@ -45,12 +45,12 @@ class EntrySpec extends common.Base {
     }
 
     class Matching extends Initial {
-        val P = 97
+        val P = SignedTicks(97)
         val incoming = new Listener("Incoming")
 
         def expectTrade(amount : Quantity) = {
-            L.onTraded expects (P, amount) once()
-            incoming.onTraded expects (P, amount) once()
+            L.onTraded expects (P.abs, amount) once()
+            incoming.onTraded expects (P.abs, amount) once()
         }
     }
 

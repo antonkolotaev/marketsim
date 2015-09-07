@@ -2,8 +2,16 @@ package orderbook
 
 package object linear {
 
-    type Ticks = Int
-    type SignedTicks = Int
+    case class Ticks(value : Int)
+
+    case class SignedTicks(value : Int)
+    {
+        def abs = Ticks(value.abs)
+        def isMoreAggressiveThan (other : SignedTicks) = value < other.value
+        def lessAggressive (delta : Int) = SignedTicks(value + delta)
+        def moreAggressive (delta : Int) = SignedTicks(value - delta)
+    }
+
     type Quantity = Int
 
     trait Side
@@ -21,19 +29,19 @@ package object linear {
     }
     
     object Side {
-        def of(price : Ticks) = if (price < 0) Buy else Sell
+        def of(price : SignedTicks) = if (price.value < 0) Buy else Sell
         def choices = Sell :: Buy :: Nil
     }
 
     case object Sell extends Side
     {
-        def makeSigned(price : Ticks) = price
+        def makeSigned(price : Ticks) = SignedTicks(price.value)
         def opposite = Buy
     }
 
     case object Buy extends Side
     {
-        def makeSigned(price : Ticks) = -price
+        def makeSigned(price : Ticks) = SignedTicks(-price.value)
         def opposite = Sell
     }
 
@@ -43,8 +51,8 @@ package object linear {
         val volume  : Quantity
     }
 
-    val TerminalOrderPrice = Int.MaxValue
-    val MarketOrderPrice = TerminalOrderPrice - 1
+    val TerminalOrderPrice = SignedTicks(Int.MaxValue)
+    val MarketOrderPrice = TerminalOrderPrice moreAggressive 1
 
     class Canceller
     {
