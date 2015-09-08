@@ -16,12 +16,14 @@ class SamePriceOrders(val price : SignedTicks) {
     /**
      * Side of orders kept in the queue
      */
-    val side = Side of price
+    val side = price.side
 
     /**
      * @return description for orders kept in the queue. used for debugging purposes
      */
     def ownOrders = entries_ map { _ createInfo (side, price) }
+
+    override def toString = s"[$price : ${entries_ map { _.unmatchedVolume } mkString " "}]"
 
     /**
      * Stores the order in the queue.

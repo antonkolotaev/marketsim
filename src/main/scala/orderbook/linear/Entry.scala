@@ -56,10 +56,12 @@ private[linear] class Entry(private var unmatched : Quantity,
     def matchWith(ourPrice : SignedTicks, amount : Quantity, incoming_sender : OrderListener) = {
         val toTrade = amount min unmatchedVolume
         unmatched -= toTrade
-        sender traded (ourPrice.abs, toTrade)
-        incoming_sender traded (ourPrice.abs, toTrade)
+        sender traded (ourPrice.ticks, toTrade)
+        incoming_sender traded (ourPrice.ticks, toTrade)
         if (unmatched == 0)
             sender completed()
         toTrade
     }
+
+    override def toString = s"Entry($unmatchedVolume)"
 }

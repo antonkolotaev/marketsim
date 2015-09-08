@@ -10,6 +10,8 @@ class Book {
         case Buy => Bids
     }
 
+    override def toString = s"Asks($Asks)Bids($Bids)"
+
     private var locked = false
 
     private def underLock[T](f : => T) = {
@@ -23,9 +25,8 @@ class Book {
 
     def process(order : LimitOrder) =
         underLock {
-            val price = order.side makeSigned order.price
-            val opposite_price = order.side.opposite makeSigned order.price
-            queue(order.side.opposite) matchWith (opposite_price, order.volume, order.sender) match {
+            val price           = order.price signed order.side
+            queue(order.side.opposite) matchWith (price.opposite, order.volume, order.sender) match {
                 case 0 =>
                     order.sender.completed()
                 case unmatched =>

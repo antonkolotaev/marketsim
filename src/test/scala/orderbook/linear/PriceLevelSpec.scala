@@ -11,7 +11,7 @@ class PriceLevelSpec extends common.Base {
 
         class Initial {
 
-            val initialPrice = side makeSigned Ticks(100)
+            val initialPrice = Ticks(100) signed side
 
             val bestPriceLevel = new PriceLevel(TerminalOrderPrice, None, None)
             val q = new PriceLevel(initialPrice, None, Some(bestPriceLevel))
@@ -68,8 +68,8 @@ class PriceLevelSpec extends common.Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (initialPrice.abs, c1) once ()
-            Incoming.onTraded expects (initialPrice.abs, c1) once ()
+            _1.events.onTraded expects (initialPrice.ticks, c1) once ()
+            Incoming.onTraded expects (initialPrice.ticks, c1) once ()
 
             assert(q.matchWith(initialPrice, c1, Incoming) == 0)
             checkResult(q, LevelInfo(initialPrice, _1.volume - c1 :: Nil))
@@ -81,7 +81,7 @@ class PriceLevelSpec extends common.Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            val incomingPrice = initialPrice moreAggressive 1
+            val incomingPrice = initialPrice moreAggressiveBy 1
 
             assert(q.matchWith(incomingPrice, c1, Incoming) == c1)
             checkResult(q, LevelInfo(initialPrice, _1.volume :: Nil))
@@ -89,7 +89,7 @@ class PriceLevelSpec extends common.Base {
 
         class WithLessAggressive extends Initial {
 
-            val lessAggressivePrice = initialPrice lessAggressive 5
+            val lessAggressivePrice = initialPrice lessAggressiveBy 5
 
             val _2 = new OrderPlaced(lessAggressivePrice, 8)
 
@@ -97,7 +97,7 @@ class PriceLevelSpec extends common.Base {
         }
 
         class WithTwoLessAggressive extends WithLessAggressive {
-            val slightlyLessAggressivePrice = initialPrice lessAggressive 1
+            val slightlyLessAggressivePrice = initialPrice lessAggressiveBy 1
 
             val _3 = new OrderPlaced(slightlyLessAggressivePrice, 7)
 

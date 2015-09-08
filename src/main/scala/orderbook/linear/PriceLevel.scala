@@ -29,6 +29,8 @@ class PriceLevel(price : SignedTicks,
     def getPrevious = prev
     def getNext = next
 
+    def levels : List[PriceLevel] = this :: {next map { _.levels } getOrElse Nil}
+
     /**
      * Stores a limit order in the queue
      * @param price -- price of an order to keep

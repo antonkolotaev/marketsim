@@ -8,7 +8,7 @@ class QueueSpec extends Base {
 
         class Initial {
 
-            val initialPrice = side makeSigned Ticks(100)
+            val initialPrice = Ticks(100) signed side
 
             val queue = new Queue(side)
 
@@ -62,8 +62,8 @@ class QueueSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (initialPrice.abs, c1) once ()
-            Incoming.onTraded expects (initialPrice.abs, c1) once ()
+            _1.events.onTraded expects (initialPrice.ticks, c1) once ()
+            Incoming.onTraded expects (initialPrice.ticks, c1) once ()
 
             assert(queue.matchWith(initialPrice, c1, Incoming) == 0)
             checkResult(LevelInfo(initialPrice, _1.volume - c1 :: Nil))
@@ -75,14 +75,14 @@ class QueueSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            val incomingPrice = initialPrice moreAggressive 1
+            val incomingPrice = initialPrice moreAggressiveBy 1
 
             assert(queue.matchWith(incomingPrice, c1, Incoming) == c1)
             checkResult(LevelInfo(initialPrice, _1.volume :: Nil))
         }
 
         class WithMoreAggressive extends Initial {
-            val moreAggressivePrice = initialPrice moreAggressive 3
+            val moreAggressivePrice = initialPrice moreAggressiveBy 3
 
             val _2 = new OrderPlaced(moreAggressivePrice, 8)
 
@@ -93,7 +93,7 @@ class QueueSpec extends Base {
 
         class WithLessAggressive extends Initial {
 
-            val lessAggressivePrice = initialPrice lessAggressive 5
+            val lessAggressivePrice = initialPrice lessAggressiveBy 5
             
             val _2 = new OrderPlaced(lessAggressivePrice, 8)
 
@@ -106,9 +106,9 @@ class QueueSpec extends Base {
 
             val Incoming = new Listener("Incoming")
 
-            _1.events.onTraded expects (initialPrice.abs, _1.volume) once ()
+            _1.events.onTraded expects (initialPrice.ticks, _1.volume) once ()
             _1.events.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice.abs, _1.volume) once ()
+            Incoming.onTraded expects (initialPrice.ticks, _1.volume) once ()
 
             assert(queue.matchWith(initialPrice, _1.volume, Incoming) == 0)
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
@@ -120,12 +120,12 @@ class QueueSpec extends Base {
 
             val c = _1.volume + 7
 
-            val p = initialPrice lessAggressive 1
+            val p = initialPrice lessAggressiveBy 1
             assert(p isMoreAggressiveThan lessAggressivePrice)
 
-            _1.events.onTraded expects (initialPrice.abs, _1.volume) once ()
+            _1.events.onTraded expects (initialPrice.ticks, _1.volume) once ()
             _1.events.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice.abs, _1.volume) once ()
+            Incoming.onTraded expects (initialPrice.ticks, _1.volume) once ()
 
             assert(queue.matchWith(p, c, Incoming) == c - _1.volume)
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
@@ -137,21 +137,21 @@ class QueueSpec extends Base {
 
             val c = _1.volume + _2.volume + 5
 
-            _1.events.onTraded expects (initialPrice.abs, _1.volume) once ()
+            _1.events.onTraded expects (initialPrice.ticks, _1.volume) once ()
             _1.events.onCompleted expects () once ()
 
-            _2.events.onTraded expects (lessAggressivePrice.abs, _2.volume) once ()
+            _2.events.onTraded expects (lessAggressivePrice.ticks, _2.volume) once ()
             _2.events.onCompleted expects () once ()
 
-            Incoming.onTraded expects (initialPrice.abs, _1.volume) once ()
-            Incoming.onTraded expects (lessAggressivePrice.abs, _2.volume) once ()
+            Incoming.onTraded expects (initialPrice.ticks, _1.volume) once ()
+            Incoming.onTraded expects (lessAggressivePrice.ticks, _2.volume) once ()
 
             assert(queue.matchWith(MarketOrderPrice, c, Incoming) == c - _1.volume - _2.volume)
             checkResult()
         }
 
         class WithTwoLessAggressive extends WithLessAggressive {
-            val slightlyLessAggressivePrice = initialPrice lessAggressive 1
+            val slightlyLessAggressivePrice = initialPrice lessAggressiveBy 1
 
             val v3 = 7
 

@@ -22,6 +22,8 @@ class Queue(side : Side)
      */
     private var bestPriceLevel = terminal.level
 
+    override def toString = bestPriceLevel.levels mkString "\n"
+
     /**
      * Stores a limit order in the queue
      * @param price -- price of an order to keep
