@@ -24,7 +24,7 @@ object common {
 
     case class LevelInfo(price : SignedTicks, volumes : List[Quantity])
 
-    def checkResultImpl(side : Side)(mostAggressive : Option[PriceLevel], expected : List[LevelInfo]) : Unit =
+    def checkResultImpl[Currency](side : Side)(mostAggressive : Option[PriceLevel[Currency]], expected : List[LevelInfo]) : Unit =
     {
         expected match {
             case Nil =>

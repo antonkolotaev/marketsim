@@ -11,9 +11,9 @@ package orderbook.linear
  *             we suppose that the last valid level references to an level with infinite price =>
  *                  we need to make one comparison less
  */
-class PriceLevel(price : SignedTicks,
-                 private var prev : Option[PriceLevel],
-                 private var next : Option[PriceLevel])
+class PriceLevel[Currency](price : SignedTicks, val priceInCurrency : Currency,
+                           private var prev : Option[PriceLevel[Currency]],
+                           private var next : Option[PriceLevel[Currency]])
   extends SamePriceOrders(price)
 {
     // at first we register this node in the previous and the next nodes
@@ -29,7 +29,7 @@ class PriceLevel(price : SignedTicks,
     def getPrevious = prev
     def getNext = next
 
-    def levels : List[PriceLevel] = this :: {next map { _.levels } getOrElse Nil}
+    def levels : List[PriceLevel[Currency]] = this :: {next map { _.levels } getOrElse Nil}
 
     /**
      * Stores a limit order in the queue
@@ -38,13 +38,13 @@ class PriceLevel(price : SignedTicks,
      * @param sender -- order events
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
-    def store(price : SignedTicks, volume : Quantity, sender : OrderListener, cancellationKey : Option[Canceller]) : Unit =
+    def store(price : SignedTicks, priceInCurrency : Currency, volume : Quantity, sender : OrderListener, cancellationKey : Option[Canceller]) : Unit =
 
         if (!price.isMoreAggressiveThan(next.get.price)) // we assume that an order with infinite price ends the queue
-            next.get store (price, volume, sender, cancellationKey)
+            next.get store (price, priceInCurrency, volume, sender, cancellationKey)
         else
             (if (price == this.price)  this else
-            /*  order.price > price */ new PriceLevel(price, Some(this), next)
+            /*  order.price > price */ new PriceLevel(price, priceInCurrency, Some(this), next)
                 ) storeImpl (volume, sender, cancellationKey)
 
     /**

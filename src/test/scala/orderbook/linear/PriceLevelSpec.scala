@@ -6,15 +6,16 @@ class PriceLevelSpec extends common.Base {
 
     Side.choices foreach { side =>
 
-        def checkResult(mostAggressive : PriceLevel, expected : LevelInfo*) =
+        def checkResult[Currency](mostAggressive : PriceLevel[Currency], expected : LevelInfo*) =
             checkResultImpl(side)(Some(mostAggressive), expected.toList)
 
         class Initial {
 
             val initialPrice = Ticks(100) signed side
+            val dummy = USD(0)
 
-            val bestPriceLevel = new PriceLevel(TerminalOrderPrice, None, None)
-            val q = new PriceLevel(initialPrice, None, Some(bestPriceLevel))
+            val bestPriceLevel = new PriceLevel(TerminalOrderPrice, dummy, None, None)
+            val q = new PriceLevel(initialPrice, dummy, None, Some(bestPriceLevel))
 
             assert(q.totalVolume == 0)
             assert(q.price == initialPrice)
@@ -25,7 +26,7 @@ class PriceLevelSpec extends common.Base {
             {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
-                q store (price, volume, events, Some(canceller))
+                q store (price, dummy, volume, events, Some(canceller))
             }
 
             val _1 = new OrderPlaced(initialPrice, 9)

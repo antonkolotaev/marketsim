@@ -10,7 +10,8 @@ class QueueSpec extends Base {
 
             val initialPrice = Ticks(100) signed side
 
-            val queue = new Queue(side)
+            val dummy = USD(0)
+            val queue = new Queue(side, dummy)
 
             def checkResult(expected: LevelInfo*) =
                 checkResultImpl(side)(Some(queue.bestLevel), expected.toList)
@@ -19,7 +20,7 @@ class QueueSpec extends Base {
             {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
-                queue store (price, volume, events, Some(canceller))
+                queue store (price, dummy, volume, events, Some(canceller))
             }
 
             val _1 = new OrderPlaced(initialPrice, 9)
@@ -155,7 +156,7 @@ class QueueSpec extends Base {
 
             val v3 = 7
 
-            queue store (slightlyLessAggressivePrice, v3, emptyListener, None)
+            queue store (slightlyLessAggressivePrice, dummy, v3, emptyListener, None)
 
             checkResult(
                 LevelInfo(initialPrice, _1.volume :: Nil),

@@ -20,7 +20,7 @@ class BookSpec extends Base {
                                   last : Option[(Ticks, Quantity)],
                                   lasts : List[(Ticks, Quantity)])
 
-            def toQueueState(queue : Queue) =
+            def toQueueState(queue : Queue[USD]) =
                 Unary(ops.and(
                     ops.and(queue.bestPrice, queue.bestPriceVolume),
                     ops.and(queue.lastTrade, queue.lastTrades)))

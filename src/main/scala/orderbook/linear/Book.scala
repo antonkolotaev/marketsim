@@ -2,8 +2,9 @@ package orderbook.linear
 
 class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrderBook[Currency] {
 
-    val Asks = new Queue(Sell)
-    val Bids = new Queue(Buy)
+    val infiniteCurrency = tickMapper toCurrency TerminalOrderPrice.ticks
+    val Asks = new Queue(Sell, infiniteCurrency)
+    val Bids = new Queue(Buy, infiniteCurrency)
 
     def queue(side : Side) = side match {
         case Sell => Asks
@@ -32,7 +33,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
                     order.sender.completed()
                 case unmatched =>
                     val p = queue(order.side)
-                    p store  (price, unmatched, order.sender, order.cancellationKey)
+                    p store  (price, tickMapper toCurrency order.price, unmatched, order.sender, order.cancellationKey)
                     p commit ()
             }
             q commit()

@@ -6,14 +6,14 @@ import reactive.VariableOpt
  * Represents a queue of limit orders of one side
  * @param side -- side of orders held in the queue
  */
-class Queue(side : Side) extends AbstractOrderQueue
+class Queue[Currency](side : Side, infiniteCurrency : Currency) extends AbstractOrderQueue
 {
     // we are going to mark the end of the queue by a dummy order with infinite price
     private val terminal = new {
         val volume = 1
         val listener = new OrderListener {}
 
-        val level = new PriceLevel(TerminalOrderPrice, None, None)
+        val level = new PriceLevel(TerminalOrderPrice, infiniteCurrency, None, None)
         level storeImpl (volume, listener, None)
 
         val info = level.allOrders.head
@@ -34,14 +34,15 @@ class Queue(side : Side) extends AbstractOrderQueue
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
     private[linear] def store(price          : SignedTicks,
+                              priceInCurrency: Currency,
                               volume         : Quantity,
                               sender         : OrderListener,
                               cancellationKey: Option[Canceller]) =
     {
         if (price isMoreAggressiveThan bestPriceLevel.price) {
-            bestPriceLevel = new PriceLevel(price, None, Some(bestPriceLevel))
+            bestPriceLevel = new PriceLevel(price, priceInCurrency, None, Some(bestPriceLevel))
         }
-        bestPriceLevel store(price, volume, sender, cancellationKey)
+        bestPriceLevel store(price, priceInCurrency, volume, sender, cancellationKey)
         validateBestPrice()
     }
 
