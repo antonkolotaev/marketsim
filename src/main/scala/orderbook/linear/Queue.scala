@@ -55,7 +55,13 @@ class Queue(side : Side)
      * @return -- unmatched volume of the incoming order
      */
     private[linear] def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderListener) : Quantity = {
-        val unmatched = bestPriceLevel matchWith (limitPrice, volume, sender)
+        val proxyEvents = new OrderListenerProxy(sender) {
+            override def traded(price : Ticks, volume : Quantity) = {
+                sender traded(price, volume)
+                lastTrade setWithoutCommit Some(price, volume)
+            }
+        }
+        val unmatched = bestPriceLevel matchWith (limitPrice, volume, proxyEvents)
         removeEmptyBestLevels()
         unmatched
     }
@@ -84,6 +90,7 @@ class Queue(side : Side)
 
     val bestPrice = new VariableOpt[Ticks]
     val bestPriceVolume = new VariableOpt[Quantity]
+    val lastTrade = new VariableOpt[(Ticks, Quantity)]
 
     private def validateBestPrice(): Unit = {
         if (bestPriceLevel == terminal.level) {
@@ -95,9 +102,12 @@ class Queue(side : Side)
         }
     }
 
+    def onTraded(price : Ticks, volume : Quantity) {}
+
     private[linear] def commit() = {
         bestPrice commit ()
         bestPriceVolume commit ()
+        lastTrade commit()
     }
 }
 

@@ -1,6 +1,7 @@
 package orderbook.linear
 
 import orderbook.linear.common._
+import reactive.Unary
 
 class BookSpec extends Base {
 
@@ -15,8 +16,18 @@ class BookSpec extends Base {
             val queue = book queue side
             val queueOpposite = book queue side.opposite
 
-            val onChanged = mockFunction[((Option[Ticks], Option[Quantity]), (Option[Ticks], Option[Quantity])), Unit]("onChanged")
-            ops.and(ops.and(queue.bestPrice, queue.bestPriceVolume), ops.and(queueOpposite.bestPrice, queueOpposite.bestPriceVolume)) += onChanged
+            case class QueueState(best : Option[(Ticks, Quantity)])
+
+            def toQueueState(queue : Queue) = Unary(ops.and(queue.bestPrice, queue.bestPriceVolume)) {
+                case (Some(p), Some(v)) => QueueState(Some(p,v))
+                case (None, None) => QueueState(None)
+                case _ => throw new Exception("cannot happen")
+            }
+
+            val onChanged =
+                mockFunction[(QueueState, QueueState), Unit]("onChanged")
+
+            ops.and(toQueueState(queue), toQueueState(queueOpposite)) += onChanged
 
             def checkResult(expected: LevelInfo*)(expectedOpposite : LevelInfo*) = {
                 checkResultImpl(side)(Some(queue.bestLevel), expected.toList)
@@ -31,7 +42,7 @@ class BookSpec extends Base {
                 book process LimitOrder(side, price, volume, events, Some(canceller))
             }
 
-            onChanged expects ((Some(initialPrice), Some(9)), (None, None)) once ()
+            onChanged expects (QueueState(Some(initialPrice, 9)), QueueState(None)) once ()
 
             val _1 = new OrderPlaced(initialPrice, 9)
 
@@ -42,7 +53,7 @@ class BookSpec extends Base {
 
         it should "allow cancel small part of order" in new Initial {
             _1.events.onCancelled expects 5 once ()
-            onChanged expects ((Some(initialPrice), Some(9 - 5)), (None, None)) once ()
+            onChanged expects (QueueState(Some(initialPrice, 9 - 5)), QueueState(None)) once ()
             book cancel (_1.canceller, 5)
             checkResult(LevelInfo(_1.signedPrice, _1.volume - 5 :: Nil))()
         }
@@ -50,7 +61,7 @@ class BookSpec extends Base {
         it should "allow cancel order completely" in new Initial {
             _1.events.onCancelled expects _1.volume once ()
             _1.events.onCompleted expects() once()
-            onChanged expects ((None, None), (None, None)) once ()
+            onChanged expects (QueueState(None), QueueState(None)) once ()
             book cancel (_1.canceller, _1.volume)
             checkResult()()
         }
@@ -58,14 +69,14 @@ class BookSpec extends Base {
         it should "allow cancel more than unmatched amount of order" in new Initial {
             _1.events.onCancelled expects _1.volume once ()
             _1.events.onCompleted expects() once()
-            onChanged expects ((None, None), (None, None)) once ()
+            onChanged expects (QueueState(None), QueueState(None)) once ()
             book cancel (_1.canceller, _1.volume + 5)
             checkResult()()
         }
 
         it should "accept orders of the same price" in new Initial {
 
-            onChanged expects ((Some(initialPrice), Some(9 + 8)), (None, None)) once ()
+            onChanged expects (QueueState(Some(initialPrice, 9 + 8)), QueueState(None)) once ()
             val _2 = new OrderPlaced(initialPrice, 8)
 
             checkResult(LevelInfo(_1.signedPrice, _1.volume :: _2.volume :: Nil))()
@@ -81,7 +92,7 @@ class BookSpec extends Base {
             Incoming.onTraded expects (_1.price, c1) once ()
             Incoming.onCompleted expects () once ()
 
-            onChanged expects ((Some(initialPrice), Some(9 - 5)), (None, None)) once ()
+            onChanged expects (QueueState(Some(initialPrice, 9 - 5)), QueueState(None)) once ()
 
             book process LimitOrder(side.opposite, initialPrice, c1, Incoming)
 
@@ -98,7 +109,7 @@ class BookSpec extends Base {
             Incoming.onTraded expects (_1.price, c1) once ()
             Incoming.onCompleted expects () once ()
 
-            onChanged expects ((Some(initialPrice), Some(9 - 5)), (None, None)) once ()
+            onChanged expects (QueueState(Some(initialPrice, 9 - 5)), QueueState(None)) once ()
 
             book process MarketOrder(side.opposite, c1, Incoming)
 
@@ -113,7 +124,7 @@ class BookSpec extends Base {
 
             val incomingPrice = _1.signedPrice moreAggressiveBy 1
 
-            onChanged expects ((Some(initialPrice), Some(9)), (Some(incomingPrice.ticks), Some(5))) once ()
+            onChanged expects (QueueState(Some(initialPrice, 9)), QueueState(Some(incomingPrice.ticks, 5))) once ()
 
             book process LimitOrder(side.opposite, incomingPrice.ticks, c1, Incoming)
 
@@ -123,7 +134,7 @@ class BookSpec extends Base {
         class WithMoreAggressive extends Initial {
             val moreAggressivePrice = _1.signedPrice moreAggressiveBy 3
 
-            onChanged expects ((Some(moreAggressivePrice.ticks), Some(8)), (None, None)) once ()
+            onChanged expects (QueueState(Some(moreAggressivePrice.ticks, 8)), QueueState(None)) once ()
 
             val _2 = new OrderPlaced(moreAggressivePrice.ticks, 8)
 
@@ -143,7 +154,7 @@ class BookSpec extends Base {
             _2.events.onCompleted expects () once ()
             Incoming.onTraded expects (_2.price, _2.volume) once ()
 
-            onChanged expects ((Some(initialPrice), Some(9)), (Some(slightlyMoreAggressivePrice.ticks), Some(c1 - _2.volume))) once ()
+            onChanged expects (QueueState(Some(initialPrice, 9)), QueueState(Some(slightlyMoreAggressivePrice.ticks, c1 - _2.volume))) once ()
 
             book process LimitOrder(side.opposite, slightlyMoreAggressivePrice.ticks, c1, Incoming)
 
@@ -165,7 +176,7 @@ class BookSpec extends Base {
             Incoming.onTraded expects (_1.price, _1.volume) once ()
             _1.events.onCompleted expects () once ()
 
-            onChanged expects ((None, None), (Some(notAggressivePrice.ticks), Some(c1 - _2.volume - _1.volume))) once ()
+            onChanged expects (QueueState(None), QueueState(Some(notAggressivePrice.ticks, c1 - _2.volume - _1.volume))) once ()
 
             book process LimitOrder(side.opposite, notAggressivePrice.ticks, c1, Incoming)
 
@@ -188,7 +199,7 @@ class BookSpec extends Base {
             Incoming.onCancelled expects c1 - _1.volume - _2.volume once ()
             Incoming.onCompleted expects () once ()
 
-            onChanged expects ((None, None), (None, None)) once ()
+            onChanged expects (QueueState(None), QueueState(None)) once ()
 
             book process MarketOrder(side.opposite, c1, Incoming)
 

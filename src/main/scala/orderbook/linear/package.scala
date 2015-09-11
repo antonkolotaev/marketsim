@@ -88,6 +88,13 @@ package object linear {
         def completed() {}
     }
 
+    class OrderListenerProxy(target : OrderListener) extends OrderListener
+    {
+        override def traded(price : Ticks, amount : Quantity) = target traded (price, amount)
+        override def cancelled(amount : Quantity) = target cancelled amount
+        override def completed() = target completed ()
+    }
+
     case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener) extends Order
 
     case class LimitOrder(side              : Side,
