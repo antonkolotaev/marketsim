@@ -6,7 +6,7 @@ import reactive.VariableOpt
  * Represents a queue of limit orders of one side
  * @param side -- side of orders held in the queue
  */
-class Queue(side : Side)
+class Queue(side : Side) extends AbstractOrderQueue
 {
     // we are going to mark the end of the queue by a dummy order with infinite price
     private val terminal = new {
@@ -92,7 +92,6 @@ class Queue(side : Side)
     val bestPrice = new VariableOpt[Ticks]
     val bestPriceVolume = new VariableOpt[Quantity]
     val lastTrade = new VariableOpt[(Ticks, Quantity)]
-
     val lastTrades = new reactive.Variable[List[(Ticks, Quantity)]](Nil)
 
     private def validateBestPrice(): Unit = {
@@ -104,8 +103,6 @@ class Queue(side : Side)
             bestPriceVolume setWithoutCommit Some(bestPriceLevel.totalVolume)
         }
     }
-
-    def onTraded(price : Ticks, volume : Quantity) {}
 
     private[linear] def commit() = {
         bestPrice commit ()

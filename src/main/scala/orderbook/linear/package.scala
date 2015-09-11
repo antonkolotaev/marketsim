@@ -95,6 +95,23 @@ package object linear {
         override def completed() = target completed ()
     }
 
+    trait AbstractOrderQueue
+    {
+        val bestPrice : reactive.Value[Option[Ticks]]
+        val bestPriceVolume : reactive.Value[Option[Quantity]]
+        val lastTrade : reactive.Value[Option[(Ticks, Quantity)]]
+        val lastTrades : reactive.Value[List[(Ticks, Quantity)]]
+    }
+
+    trait AbstractOrderBook
+    {
+        val Asks : AbstractOrderQueue
+        val Bids : AbstractOrderQueue
+        def process(order : LimitOrder)
+        def process(order : MarketOrder)
+        def cancel(token : Canceller, amountToCancel : Quantity)
+    }
+
     case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener) extends Order
 
     case class LimitOrder(side              : Side,

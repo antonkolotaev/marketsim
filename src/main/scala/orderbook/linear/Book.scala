@@ -1,6 +1,6 @@
 package orderbook.linear
 
-class Book {
+class Book extends AbstractOrderBook {
 
     val Asks = new Queue(Sell)
     val Bids = new Queue(Buy)
