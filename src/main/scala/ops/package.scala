@@ -87,6 +87,6 @@ package object ops
         }
     }
 
-
+    def and[A,B](a : reactive.Value[A], b : reactive.Value[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
 }
 

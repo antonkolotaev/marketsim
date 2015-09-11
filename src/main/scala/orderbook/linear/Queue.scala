@@ -26,11 +26,6 @@ class Queue(side : Side)
 
     override def toString = bestPriceLevel.levels mkString "\n"
 
-    private def setBestPriceLevel(priceLevel : PriceLevel): Unit = {
-        bestPriceLevel = priceLevel
-        validateBestPrice()
-    }
-
     /**
      * Stores a limit order in the queue
      * @param price -- price of an order to keep
@@ -44,10 +39,10 @@ class Queue(side : Side)
                               cancellationKey: Option[Canceller]) =
     {
         if (price isMoreAggressiveThan bestPriceLevel.price) {
-            setBestPriceLevel(new PriceLevel(price, None, Some(bestPriceLevel)))
+            bestPriceLevel = new PriceLevel(price, None, Some(bestPriceLevel))
         }
         bestPriceLevel store(price, volume, sender, cancellationKey)
-        commit()
+        validateBestPrice()
     }
 
     /**
@@ -68,16 +63,17 @@ class Queue(side : Side)
     private[linear] def cancel(token : Canceller, amount : Quantity) = {
         token(amount)
         removeEmptyBestLevels()
-        commit()
     }
 
     /**
      * Removes all empty price levels from the head of the queue
      */
-    private[linear] def removeEmptyBestLevels() =
+    private[linear] def removeEmptyBestLevels() = {
         while (bestPriceLevel.totalVolume == 0) {
-            setBestPriceLevel(bestPriceLevel.dispose().get)
+            bestPriceLevel = bestPriceLevel.dispose().get
         }
+        validateBestPrice()
+    }
 
     /**
      * @return the best non-empty price level

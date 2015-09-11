@@ -25,13 +25,15 @@ class Book {
 
     def process(order : LimitOrder) =
         nonReenterable {
-            val price           = order.price signed order.side
+            val price = order.price signed order.side
             val q = queue(order.side.opposite)
             q matchWith (price.opposite, order.volume, order.sender) match {
                 case 0 =>
                     order.sender.completed()
                 case unmatched =>
-                    queue(order.side) store (price, unmatched, order.sender, order.cancellationKey)
+                    val p = queue(order.side)
+                    p store  (price, unmatched, order.sender, order.cancellationKey)
+                    p commit ()
             }
             q commit()
         }
@@ -50,7 +52,10 @@ class Book {
 
     def cancel(token : Canceller, amountToCancel : Quantity) = {
         nonReenterable {
-            token.side map { queue } foreach { _ cancel(token, amountToCancel) }
+            token.side map { queue } foreach { queue =>
+                queue cancel(token, amountToCancel)
+                queue commit()
+            }
         }
     }
 
