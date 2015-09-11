@@ -79,6 +79,27 @@ package object linear {
         }
     }
 
+    trait TickMapper[Currency]
+    {
+        def toTicks(x : Currency, side : Side) : Ticks
+        def toCurrency(x : Ticks) : Currency
+    }
+
+    case class USD(centicents : Int)
+    {
+        override def toString = f"${centicents / 10000}${centicents % 10000}%04d"
+    }
+    
+    class LinearMapper(tickSize : USD) extends TickMapper[USD]
+    {
+        def toTicks(x : USD, side : Side) = side match {
+            case Buy => Ticks(math.floor(x.centicents / tickSize.centicents).toInt)
+            case Sell => Ticks(math.ceil(x.centicents / tickSize.centicents).toInt)
+        }
+
+        def toCurrency(x : Ticks) = USD(x.value * tickSize.centicents)
+    }
+
     /**
      *  Interface for order event listeners
      */
@@ -103,10 +124,11 @@ package object linear {
         val lastTrades : reactive.Value[List[(Ticks, Quantity)]]
     }
 
-    trait AbstractOrderBook
+    trait AbstractOrderBook[Currency]
     {
         val Asks : AbstractOrderQueue
         val Bids : AbstractOrderQueue
+        val tickMapper : TickMapper[Currency]
         def process(order : LimitOrder)
         def process(order : MarketOrder)
         def cancel(token : Canceller, amountToCancel : Quantity)

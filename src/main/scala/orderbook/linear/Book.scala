@@ -1,6 +1,6 @@
 package orderbook.linear
 
-class Book extends AbstractOrderBook {
+class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrderBook[Currency] {
 
     val Asks = new Queue(Sell)
     val Bids = new Queue(Buy)

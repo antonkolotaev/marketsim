@@ -11,7 +11,7 @@ class BookSpec extends Base {
 
             val initialPrice = Ticks(100)
 
-            val book = new Book()
+            val book = new Book(new LinearMapper(USD(10)))
 
             val queue = book queue side
             val queueOpposite = book queue side.opposite

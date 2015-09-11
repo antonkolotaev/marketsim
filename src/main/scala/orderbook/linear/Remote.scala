@@ -21,9 +21,15 @@ object Remote {
         override def completed() = delay { original completed () }
     }
     
-    class Book(target : AbstractOrderBook, toBook : core.Duration, fromBook : core.Duration) extends AbstractOrderBook {
+    class Book[Currency](target   : AbstractOrderBook[Currency],
+                         toBook   : core.Duration,
+                         fromBook : core.Duration)
+        extends AbstractOrderBook[Currency]
+    {
         val Asks = new Queue(target.Asks, fromBook)
         val Bids = new Queue(target.Bids, fromBook)
+
+        val tickMapper = target.tickMapper
         
         private def delay(whatToDo : => Unit) = 
             Scheduler.after(toBook) { whatToDo }
