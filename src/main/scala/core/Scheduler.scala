@@ -72,7 +72,7 @@ object Scheduler
     def schedule(absoluteTimeToAct : Time, whatToDo : => Unit) =
         instance.value.get.schedule(absoluteTimeToAct, () => whatToDo)
 
-    def scheduleAfter(relativeTimeToAct : Duration, whatToDo : => Unit) =
+    def after(relativeTimeToAct : Duration)(whatToDo : => Unit) =
         schedule(currentTime + relativeTimeToAct, whatToDo)
 
     def async(whatToDo : => Unit) = schedule(currentTime, whatToDo)

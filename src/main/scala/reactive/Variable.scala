@@ -9,7 +9,7 @@ package reactive
 class Variable[T](initialValue : T) extends Value[T](initialValue)
 {
     // variables don't have any inputs
-    val inputs = Nil
+    def inputs = List.empty[Value[T]]
 
     finalConstruct()
 

@@ -88,5 +88,23 @@ package object ops
     }
 
     def and[A,B](a : reactive.Value[A], b : reactive.Value[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
+
+    import core._
+
+    class Delay[A](a : reactive.Value[A], dt : Duration) extends reactive.Variable[A](a())
+    {
+        override lazy val inputs = a :: Nil
+
+        override def notifyExternalListenersIfValueChanged() : Unit = {
+            Scheduler.after (dt) {
+                setWithoutCommit(a())
+                Scheduler async {
+                    commit()
+                }
+            }
+        }
+    }
+
+    def delay[A](dt : Duration)(a : reactive.Value[A]) = new Delay[A](a, dt)
 }
 

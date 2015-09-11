@@ -16,7 +16,7 @@ trait HasInternalSubscribers
     /**
      * list of input observables for this observable
      */
-    val inputs : List[Value[_]]
+    def inputs : List[Value[_]]
 
     /**
      * This method is called by descendants to update outgoing links
