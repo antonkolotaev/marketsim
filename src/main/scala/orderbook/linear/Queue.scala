@@ -1,5 +1,7 @@
 package orderbook.linear
 
+import reactive.Value
+
 /**
  * Represents a queue of limit orders of one side
  * @param side -- side of orders held in the queue
@@ -36,8 +38,10 @@ class Queue(side : Side)
                               sender         : OrderListener,
                               cancellationKey: Option[Canceller]) =
     {
-        if (price isMoreAggressiveThan bestPriceLevel.price)
+        if (price isMoreAggressiveThan bestPriceLevel.price) {
             bestPriceLevel = new PriceLevel(price, None, Some(bestPriceLevel))
+            bestPrice.invalidate()
+        }
         bestPriceLevel store(price, volume, sender, cancellationKey)
     }
 
@@ -59,9 +63,11 @@ class Queue(side : Side)
     /**
      * Removes all empty price levels from the head of the queue
      */
-    private def removeEmptyBestLevels() =
-        while (bestPriceLevel.totalVolume == 0)
+    private[linear] def removeEmptyBestLevels() =
+        while (bestPriceLevel.totalVolume == 0) {
             bestPriceLevel = bestPriceLevel.dispose().get
+            bestPrice.invalidate()
+        }
 
     /**
      * @return the best non-empty price level
@@ -72,6 +78,18 @@ class Queue(side : Side)
     }
 
     def allOrders = bestPriceLevel.allOrders takeWhile (_ != terminal.info)
+
+    val bestPrice = new Value[Option[Ticks]](None) {
+
+        val inputs = Nil
+
+        def validate() =
+            updateValue(
+                if (bestPriceLevel == terminal.level)
+                    None
+                else
+                    Some(bestPriceLevel.price.ticks))
+    }
 }
 
 

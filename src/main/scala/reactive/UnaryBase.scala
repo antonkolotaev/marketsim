@@ -4,7 +4,7 @@ abstract class UnaryBase[A,Result](a : Value[A], initialValue : Result)
     extends Value[Result](initialValue)
 {
     if (apply() != initialValue){
-        println(s"${apply()} != $initialValue")
+        //println(s"${apply()} != $initialValue")
         assert(apply() == initialValue)
     }
 

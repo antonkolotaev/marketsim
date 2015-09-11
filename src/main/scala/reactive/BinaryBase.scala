@@ -6,7 +6,7 @@ abstract class BinaryBase[A,B, Result](a : Value[A], b : Value[B], initialValue 
     protected def F(a : A, b : B) : Result
 
     if (apply() != initialValue) {
-        println(s"${apply()} != $initialValue")
+        //println(s"${apply()} != $initialValue")
         assert(apply() == initialValue)
     }
 
@@ -29,7 +29,7 @@ abstract class BinaryBase[A,B, Result](a : Value[A], b : Value[B], initialValue 
      * Makes the current value of the observable consistent with the inputs
      */
     def validate() = {
-        println(s"validate $this")
+        //println(s"validate $this")
         // if any input observables changed
         val newA = a()
         val newB = b()

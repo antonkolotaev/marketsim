@@ -27,7 +27,7 @@ abstract class Value[T](protected var value_ : T)
     protected def updateValue(x : T) = {
         if (value_ != x)
         {
-            println(s"updating $this by $x")
+            //println(s"updating $this by $x")
             value_ = x
             true
         }
@@ -39,7 +39,7 @@ abstract class Value[T](protected var value_ : T)
      */
     def invalidate() : Unit = {
         if (!dirty) {
-            println(s"invalidate $this")
+            //println(s"invalidate $this")
             dirty = true
             internal foreach { _ invalidate () }
         }
@@ -55,12 +55,12 @@ abstract class Value[T](protected var value_ : T)
             if (external.nonEmpty) {
                 validateAndNotifyExternal()
             }
-            println(s"notifyExternalListeners $this: notifyDependent begin")
+            //println(s"notifyExternalListeners $this: notifyDependent begin")
             internal foreach { _ notifyExternalListenersIfValueChanged () }
-            println(s"notifyExternalListeners $this: notifyDependent end")
+            //println(s"notifyExternalListeners $this: notifyDependent end")
         }
         else
-            println(s"notifyExternalListeners $this: dirty is already false")
+            {}//println(s"notifyExternalListeners $this: dirty is already false")
 
     }
 
@@ -70,7 +70,7 @@ abstract class Value[T](protected var value_ : T)
         if (dirty) {
             // we need this check since validate() can call our code again
             dirty = false
-            println(s"notifyExternalListeners $this: $oldValue -> $value_")
+            //println(s"notifyExternalListeners $this: $oldValue -> $value_")
             if (oldValue != value_) {
                 external foreach {
                     _ apply value_
@@ -91,15 +91,15 @@ abstract class Value[T](protected var value_ : T)
      * @return
      */
     def apply() = {
-        println(s"$this.apply")
+        //println(s"$this.apply")
         if (dirty) {
             validateAndNotifyExternal()
-            println(s"$this.apply: notifyDependent begin")
+            //println(s"$this.apply: notifyDependent begin")
             internal foreach { _ notifyExternalListenersIfValueChanged () }
-            println(s"$this.apply: notifyDependent end")
+            //println(s"$this.apply: notifyDependent end")
         }
         else
-            println(s"$this.apply: dirty is already false")
+            {}//println(s"$this.apply: dirty is already false")
         value_
     }
 }

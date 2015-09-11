@@ -6,7 +6,7 @@ class VariableSpec extends TestBase {
         val v = variable("A")
 
         v.handler expects "B" once()
-        v.value set "B"
+        v.value setAndCommit "B"
 
         assert(v.value() == "B")
     }
@@ -17,7 +17,7 @@ class VariableSpec extends TestBase {
 
         assert(v.value() == "A")
 
-        v.value set "A"
+        v.value setAndCommit "A"
 
         assert(v.value() == "A")
     }

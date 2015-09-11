@@ -16,7 +16,7 @@ class UnarySpec extends TestBase
 
     "v <- a in a" should "make nothing" in new Chain {
 
-        v.value set "a"
+        v.value setAndCommit "a"
 
         assert(f2.value() == "A")
         assert(f1.value() == "A")
@@ -35,7 +35,7 @@ class UnarySpec extends TestBase
         f1.back expects "b" once()
         f2.back expects "B" once()
 
-        v.value set "b"
+        v.value setAndCommit "b"
 
         assert(f2.value() == "B")
         assert(f1.value() == "B")
@@ -47,7 +47,7 @@ class UnarySpec extends TestBase
 
         f1.value dispose()
         v.handler expects "c" once()
-        v.value set "c"
+        v.value setAndCommit "c"
 
         assert(!v.value.disposed)
         assert(f1.value.disposed)
@@ -63,7 +63,7 @@ class UnarySpec extends TestBase
 
         f1.back expects "A" once ()
 
-        v.value set "A"
+        v.value setAndCommit "A"
 
         assert(f2.value() == "A")
         assert(f1.value() == "A")

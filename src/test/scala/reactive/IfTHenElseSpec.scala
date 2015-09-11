@@ -21,8 +21,8 @@ class IfTHenElseSpec extends TestBase {
 
         b.handler expects "z" once ()
 
-        b.value set "z"
-        b.value set "z"
+        b.value setAndCommit "z"
+        b.value setAndCommit "z"
     }
 
     "a <- x" should "update the result to X" in new Fork {
@@ -33,7 +33,7 @@ class IfTHenElseSpec extends TestBase {
 
         fork.handler expects "X" once ()
 
-        a.value set "x"
+        a.value setAndCommit "x"
 
         C.back expects "X" once ()
 
@@ -46,7 +46,7 @@ class IfTHenElseSpec extends TestBase {
 
         a.handler expects "z" once()
 
-        a.value set "z"
+        a.value setAndCommit "z"
 
         assert(!a.value.disposed)
         assert(!b.value.disposed)
@@ -62,7 +62,7 @@ class IfTHenElseSpec extends TestBase {
         condition.handler expects false once()
         fork.handler expects "B" once()
 
-        condition.value set false
+        condition.value setAndCommit false
 
         C.back expects "B" once ()
         assert(C.value() == "B")

@@ -68,6 +68,8 @@ package object linear {
             entry_level = Some((e, level))
         }
 
+        def side = entry_level map { _._2.price.side }
+
         private[linear] def apply(amountToCancel : Quantity) = {
             entry_level match {
                 case Some((entry, level)) => level cancel (entry, amountToCancel)

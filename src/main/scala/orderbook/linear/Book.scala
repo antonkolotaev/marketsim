@@ -12,19 +12,19 @@ class Book {
 
     override def toString = s"Asks($Asks)Bids($Bids)"
 
-    private var locked = false
+    private var entered = false
 
-    private def underLock[T](f : => T) = {
-        if (locked)
+    private def nonReenterable[T](f : => T) = {
+        if (entered)
             throw new Exception("reentering into a blocking operation on order book")
-        locked = true
+        entered = true
         val ret = f
-        locked = false
+        entered = false
         ret
     }
 
     def process(order : LimitOrder) =
-        underLock {
+        nonReenterable {
             val price           = order.price signed order.side
             queue(order.side.opposite) matchWith (price.opposite, order.volume, order.sender) match {
                 case 0 =>
@@ -35,7 +35,7 @@ class Book {
         }
 
     def process(order : MarketOrder) =
-        underLock {
+        nonReenterable {
             queue(order.side.opposite) matchWith (MarketOrderPrice, order.volume, order.sender) match {
                 case 0 =>
                 case unmatched =>
@@ -44,6 +44,9 @@ class Book {
             order.sender.completed()
         }
 
-    def cancel(token : Canceller, amountToCancel : Quantity) = token(amountToCancel)
+    def cancel(token : Canceller, amountToCancel : Quantity) = {
+        token(amountToCancel)
+        token.side map { queue } foreach { _.removeEmptyBestLevels() }
+    }
 
 }

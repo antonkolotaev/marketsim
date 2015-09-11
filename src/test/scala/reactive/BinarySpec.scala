@@ -26,7 +26,7 @@ class BinarySpec extends TestBase {
         ab.back expects ("x", "b") once ()
         abbc.back expects ("(XB)", "(BC)") once ()
 
-        a.value set "x"
+        a.value setAndCommit "x"
 
         assert(abbc.value() == "((XB)(BC))")
         assert(ab.value() == "(XB)")
@@ -44,7 +44,7 @@ class BinarySpec extends TestBase {
         bc.back expects ("y", "c") once ()
         abbc.back expects ("(AY)", "(YC)") once ()
 
-        b.value set "y"
+        b.value setAndCommit "y"
 
         assert(abbc.value() == "((AY)(YC))")
         assert(ab.value() == "(AY)")
@@ -57,7 +57,7 @@ class BinarySpec extends TestBase {
         bc.back expects ("z", "c") once ()
         bc.handler expects "(ZC)" once()
 
-        b.value set "z"
+        b.value setAndCommit "z"
 
         assert(ab.value.disposed)
         assert(abbc.value.disposed)

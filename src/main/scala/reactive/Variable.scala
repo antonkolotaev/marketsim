@@ -23,15 +23,23 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
      * Sets variable value and causes recalculation of dependent observables
      * @param x -- new value to be set
      */
-    def set(x : T) = {
-        if (updateValue(x)) //
-        {
+    def setAndCommit(x : T) = {
+        setWithoutCommit(x)
+        commit()
+    }
+
+    def setWithoutCommit(x : T) = {
+        if (updateValue(x))
             invalidate()
-            external foreach { _ apply x }
+    }
+
+    def commit() = {
+        if (dirty) {
+            dirty = false
+            external foreach { _ apply value_ }
             internal foreach { _ notifyExternalListenersIfValueChanged () }
         }
     }
 
     override def apply() = value_
-
 }
