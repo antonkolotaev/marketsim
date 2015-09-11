@@ -26,6 +26,11 @@ class Queue(side : Side)
 
     override def toString = bestPriceLevel.levels mkString "\n"
 
+    private def setBestPriceLevel(priceLevel : PriceLevel): Unit = {
+        bestPriceLevel = priceLevel
+        validateBestPrice()
+    }
+
     /**
      * Stores a limit order in the queue
      * @param price -- price of an order to keep
@@ -39,10 +44,10 @@ class Queue(side : Side)
                               cancellationKey: Option[Canceller]) =
     {
         if (price isMoreAggressiveThan bestPriceLevel.price) {
-            bestPriceLevel = new PriceLevel(price, None, Some(bestPriceLevel))
-            bestPrice.invalidate()
+            setBestPriceLevel(new PriceLevel(price, None, Some(bestPriceLevel)))
         }
         bestPriceLevel store(price, volume, sender, cancellationKey)
+        commit()
     }
 
     /**
@@ -63,6 +68,7 @@ class Queue(side : Side)
     private[linear] def cancel(token : Canceller, amount : Quantity) = {
         token(amount)
         removeEmptyBestLevels()
+        commit()
     }
 
     /**
@@ -70,24 +76,32 @@ class Queue(side : Side)
      */
     private[linear] def removeEmptyBestLevels() =
         while (bestPriceLevel.totalVolume == 0) {
-            bestPriceLevel = bestPriceLevel.dispose().get
-            bestPrice.invalidate()
+            setBestPriceLevel(bestPriceLevel.dispose().get)
         }
 
     /**
      * @return the best non-empty price level
      */
-    def bestLevel = {
-        bestPriceLevel
-    }
+    def bestLevel = bestPriceLevel
 
     def allOrders = bestPriceLevel.allOrders takeWhile (_ != terminal.info)
 
     val bestPrice = new VariableOpt[Ticks]
     val bestPriceVolume = new VariableOpt[Quantity]
 
-    private[linear] def validate(): Unit = {
+    private def validateBestPrice(): Unit = {
+        if (bestPriceLevel == terminal.level) {
+            bestPrice setWithoutCommit None
+            bestPriceVolume setWithoutCommit None
+        } else {
+            bestPrice setWithoutCommit Some(bestPriceLevel.price.ticks)
+            bestPriceVolume setWithoutCommit Some(bestPriceLevel.totalVolume)
+        }
+    }
 
+    private[linear] def commit() = {
+        bestPrice commit ()
+        bestPriceVolume commit ()
     }
 }
 
