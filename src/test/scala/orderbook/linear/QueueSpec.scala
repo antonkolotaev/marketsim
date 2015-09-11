@@ -31,21 +31,21 @@ class QueueSpec extends Base {
 
         it should "allow cancel small part of order" in new Initial {
             _1.events.onCancelled expects 5 once ()
-            _1.canceller(5)
+            queue cancel (_1.canceller, 5)
             checkResult(LevelInfo(initialPrice, _1.volume - 5 :: Nil))
         }
 
         it should "allow cancel order completely" in new Initial {
             _1.events.onCancelled expects _1.volume once ()
             _1.events.onCompleted expects() once()
-            _1.canceller(_1.volume)
+            queue cancel (_1.canceller, _1.volume)
             checkResult()
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
             _1.events.onCancelled expects _1.volume once ()
             _1.events.onCompleted expects() once()
-            _1.canceller(_1.volume + 5)
+            queue cancel (_1.canceller, _1.volume + 5)
             checkResult()
         }
 

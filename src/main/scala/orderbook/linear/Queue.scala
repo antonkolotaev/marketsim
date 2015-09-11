@@ -1,6 +1,6 @@
 package orderbook.linear
 
-import reactive.Value
+import reactive.VariableOpt
 
 /**
  * Represents a queue of limit orders of one side
@@ -60,6 +60,11 @@ class Queue(side : Side)
         unmatched
     }
 
+    private[linear] def cancel(token : Canceller, amount : Quantity) = {
+        token(amount)
+        removeEmptyBestLevels()
+    }
+
     /**
      * Removes all empty price levels from the head of the queue
      */
@@ -73,22 +78,16 @@ class Queue(side : Side)
      * @return the best non-empty price level
      */
     def bestLevel = {
-        removeEmptyBestLevels()
         bestPriceLevel
     }
 
     def allOrders = bestPriceLevel.allOrders takeWhile (_ != terminal.info)
 
-    val bestPrice = new Value[Option[Ticks]](None) {
+    val bestPrice = new VariableOpt[Ticks]
+    val bestPriceVolume = new VariableOpt[Quantity]
 
-        val inputs = Nil
+    private[linear] def validate(): Unit = {
 
-        def validate() =
-            updateValue(
-                if (bestPriceLevel == terminal.level)
-                    None
-                else
-                    Some(bestPriceLevel.price.ticks))
     }
 }
 

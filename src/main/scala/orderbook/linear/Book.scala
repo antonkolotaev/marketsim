@@ -45,8 +45,7 @@ class Book {
         }
 
     def cancel(token : Canceller, amountToCancel : Quantity) = {
-        token(amountToCancel)
-        token.side map { queue } foreach { _.removeEmptyBestLevels() }
+        token.side map { queue } foreach { _ cancel (token, amountToCancel) }
     }
 
 }

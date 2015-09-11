@@ -44,14 +44,14 @@ class BookSpec extends Base {
         it should "allow cancel order completely" in new Initial {
             _1.events.onCancelled expects _1.volume once ()
             _1.events.onCompleted expects() once()
-            _1.canceller(_1.volume)
+            book cancel (_1.canceller, _1.volume)
             checkResult()()
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
             _1.events.onCancelled expects _1.volume once ()
             _1.events.onCompleted expects() once()
-            _1.canceller(_1.volume + 5)
+            book cancel (_1.canceller, _1.volume + 5)
             checkResult()()
         }
 
