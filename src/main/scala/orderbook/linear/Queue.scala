@@ -59,6 +59,7 @@ class Queue(side : Side)
             override def traded(price : Ticks, volume : Quantity) = {
                 sender traded(price, volume)
                 lastTrade setWithoutCommit Some(price, volume)
+                lastTrades setWithoutCommit (price, volume) :: lastTrades.value
             }
         }
         val unmatched = bestPriceLevel matchWith (limitPrice, volume, proxyEvents)
@@ -92,6 +93,8 @@ class Queue(side : Side)
     val bestPriceVolume = new VariableOpt[Quantity]
     val lastTrade = new VariableOpt[(Ticks, Quantity)]
 
+    val lastTrades = new reactive.Variable[List[(Ticks, Quantity)]](Nil)
+
     private def validateBestPrice(): Unit = {
         if (bestPriceLevel == terminal.level) {
             bestPrice setWithoutCommit None
@@ -108,6 +111,8 @@ class Queue(side : Side)
         bestPrice commit ()
         bestPriceVolume commit ()
         lastTrade commit()
+        lastTrades commit()
+        lastTrades setWithoutCommit Nil
     }
 }
 

@@ -42,4 +42,6 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
     }
 
     override def apply() = value_
+
+    def value = value_
 }
