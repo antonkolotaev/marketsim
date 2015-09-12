@@ -7,4 +7,7 @@ package object core {
     }
 
     case class Duration(x : Long)
+    {
+        def + (other : Duration) = Duration(x + other.x)
+    }
 }
