@@ -18,6 +18,17 @@ object common {
             override def completed() = onCompleted()
         }
 
+        class ListenerWithTime(name : String) extends OrderListener
+        {
+            val onTraded = mockFunction[Ticks, Quantity, core.Time, Unit](name + ".onTraded")
+            val onCancelled = mockFunction[Quantity, core.Time, Unit](name + ".onCancelled")
+            val onCompleted = mockFunction[core.Time, Unit](name + ".onCompleted")
+
+            override def traded(price : Ticks, amountTraded : Quantity) = onTraded(price, amountTraded, core.Scheduler.currentTime)
+            override def cancelled(amount : Quantity) = onCancelled(amount, core.Scheduler.currentTime)
+            override def completed() = onCompleted(core.Scheduler.currentTime)
+        }
+
         val emptyListener = new OrderListener {}
 
     }
