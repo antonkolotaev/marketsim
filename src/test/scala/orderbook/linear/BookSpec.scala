@@ -9,7 +9,7 @@ class BookSpec extends Base {
 
         class Initial {
 
-            val tickMapper = new LinearMapper(USD(10))
+            val tickMapper = new LinearMapper(cents(1))
             val initialPrice = Ticks(100)
 
             val book = new Book(tickMapper)
