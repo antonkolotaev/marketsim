@@ -57,10 +57,10 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
      */
     private[linear] def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderListener) : Quantity = {
         val proxyEvents = new OrderListenerProxy(sender) {
-            override def traded(price : Ticks, volume : Quantity) = {
-                sender traded(price, volume)
-                lastTrade setWithoutCommit Some(price, volume)
-                lastTrades setWithoutCommit (price, volume) :: lastTrades.value
+            override def traded(price : SignedTicks, volume : Quantity) = {
+                super.traded(price, volume)
+                lastTrade setWithoutCommit Some(price.ticks, volume)
+                lastTrades setWithoutCommit (price.ticks, volume) :: lastTrades.value
             }
         }
         clearLastTrades()

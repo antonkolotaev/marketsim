@@ -19,7 +19,7 @@ object Remote {
         private def delay(whatToDo : => Unit) =
             Scheduler.after(dt) { whatToDo }
         
-        override def traded(price : Ticks, amount : Quantity) = delay { original.traded(price, amount) }
+        override def traded(price : SignedTicks, amount : Quantity) = delay { original.traded(price, amount) }
         override def cancelled(amount : Quantity) = delay { original cancelled amount }
         override def completed() = delay { original completed () }
     }

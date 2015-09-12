@@ -112,8 +112,8 @@ class BookSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (_1.price, c1) once ()
-            Incoming.onTraded expects (_1.price, c1) once ()
+            _1.events.onTraded expects (_1.signedPrice, c1) once ()
+            Incoming.onTraded expects (_1.signedPrice.opposite, c1) once ()
             Incoming.onCompleted expects () once ()
 
             onChanged expects (E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E) once ()
@@ -129,8 +129,8 @@ class BookSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (_1.price, c1) once ()
-            Incoming.onTraded expects (_1.price, c1) once ()
+            _1.events.onTraded expects (_1.signedPrice, c1) once ()
+            Incoming.onTraded expects (_1.signedPrice.opposite, c1) once ()
             Incoming.onCompleted expects () once ()
 
             onChanged expects (E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E) once ()
@@ -174,9 +174,9 @@ class BookSpec extends Base {
 
             val slightlyMoreAggressivePrice = _1.signedPrice moreAggressiveBy 1
 
-            _2.events.onTraded expects (_2.price, _2.volume) once ()
+            _2.events.onTraded expects (_2.signedPrice, _2.volume) once ()
             _2.events.onCompleted expects () once ()
-            Incoming.onTraded expects (_2.price, _2.volume) once ()
+            Incoming.onTraded expects (_2.signedPrice.opposite, _2.volume) once ()
 
             onChanged expects (
                 E levels ((initialPrice, 9)) trades ((moreAggressivePrice.ticks, _2.volume)),
@@ -194,12 +194,12 @@ class BookSpec extends Base {
 
             val notAggressivePrice = _1.signedPrice lessAggressiveBy 1
 
-            _2.events.onTraded expects (_2.price, _2.volume) once ()
-            Incoming.onTraded expects (_2.price, _2.volume) once ()
+            _2.events.onTraded expects (_2.signedPrice, _2.volume) once ()
+            Incoming.onTraded expects (_2.signedPrice.opposite, _2.volume) once ()
             _2.events.onCompleted expects () once ()
 
-            _1.events.onTraded expects (_1.price, _1.volume) once ()
-            Incoming.onTraded expects (_1.price, _1.volume) once ()
+            _1.events.onTraded expects (_1.signedPrice, _1.volume) once ()
+            Incoming.onTraded expects (_1.signedPrice.opposite, _1.volume) once ()
             _1.events.onCompleted expects () once ()
 
             onChanged expects (
@@ -217,12 +217,12 @@ class BookSpec extends Base {
             val Incoming = new Listener("Incoming")
             val c1 = _1.volume + _2.volume + 5
 
-            _2.events.onTraded expects (_2.price, _2.volume) once ()
-            Incoming.onTraded expects (_2.price, _2.volume) once ()
+            _2.events.onTraded expects (_2.signedPrice, _2.volume) once ()
+            Incoming.onTraded expects (_2.signedPrice.opposite, _2.volume) once ()
             _2.events.onCompleted expects () once ()
 
-            _1.events.onTraded expects (_1.price, _1.volume) once ()
-            Incoming.onTraded expects (_1.price, _1.volume) once ()
+            _1.events.onTraded expects (_1.signedPrice, _1.volume) once ()
+            Incoming.onTraded expects (_1.signedPrice.opposite, _1.volume) once ()
             _1.events.onCompleted expects () once ()
 
             Incoming.onCancelled expects c1 - _1.volume - _2.volume once ()

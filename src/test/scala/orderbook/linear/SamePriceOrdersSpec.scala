@@ -81,8 +81,8 @@ class SamePriceOrdersSpec extends common.Base {
 
         val Incoming = new Listener("Incoming")
 
-        _1.listener.onTraded expects (P.ticks, c1) once ()
-        Incoming.onTraded expects (P.ticks, c1) once ()
+        _1.listener.onTraded expects (P, c1) once ()
+        Incoming.onTraded expects (P.opposite, c1) once ()
         assert(level.matchImpl(c1, Incoming) == 0)
 
         assert(level.totalVolume == _1.volume + _2.volume - c1)
@@ -95,9 +95,9 @@ class SamePriceOrdersSpec extends common.Base {
 
         val Incoming = new Listener("Incoming")
 
-        _1.listener.onTraded expects (P.ticks, c1) once ()
+        _1.listener.onTraded expects (P, c1) once ()
         _1.listener.onCompleted expects () once ()
-        Incoming.onTraded expects (P.ticks, c1) once ()
+        Incoming.onTraded expects (P.opposite, c1) once ()
 
         assert(level.matchImpl(c1, Incoming) == 0)
 
@@ -111,14 +111,14 @@ class SamePriceOrdersSpec extends common.Base {
 
         val Incoming = new Listener("Incoming")
 
-        _1.listener.onTraded expects (P.ticks, _1.volume) once ()
+        _1.listener.onTraded expects (P, _1.volume) once ()
         _1.listener.onCompleted expects () once ()
 
-        _2.listener.onTraded expects (P.ticks, _2.volume) once ()
+        _2.listener.onTraded expects (P, _2.volume) once ()
         _2.listener.onCompleted expects () once ()
 
-        Incoming.onTraded expects (P.ticks, _1.volume) once ()
-        Incoming.onTraded expects (P.ticks, _2.volume) once ()
+        Incoming.onTraded expects (P.opposite, _1.volume) once ()
+        Incoming.onTraded expects (P.opposite, _2.volume) once ()
 
         assert(level.matchImpl(c1, Incoming) == c1 - _1.volume - _2.volume)
 

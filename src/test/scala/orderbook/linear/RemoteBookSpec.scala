@@ -88,8 +88,8 @@ class RemoteBookSpec extends Base {
             }
 
             def traded(existing : OrderPlaced, tradeVolume : Quantity, incomingEvents : ListenerWithTime) = {
-                existing.events.onTraded expects(existing.price, tradeVolume, after(up_down)) once()
-                incomingEvents.onTraded expects(existing.price, tradeVolume, after(up_down)) once()
+                existing.events.onTraded expects(existing.signedPrice, tradeVolume, after(up_down)) once()
+                incomingEvents.onTraded expects(existing.signedPrice.opposite, tradeVolume, after(up_down)) once()
             }
 
             def completed(events: ListenerWithTime) =

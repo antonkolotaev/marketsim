@@ -49,8 +49,8 @@ class EntrySpec extends common.Base {
         val incoming = new Listener("Incoming")
 
         def expectTrade(amount : Quantity) = {
-            L.onTraded expects (P.ticks, amount) once()
-            incoming.onTraded expects (P.ticks, amount) once()
+            L.onTraded expects (P, amount) once()
+            incoming.onTraded expects (P.opposite, amount) once()
         }
     }
 

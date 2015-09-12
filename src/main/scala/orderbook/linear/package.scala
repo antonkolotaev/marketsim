@@ -34,7 +34,7 @@ package object linear {
 
         def opposite : Side
     }
-    
+
     object Side {
         def choices = Sell :: Buy :: Nil
     }
@@ -49,12 +49,6 @@ package object linear {
     {
         def makeSigned(price : Ticks) = SignedTicks(-price.value)
         def opposite = Sell
-    }
-
-    trait Order
-    {
-        val side    : Side
-        val volume  : Quantity
     }
 
     val TerminalOrderPrice = SignedTicks(Int.MaxValue)
@@ -91,7 +85,9 @@ package object linear {
     }
 
     def cents(x : Int) = USD(x * 100)
-    
+
+    implicit val zeroUSD = cents(0)
+
     class LinearMapper(tickSize : USD) extends TickMapper[USD]
     {
         def toTicks(x : USD, side : Side) = side match {
@@ -106,14 +102,14 @@ package object linear {
      *  Interface for order event listeners
      */
     trait OrderListener {
-        def traded(price : Ticks, amount : Quantity) {}
+        def traded(price : SignedTicks, amount : Quantity) {}
         def cancelled(amount : Quantity) {}
         def completed() {}
     }
 
     class OrderListenerProxy(target : OrderListener) extends OrderListener
     {
-        override def traded(price : Ticks, amount : Quantity) = target traded (price, amount)
+        override def traded(price : SignedTicks, amount : Quantity) = target traded (price, amount)
         override def cancelled(amount : Quantity) = target cancelled amount
         override def completed() = target completed ()
     }
@@ -138,13 +134,13 @@ package object linear {
         def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity)
     }
 
-    case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener) extends Order
+    case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener)
 
     case class LimitOrder(side              : Side,
                           price             : Ticks,
                           volume            : Quantity,
                           sender            : OrderListener,
-                          cancellationKey   : Option[Canceller] = None) extends Order
+                          cancellationKey   : Option[Canceller] = None)
 
     def cancellableLimitOrder(side              : Side,
                               price             : Ticks,
