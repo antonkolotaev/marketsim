@@ -32,9 +32,9 @@ class PriceLevel[Currency](price : SignedTicks, val priceInCurrency : Currency,
     def levels : List[PriceLevel[Currency]] = this :: {next map { _.levels } getOrElse Nil}
 
     def levelsTill(volumeToFetch : Quantity) : List[(Currency, Quantity)] =
-        if (volumeToFetch > 0)
-            (priceInCurrency, totalVolume) ::
-                {next map { _ levelsTill (volumeToFetch - totalVolume) } getOrElse List.empty[(Currency, Quantity)]}
+        if (volumeToFetch > 0 && next.nonEmpty)
+            (priceInCurrency, totalVolume min volumeToFetch) ::
+                { next.get levelsTill (volumeToFetch - totalVolume) }
         else
             Nil
 

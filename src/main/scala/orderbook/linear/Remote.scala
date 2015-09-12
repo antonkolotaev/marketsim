@@ -41,7 +41,7 @@ object Remote {
         def process(order: LimitOrder) = delay { order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
         def process(order: MarketOrder) = delay { order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
 
-        def fetchPriceLevel(user : AnyRef, limitVolume : Quantity) = target fetchPriceLevel (user, limitVolume)
+        def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity) = target fetchPriceLevelsTillVolume (user, limitVolume)
     }
 
 }

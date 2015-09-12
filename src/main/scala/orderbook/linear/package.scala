@@ -87,8 +87,10 @@ package object linear {
 
     case class USD(centicents : Int)
     {
-        override def toString = f"${centicents / 10000}${centicents % 10000}%04d"
+        override def toString = "$" + (centicents / 10000.0)
     }
+
+    def cents(x : Int) = USD(x * 100)
     
     class LinearMapper(tickSize : USD) extends TickMapper[USD]
     {
@@ -133,7 +135,7 @@ package object linear {
         def process(order : LimitOrder)
         def process(order : MarketOrder)
         def cancel(token : Canceller, amountToCancel : Quantity)
-        def fetchPriceLevel(user : AnyRef, limitVolume : Quantity)
+        def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity)
     }
 
     case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener) extends Order
