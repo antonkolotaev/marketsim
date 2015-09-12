@@ -87,6 +87,17 @@ class RemoteBookSpec extends Base {
                 remoteBook process LimitOrder(side, price, volume, events, Some(canceller))
             }
 
+            def traded(existing : OrderPlaced, tradeVolume : Quantity, incomingEvents : Listener) = {
+                existing.events.onTraded expects(existing.price, tradeVolume) once()
+                incomingEvents.onTraded expects(existing.price, tradeVolume) once()
+            }
+
+            def completed(events: Listener) =
+                events.onCompleted expects () once ()
+
+            def cancelled(events : Listener, amount : Quantity) =
+                events.onCancelled expects amount once ()
+
             def after(dt : core.Duration) = core.Scheduler.currentTime + dt
 
             val V1 = 9
@@ -95,9 +106,11 @@ class RemoteBookSpec extends Base {
 
             val _1 = new OrderPlaced(initialPrice, V1)
 
-            scheduler advance up_down + epsilon
+            scheduler advance up
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))()
+
+            scheduler advance down + epsilon
         }
 
         s"OrderBook($side)" should s"be constructed properly with one $side order" in new Initial {}
@@ -107,7 +120,7 @@ class RemoteBookSpec extends Base {
             val C1 = 5
             assert(C1 < V1)
 
-            _1.events.onCancelled expects C1 once()
+            cancelled(_1.events, C1)
 
             changesExpected(E.levels((initialPrice, V1 - C1)), E)
 
@@ -119,21 +132,23 @@ class RemoteBookSpec extends Base {
         }
 
         it should "allow cancel order completely" in new Initial {
-            _1.events.onCancelled expects _1.volume once()
-            _1.events.onCompleted expects() once()
+            cancelled(_1.events, _1.volume)
+            completed(_1.events)
             changesExpected(E, E)
             remoteBook cancel(_1.canceller, _1.volume)
-            scheduler advance up_down + epsilon
+            scheduler advance up
             checkLocalResult()()
+            scheduler advance down + epsilon
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
-            _1.events.onCancelled expects _1.volume once()
-            _1.events.onCompleted expects() once()
+            cancelled(_1.events, _1.volume)
+            completed(_1.events)
             changesExpected(E, E)
             remoteBook cancel(_1.canceller, _1.volume + 5)
-            scheduler advance up_down + epsilon
+            scheduler advance up
             checkLocalResult()()
+            scheduler advance down + epsilon
         }
 
         it should "accept orders of the same price" in new Initial {
@@ -143,9 +158,11 @@ class RemoteBookSpec extends Base {
 
             val _2 = new OrderPlaced(initialPrice, V2)
 
-            scheduler advance up_down + epsilon
+            scheduler advance up
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: _2.volume :: Nil))()
+
+            scheduler advance down + epsilon
         }
 
         it should "match with limit orders having small price" in new Initial {
@@ -154,17 +171,18 @@ class RemoteBookSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects(_1.price, c1) once()
-            Incoming.onTraded expects(_1.price, c1) once()
-            Incoming.onCompleted expects() once()
+            traded(_1, c1, Incoming)
+            completed(Incoming)
 
             changesExpected(E levels ((initialPrice, V1 - c1)) trades ((initialPrice, c1)), E)
 
             remoteBook process LimitOrder(side.opposite, initialPrice, c1, Incoming)
 
-            scheduler advance up_down + epsilon
+            scheduler advance up
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume - c1 :: Nil))()
+
+            scheduler advance down + epsilon
         }
 
         it should "match with market orders having small price" in new Initial {
@@ -173,9 +191,8 @@ class RemoteBookSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects(_1.price, c1) once()
-            Incoming.onTraded expects(_1.price, c1) once()
-            Incoming.onCompleted expects() once()
+            traded(_1, c1, Incoming)
+            completed(Incoming)
 
             changesExpected(E levels ((initialPrice, V1 - c1)) trades ((initialPrice, c1)), E)
 
@@ -211,9 +228,11 @@ class RemoteBookSpec extends Base {
 
             val _2 = new OrderPlaced(moreAggressivePrice.ticks, V2)
 
-            scheduler advance up_down + epsilon
+            scheduler advance up
 
             checkLocalResult(LevelInfo(_2.signedPrice, _2.volume :: Nil), LevelInfo(_1.signedPrice, _1.volume :: Nil))()
+
+            scheduler advance down + epsilon
         }
 
         it should "accept orders of more aggressive price" in new WithMoreAggressive {}
@@ -225,9 +244,8 @@ class RemoteBookSpec extends Base {
 
             val slightlyMoreAggressivePrice = _1.signedPrice moreAggressiveBy 1
 
-            _2.events.onTraded expects(_2.price, _2.volume) once()
-            _2.events.onCompleted expects() once()
-            Incoming.onTraded expects(_2.price, _2.volume) once()
+            traded(_2, _2.volume, Incoming)
+            completed(_2.events)
 
             changesExpected(
                 E levels ((initialPrice, V1)) trades ((moreAggressivePrice.ticks, _2.volume)),
@@ -247,13 +265,11 @@ class RemoteBookSpec extends Base {
 
             val notAggressivePrice = _1.signedPrice lessAggressiveBy 1
 
-            _2.events.onTraded expects(_2.price, _2.volume) once()
-            Incoming.onTraded expects(_2.price, _2.volume) once()
-            _2.events.onCompleted expects() once()
+            traded(_2, _2.volume, Incoming)
+            completed(_2.events)
 
-            _1.events.onTraded expects(_1.price, _1.volume) once()
-            Incoming.onTraded expects(_1.price, _1.volume) once()
-            _1.events.onCompleted expects() once()
+            traded(_1, _1.volume, Incoming)
+            completed(_1.events)
 
             changesExpected(
                 E trades((_1.price, _1.volume), (_2.price, _2.volume)),
@@ -271,13 +287,11 @@ class RemoteBookSpec extends Base {
             val Incoming = new Listener("Incoming")
             val c1 = _1.volume + _2.volume + 5
 
-            _2.events.onTraded expects(_2.price, _2.volume) once()
-            Incoming.onTraded expects(_2.price, _2.volume) once()
-            _2.events.onCompleted expects() once()
+            traded(_2, _2.volume, Incoming)
+            completed(_2.events)
 
-            _1.events.onTraded expects(_1.price, _1.volume) once()
-            Incoming.onTraded expects(_1.price, _1.volume) once()
-            _1.events.onCompleted expects() once()
+            traded(_1, _1.volume, Incoming)
+            completed(_1.events)
 
             Incoming.onCancelled expects c1 - _1.volume - _2.volume once()
             Incoming.onCompleted expects() once()
