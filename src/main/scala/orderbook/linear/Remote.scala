@@ -4,11 +4,14 @@ import core.Scheduler
 
 object Remote {
 
-    class Queue(target : AbstractOrderQueue, dt : core.Duration) extends AbstractOrderQueue {
+    class Queue[Currency](target : AbstractOrderQueue[Currency], dt : core.Duration)
+        extends AbstractOrderQueue[Currency]
+    {
         val bestPrice = ops.delay(dt) { target.bestPrice }
         val bestPriceVolume = ops.delay(dt) { target.bestPriceVolume }
         val lastTrade = ops.delay(dt) { target.lastTrade }
         val lastTrades = ops.delay(dt) { target.lastTrades }
+        val priceLevels = ops.delay(dt) { target.priceLevels }
     }
     
     class DelayedOrderListener(original : OrderListener, dt : core.Duration) extends OrderListener
@@ -38,6 +41,7 @@ object Remote {
         def process(order: LimitOrder) = delay { order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
         def process(order: MarketOrder) = delay { order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
 
+        def fetchPriceLevel(user : AnyRef, limitVolume : Quantity) = target fetchPriceLevel (user, limitVolume)
     }
 
 }

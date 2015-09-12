@@ -6,7 +6,7 @@ import reactive.VariableOpt
  * Represents a queue of limit orders of one side
  * @param side -- side of orders held in the queue
  */
-class Queue[Currency](side : Side, infiniteCurrency : Currency) extends AbstractOrderQueue
+class Queue[Currency](side : Side, infiniteCurrency : Currency) extends AbstractOrderQueue[Currency]
 {
     // we are going to mark the end of the queue by a dummy order with infinite price
     private val terminal = new {
@@ -94,6 +94,20 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
     val bestPriceVolume = new VariableOpt[Quantity]
     val lastTrade = new VariableOpt[(Ticks, Quantity)]
     val lastTrades = new reactive.Variable[List[(Ticks, Quantity)]](Nil)
+    val priceLevels = new reactive.Variable[List[(Currency, Quantity)]](Nil)
+
+    def updatePriceLevels() = {
+        priceLevels setWithoutCommit (bestPriceLevel levelsTill priceLevelToFetch)
+    }
+
+    private val priceLevelsUsers = collection.mutable.Map.empty[AnyRef, Quantity]
+    private var priceLevelToFetch = 0
+
+    def fetchPriceLevel(user : AnyRef, limitVolume : Quantity) = {
+        priceLevelsUsers.update(user, limitVolume)
+        priceLevelToFetch = priceLevelsUsers.values.max
+    }
+
 
     private def validateBestPrice(): Unit = {
         if (bestPriceLevel == terminal.level) {
@@ -106,11 +120,13 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
     }
 
     private[linear] def commit() = {
+        updatePriceLevels()
         bestPrice commit ()
         bestPriceVolume commit ()
         lastTrade commit()
         lastTrades commit()
         lastTrades setWithoutCommit Nil
+        priceLevels commit()
     }
 }
 

@@ -24,6 +24,9 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
         ret
     }
 
+    def fetchPriceLevel(user : AnyRef, limitVolume : Quantity) =
+        Side.choices map { queue } foreach { _ fetchPriceLevel (user, limitVolume) }
+
     def process(order : LimitOrder) =
         nonReenterable {
             val price = order.price signed order.side
