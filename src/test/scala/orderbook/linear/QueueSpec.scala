@@ -21,6 +21,10 @@ class QueueSpec extends Base {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
                 queue store (price, dummy, volume, events, Some(canceller))
+
+                def Traded(v : Quantity, incoming : Listener) = { events Traded (price, v, incoming); this }
+                def Cancelled (c : Quantity) = { events Cancelled c; this }
+                def Completed() = { events Completed(); this }
             }
 
             val _1 = new OrderPlaced(initialPrice, 9)
@@ -31,21 +35,19 @@ class QueueSpec extends Base {
         s"OrderQueue($side)" should "be constructed properly with one order" in new Initial {}
 
         it should "allow cancel small part of order" in new Initial {
-            _1.events.onCancelled expects 5 once ()
+            _1 Cancelled 5
             queue cancel (_1.canceller, 5)
             checkResult(LevelInfo(initialPrice, _1.volume - 5 :: Nil))
         }
 
         it should "allow cancel order completely" in new Initial {
-            _1.events.onCancelled expects _1.volume once ()
-            _1.events.onCompleted expects() once()
+            _1 Cancelled _1.volume Completed ()
             queue cancel (_1.canceller, _1.volume)
             checkResult()
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
-            _1.events.onCancelled expects _1.volume once ()
-            _1.events.onCompleted expects() once()
+            _1 Cancelled _1.volume Completed ()
             queue cancel (_1.canceller, _1.volume + 5)
             checkResult()
         }
@@ -63,8 +65,7 @@ class QueueSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (initialPrice, c1) once ()
-            Incoming.onTraded expects (initialPrice.opposite, c1) once ()
+            _1 Traded (c1, Incoming)
 
             assert(queue.matchWith(initialPrice, c1, Incoming) == 0)
             checkResult(LevelInfo(initialPrice, _1.volume - c1 :: Nil))
@@ -107,9 +108,7 @@ class QueueSpec extends Base {
 
             val Incoming = new Listener("Incoming")
 
-            _1.events.onTraded expects (initialPrice, _1.volume) once ()
-            _1.events.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice.opposite, _1.volume) once ()
+            _1 Traded (_1.volume, Incoming) Completed()
 
             assert(queue.matchWith(initialPrice, _1.volume, Incoming) == 0)
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
@@ -124,9 +123,7 @@ class QueueSpec extends Base {
             val p = initialPrice lessAggressiveBy 1
             assert(p isMoreAggressiveThan lessAggressivePrice)
 
-            _1.events.onTraded expects (initialPrice, _1.volume) once ()
-            _1.events.onCompleted expects () once ()
-            Incoming.onTraded expects (initialPrice.opposite, _1.volume) once ()
+            _1 Traded (_1.volume, Incoming) Completed()
 
             assert(queue.matchWith(p, c, Incoming) == c - _1.volume)
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
@@ -138,14 +135,8 @@ class QueueSpec extends Base {
 
             val c = _1.volume + _2.volume + 5
 
-            _1.events.onTraded expects (initialPrice, _1.volume) once ()
-            _1.events.onCompleted expects () once ()
-
-            _2.events.onTraded expects (lessAggressivePrice, _2.volume) once ()
-            _2.events.onCompleted expects () once ()
-
-            Incoming.onTraded expects (initialPrice.opposite, _1.volume) once ()
-            Incoming.onTraded expects (lessAggressivePrice.opposite, _2.volume) once ()
+            _1 Traded (_1.volume, Incoming) Completed()
+            _2 Traded (_2.volume, Incoming) Completed()
 
             assert(queue.matchWith(MarketOrderPrice, c, Incoming) == c - _1.volume - _2.volume)
             checkResult()

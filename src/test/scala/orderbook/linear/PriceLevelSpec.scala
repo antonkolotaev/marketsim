@@ -27,6 +27,10 @@ class PriceLevelSpec extends common.Base {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
                 q store (price, dummy, volume, events, Some(canceller))
+
+                def Traded(v : Quantity, incoming : Listener) = { events Traded (price, v, incoming); this }
+                def Cancelled (c : Quantity) = { events Cancelled c; this }
+                def Completed() = { events Completed(); this }
             }
 
             val _1 = new OrderPlaced(initialPrice, 9)
@@ -37,21 +41,19 @@ class PriceLevelSpec extends common.Base {
         s"PriceLevel($side)" should "be constructed properly with one order" in new Initial {}
 
         it should "allow cancel small part of order" in new Initial {
-            _1.events.onCancelled expects 5 once ()
+            _1 Cancelled 5
             _1.canceller(5)
             checkResult(q, LevelInfo(initialPrice, _1.volume - 5 :: Nil))
         }
 
         it should "allow cancel order completely" in new Initial {
-            _1.events.onCancelled expects _1.volume once ()
-            _1.events.onCompleted expects() once()
+            _1 Cancelled _1.volume Completed()
             _1.canceller(_1.volume)
             checkResult(q, LevelInfo(initialPrice, 0 :: Nil))
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
-            _1.events.onCancelled expects _1.volume once ()
-            _1.events.onCompleted expects() once()
+            _1 Cancelled _1.volume Completed()
             _1.canceller(_1.volume + 5)
             checkResult(q, LevelInfo(initialPrice, 0 :: Nil))
         }
@@ -69,8 +71,7 @@ class PriceLevelSpec extends common.Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1.events.onTraded expects (initialPrice, c1) once ()
-            Incoming.onTraded expects (initialPrice.opposite, c1) once ()
+            _1 Traded (c1, Incoming)
 
             assert(q.matchWith(initialPrice, c1, Incoming) == 0)
             checkResult(q, LevelInfo(initialPrice, _1.volume - c1 :: Nil))

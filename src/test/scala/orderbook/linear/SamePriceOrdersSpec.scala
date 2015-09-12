@@ -12,19 +12,10 @@ class SamePriceOrdersSpec extends common.Base {
             val listener = new Listener(volume.toString)
             val canceller = new Canceller
             level storeImpl (volume, listener, Some(canceller))
-        }
 
-        def cancelled(x : OrderStored, c : Quantity) =
-            x.listener.onCancelled expects c once ()
-
-        def completed(x : Listener) =
-            x.onCompleted expects () once ()
-
-        def completed(x : OrderStored) : Unit = completed(x.listener)
-
-        def traded(x : OrderStored, v : Quantity, incoming : Listener) = {
-            x.listener.onTraded expects (P, v) once ()
-            incoming.onTraded expects (P.opposite, v) once ()
+            def Traded(v : Quantity, incoming : Listener) = { listener Traded (P, v, incoming); this }
+            def Cancelled (c : Quantity) = { listener Cancelled c; this }
+            def Completed() = { listener Completed(); this }
         }
 
         def check(volumes : Quantity*) = {
@@ -53,7 +44,7 @@ class SamePriceOrdersSpec extends common.Base {
         val c1 = 5
         assert(c1 < _1.volume)
 
-        cancelled(_1, c1)
+        _1 Cancelled c1
 
         assert(_1.canceller(c1) == c1)
 
@@ -65,8 +56,7 @@ class SamePriceOrdersSpec extends common.Base {
 
         val c1 = _1.volume
 
-        cancelled(_1, c1)
-        completed(_1)
+        _1 Cancelled c1 Completed ()
 
         assert(_1.canceller(c1) == c1)
 
@@ -78,8 +68,7 @@ class SamePriceOrdersSpec extends common.Base {
 
         val c1 = _1.volume + 5
 
-        cancelled(_1, _1.volume)
-        completed(_1)
+        _1 Cancelled _1.volume Completed()
 
         assert(_1.canceller(c1) == _1.volume)
 
@@ -94,7 +83,7 @@ class SamePriceOrdersSpec extends common.Base {
 
         val Incoming = new Listener("Incoming")
 
-        traded(_1, c1, Incoming)
+        _1 Traded (c1, Incoming)
         assert(level.matchImpl(c1, Incoming) == 0)
 
         assert(level.totalVolume == _1.volume + _2.volume - c1)
@@ -107,8 +96,7 @@ class SamePriceOrdersSpec extends common.Base {
 
         val Incoming = new Listener("Incoming")
 
-        traded(_1, c1, Incoming)
-        completed(_1)
+        _1 Traded (c1, Incoming) Completed()
 
         assert(level.matchImpl(c1, Incoming) == 0)
 
@@ -122,11 +110,8 @@ class SamePriceOrdersSpec extends common.Base {
 
         val Incoming = new Listener("Incoming")
 
-        traded(_1, _1.volume, Incoming)
-        traded(_2, _2.volume, Incoming)
-
-        completed(_1)
-        completed(_2)
+        _1 Traded (_1.volume, Incoming) Completed()
+        _2 Traded (_2.volume, Incoming) Completed()
 
         assert(level.matchImpl(c1, Incoming) == c1 - _1.volume - _2.volume)
 
