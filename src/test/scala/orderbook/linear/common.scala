@@ -35,7 +35,7 @@ object common {
 
         }
 
-        class ListenerWithTime(name : String) extends OrderListener
+        class ListenerWithTime(name : String, up_down : core.Duration) extends OrderListener
         {
             val onTraded = mockFunction[SignedTicks, Quantity, core.Time, Unit](name + ".onTraded")
             val onCancelled = mockFunction[Quantity, core.Time, Unit](name + ".onCancelled")
@@ -44,6 +44,24 @@ object common {
             override def traded(price : SignedTicks, amountTraded : Quantity) = onTraded(price, amountTraded, core.Scheduler.currentTime)
             override def cancelled(amount : Quantity) = onCancelled(amount, core.Scheduler.currentTime)
             override def completed() = onCompleted(core.Scheduler.currentTime)
+
+            def after(dt : core.Duration) = core.Scheduler.currentTime + dt
+
+            def Traded(price : SignedTicks, tradeVolume : Quantity, incomingEvents : ListenerWithTime) = {
+                onTraded expects(price, tradeVolume, after(up_down)) once()
+                incomingEvents.onTraded expects(price.opposite, tradeVolume, after(up_down)) once()
+                this
+            }
+
+            def Completed() = {
+                onCompleted expects after(up_down) once()
+                this
+            }
+
+            def Cancelled(amount : Quantity) = {
+                onCancelled expects(amount, after(up_down)) once()
+                this
+            }
         }
 
         val emptyListener = new OrderListener {}

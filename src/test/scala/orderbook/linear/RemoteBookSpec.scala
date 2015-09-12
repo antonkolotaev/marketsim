@@ -82,21 +82,18 @@ class RemoteBookSpec extends Base {
 
             class OrderPlaced(val price: Ticks, val volume: Quantity) {
                 val signedPrice = price signed side
-                val events = new ListenerWithTime(s"$price.$volume")
+                val events = new ListenerWithTime(s"$price.$volume", up_down)
                 val canceller = new Canceller
                 remoteBook process LimitOrder(side, price, volume, events, Some(canceller))
+
+                def Traded(volume : Quantity, incoming : ListenerWithTime) =
+                    events Traded (signedPrice, volume, incoming)
+
+                def Cancelled(amount : Quantity) =
+                    events Cancelled amount
+
+                def Completed() = events Completed ()
             }
-
-            def traded(existing : OrderPlaced, tradeVolume : Quantity, incomingEvents : ListenerWithTime) = {
-                existing.events.onTraded expects(existing.signedPrice, tradeVolume, after(up_down)) once()
-                incomingEvents.onTraded expects(existing.signedPrice.opposite, tradeVolume, after(up_down)) once()
-            }
-
-            def completed(events: ListenerWithTime) =
-                events.onCompleted expects after(up_down) once ()
-
-            def cancelled(events : ListenerWithTime, amount : Quantity) =
-                events.onCancelled expects (amount, after(up_down)) once ()
 
             def after(dt : core.Duration) = core.Scheduler.currentTime + dt
 
@@ -111,6 +108,8 @@ class RemoteBookSpec extends Base {
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))()
 
             scheduler advance down + epsilon
+
+            val Incoming = new ListenerWithTime("Incoming", up_down)
         }
 
         s"OrderBook($side)" should s"be constructed properly with one $side order" in new Initial {}
@@ -120,7 +119,7 @@ class RemoteBookSpec extends Base {
             val C1 = 5
             assert(C1 < V1)
 
-            cancelled(_1.events, C1)
+            _1.events Cancelled C1
 
             expected(E.levels((initialPrice, V1 - C1)), E)
 
@@ -132,8 +131,7 @@ class RemoteBookSpec extends Base {
         }
 
         it should "allow cancel order completely" in new Initial {
-            cancelled(_1.events, _1.volume)
-            completed(_1.events)
+            _1.events Cancelled _1.volume Completed()
             expected(E, E)
             remoteBook cancel(_1.canceller, _1.volume)
             scheduler advance up
@@ -142,8 +140,7 @@ class RemoteBookSpec extends Base {
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
-            cancelled(_1.events, _1.volume)
-            completed(_1.events)
+            _1.events Cancelled _1.volume Completed()
             expected(E, E)
             remoteBook cancel(_1.canceller, _1.volume + 5)
             scheduler advance up
@@ -167,12 +164,11 @@ class RemoteBookSpec extends Base {
 
         it should "match with limit orders having small price" in new Initial {
 
-            val Incoming = new ListenerWithTime("Incoming")
             val c1 = 5
             assert(c1 < _1.volume)
 
-            traded(_1, c1, Incoming)
-            completed(Incoming)
+            _1 Traded (c1, Incoming)
+            Incoming Completed()
 
             expected(E levels ((initialPrice, V1 - c1)) trades ((initialPrice, c1)), E)
 
@@ -187,12 +183,11 @@ class RemoteBookSpec extends Base {
 
         it should "match with market orders having small price" in new Initial {
 
-            val Incoming = new ListenerWithTime("Incoming")
             val c1 = 5
             assert(c1 < _1.volume)
 
-            traded(_1, c1, Incoming)
-            completed(Incoming)
+            _1 Traded (c1, Incoming)
+            Incoming Completed()
 
             expected(E levels ((initialPrice, V1 - c1)) trades ((initialPrice, c1)), E)
 
@@ -205,7 +200,6 @@ class RemoteBookSpec extends Base {
 
         it should "put limit orders with too small price into another queue" in new Initial {
 
-            val Incoming = new ListenerWithTime("Incoming")
             val c1 = 5
             assert(c1 < _1.volume)
 
@@ -239,13 +233,11 @@ class RemoteBookSpec extends Base {
 
         it should "match first order completely with a limit order having too big volume but not very aggressive price" in new WithMoreAggressive {
 
-            val Incoming = new ListenerWithTime("Incoming")
             val c1 = _1.volume + _2.volume + 5
 
             val slightlyMoreAggressivePrice = _1.signedPrice moreAggressiveBy 1
 
-            traded(_2, _2.volume, Incoming)
-            completed(_2.events)
+            _2 Traded (_2.volume, Incoming) Completed()
 
             expected(
                 E levels ((initialPrice, V1)) trades ((moreAggressivePrice.ticks, _2.volume)),
@@ -260,16 +252,12 @@ class RemoteBookSpec extends Base {
 
         it should "match completely with limit orders having too big volume and not aggressive price" in new WithMoreAggressive {
 
-            val Incoming = new ListenerWithTime("Incoming")
             val c1 = _1.volume + _2.volume + 5
 
             val notAggressivePrice = _1.signedPrice lessAggressiveBy 1
 
-            traded(_2, _2.volume, Incoming)
-            completed(_2.events)
-
-            traded(_1, _1.volume, Incoming)
-            completed(_1.events)
+            _1 Traded (_1.volume, Incoming) Completed()
+            _2 Traded (_2.volume, Incoming) Completed()
 
             expected(
                 E trades((_1.price, _1.volume), (_2.price, _2.volume)),
@@ -284,17 +272,12 @@ class RemoteBookSpec extends Base {
 
         it should "match completely with market orders having too big volume" in new WithMoreAggressive {
 
-            val Incoming = new ListenerWithTime("Incoming")
             val c1 = _1.volume + _2.volume + 5
 
-            traded(_2, _2.volume, Incoming)
-            completed(_2.events)
+            _1 Traded (_1.volume, Incoming) Completed()
+            _2 Traded (_2.volume, Incoming) Completed()
 
-            traded(_1, _1.volume, Incoming)
-            completed(_1.events)
-
-            cancelled(Incoming, c1 - _1.volume - _2.volume)
-            completed(Incoming)
+            Incoming Cancelled c1 - _1.volume - _2.volume Completed()
 
             expected(E trades((_1.price, _1.volume), (_2.price, _2.volume)), E)
 
