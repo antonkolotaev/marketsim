@@ -63,6 +63,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
                 lastTrades setWithoutCommit (price, volume) :: lastTrades.value
             }
         }
+        clearLastTrades()
         val unmatched = bestPriceLevel matchWith (limitPrice, volume, proxyEvents)
         removeEmptyBestLevels()
         unmatched
@@ -120,13 +121,14 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
         updatePriceLevels()
     }
 
+    private[linear] def clearLastTrades() = lastTrades setWithoutCommit Nil
+
     private[linear] def commit() = {
         bestPrice commit ()
         bestPriceVolume commit ()
         lastTrade commit()
         lastTrades commit()
         priceLevels commit()
-        lastTrades setWithoutCommit Nil
     }
 }
 

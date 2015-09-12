@@ -43,8 +43,8 @@ object Remote {
             Scheduler.after(toBook) { whatToDo }
         
         def cancel(token: Canceller, amountToCancel: Quantity) = delay { target.cancel(token, amountToCancel) }
-        def process(order: LimitOrder) = delay { order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
-        def process(order: MarketOrder) = delay { order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
+        def process(order: LimitOrder) = delay { target process order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
+        def process(order: MarketOrder) = delay { target process order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
 
         def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity) = target fetchPriceLevelsTillVolume (user, limitVolume)
     }

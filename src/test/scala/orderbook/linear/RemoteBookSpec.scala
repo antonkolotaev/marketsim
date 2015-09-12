@@ -1,5 +1,6 @@
 package orderbook.linear
 
+import core.Duration
 import orderbook.linear.common._
 import reactive.Unary
 
@@ -68,12 +69,15 @@ class RemoteBookSpec extends Base {
                 val signedPrice = price signed side
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
-                localBook process LimitOrder(side, price, volume, events, Some(canceller))
+                remoteBook process LimitOrder(side, price, volume, events, Some(canceller))
             }
 
             onChangedLocally expects(E.levels((initialPrice, 9)), E) once()
+            onChangedRemotely expects(E.levels((initialPrice, 9)), E) once()
 
             val _1 = new OrderPlaced(initialPrice, 9)
+
+            scheduler advance Duration(9)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))()
         }
@@ -84,8 +88,12 @@ class RemoteBookSpec extends Base {
             _1.events.onCancelled expects 5 once()
 
             onChangedLocally expects(E.levels((initialPrice, 9 - 5)), E) once()
+            onChangedRemotely expects(E.levels((initialPrice, 9 - 5)), E) once()
 
-            localBook cancel(_1.canceller, 5)
+            remoteBook cancel(_1.canceller, 5)
+
+            scheduler advance Duration(9)
+
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume - 5 :: Nil))()
         }
 
@@ -93,7 +101,9 @@ class RemoteBookSpec extends Base {
             _1.events.onCancelled expects _1.volume once()
             _1.events.onCompleted expects() once()
             onChangedLocally expects(E, E) once()
-            localBook cancel(_1.canceller, _1.volume)
+            onChangedRemotely expects(E, E) once()
+            remoteBook cancel(_1.canceller, _1.volume)
+            scheduler advance Duration(9)
             checkLocalResult()()
         }
 
@@ -101,15 +111,20 @@ class RemoteBookSpec extends Base {
             _1.events.onCancelled expects _1.volume once()
             _1.events.onCompleted expects() once()
             onChangedLocally expects(E, E) once()
-            localBook cancel(_1.canceller, _1.volume + 5)
+            onChangedRemotely expects(E, E) once()
+            remoteBook cancel(_1.canceller, _1.volume + 5)
+            scheduler advance Duration(9)
             checkLocalResult()()
         }
 
         it should "accept orders of the same price" in new Initial {
 
             onChangedLocally expects(E levels ((initialPrice, 9 + 8)), E) once()
+            onChangedRemotely expects(E levels ((initialPrice, 9 + 8)), E) once()
 
             val _2 = new OrderPlaced(initialPrice, 8)
+
+            scheduler advance Duration(9)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: _2.volume :: Nil))()
         }
@@ -125,8 +140,11 @@ class RemoteBookSpec extends Base {
             Incoming.onCompleted expects() once()
 
             onChangedLocally expects(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E) once()
+            onChangedRemotely expects(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E) once()
 
-            localBook process LimitOrder(side.opposite, initialPrice, c1, Incoming)
+            remoteBook process LimitOrder(side.opposite, initialPrice, c1, Incoming)
+
+            scheduler advance Duration(9)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume - c1 :: Nil))()
         }
@@ -142,8 +160,11 @@ class RemoteBookSpec extends Base {
             Incoming.onCompleted expects() once()
 
             onChangedLocally expects(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E) once()
+            onChangedRemotely expects(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E) once()
 
-            localBook process MarketOrder(side.opposite, c1, Incoming)
+            remoteBook process MarketOrder(side.opposite, c1, Incoming)
+
+            scheduler advance Duration(9)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume - c1 :: Nil))()
         }
@@ -157,8 +178,11 @@ class RemoteBookSpec extends Base {
             val incomingPrice = _1.signedPrice moreAggressiveBy 1
 
             onChangedLocally expects(E levels ((initialPrice, 9)), E levels ((incomingPrice.ticks, 5))) once()
+            onChangedRemotely expects(E levels ((initialPrice, 9)), E levels ((incomingPrice.ticks, 5))) once()
 
-            localBook process LimitOrder(side.opposite, incomingPrice.ticks, c1, Incoming)
+            remoteBook process LimitOrder(side.opposite, incomingPrice.ticks, c1, Incoming)
+
+            scheduler advance Duration(9)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))(LevelInfo(incomingPrice.opposite, c1 :: Nil))
         }
@@ -167,8 +191,11 @@ class RemoteBookSpec extends Base {
             val moreAggressivePrice = _1.signedPrice moreAggressiveBy 3
 
             onChangedLocally expects (E levels ((moreAggressivePrice.ticks, 8), (initialPrice, 2)), E) once ()
+            onChangedRemotely expects (E levels ((moreAggressivePrice.ticks, 8), (initialPrice, 2)), E) once ()
 
             val _2 = new OrderPlaced(moreAggressivePrice.ticks, 8)
+
+            scheduler advance Duration(9)
 
             checkLocalResult(LevelInfo(_2.signedPrice, _2.volume :: Nil), LevelInfo(_1.signedPrice, _1.volume :: Nil))()
         }
@@ -190,7 +217,13 @@ class RemoteBookSpec extends Base {
                 E levels ((initialPrice, 9)) trades ((moreAggressivePrice.ticks, _2.volume)),
                 E levels ((slightlyMoreAggressivePrice.ticks, c1 - _2.volume))) once()
 
-            localBook process LimitOrder(side.opposite, slightlyMoreAggressivePrice.ticks, c1, Incoming)
+            onChangedRemotely expects(
+                E levels ((initialPrice, 9)) trades ((moreAggressivePrice.ticks, _2.volume)),
+                E levels ((slightlyMoreAggressivePrice.ticks, c1 - _2.volume))) once()
+
+            remoteBook process LimitOrder(side.opposite, slightlyMoreAggressivePrice.ticks, c1, Incoming)
+
+            scheduler advance Duration(9)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))(LevelInfo(slightlyMoreAggressivePrice.opposite, c1 - _2.volume :: Nil))
         }
@@ -215,7 +248,14 @@ class RemoteBookSpec extends Base {
                 E levels ((notAggressivePrice.ticks, c1 - _2.volume - _1.volume))
                 ) once()
 
-            localBook process LimitOrder(side.opposite, notAggressivePrice.ticks, c1, Incoming)
+            onChangedRemotely expects(
+                E trades((_1.price, _1.volume), (_2.price, _2.volume)),
+                E levels ((notAggressivePrice.ticks, c1 - _2.volume - _1.volume))
+                ) once()
+
+            remoteBook process LimitOrder(side.opposite, notAggressivePrice.ticks, c1, Incoming)
+
+            scheduler advance Duration(9)
 
             checkLocalResult()(LevelInfo(notAggressivePrice.opposite, c1 - _2.volume - _1.volume :: Nil))
         }
@@ -237,8 +277,11 @@ class RemoteBookSpec extends Base {
             Incoming.onCompleted expects() once()
 
             onChangedLocally expects(E trades((_1.price, _1.volume), (_2.price, _2.volume)), E) once()
+            onChangedRemotely expects(E trades((_1.price, _1.volume), (_2.price, _2.volume)), E) once()
 
-            localBook process MarketOrder(side.opposite, c1, Incoming)
+            remoteBook process MarketOrder(side.opposite, c1, Incoming)
+
+            scheduler advance Duration(9)
 
             checkLocalResult()()
         }
