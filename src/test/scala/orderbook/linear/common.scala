@@ -16,6 +16,23 @@ object common {
             override def traded(price : SignedTicks, amountTraded : Quantity) = onTraded(price, amountTraded)
             override def cancelled(amount : Quantity) = onCancelled(amount)
             override def completed() = onCompleted()
+
+            def Cancelled(c : Quantity) = {
+                onCancelled expects c once()
+                this
+            }
+
+            def Completed() = {
+                onCompleted expects() once()
+                this
+            }
+
+            def Traded(p : SignedTicks, v : Quantity, incoming : Listener) = {
+                onTraded expects (p, v) once ()
+                incoming.onTraded expects (p.opposite, v) once ()
+                this
+            }
+
         }
 
         class ListenerWithTime(name : String) extends OrderListener
