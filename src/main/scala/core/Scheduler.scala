@@ -61,10 +61,14 @@ object Scheduler
 
     def withNew[T](f : Impl => T) : T =
     {
-        instance.value match {
-            case Some(value) => f(value)
-            case None => instance.withValue(Some(new Impl)) { f(instance.value.get) }
-        }
+        instance.withValue(Some(new Impl)) { f(instance.value.get) }
+    }
+
+    // for testing purposes
+    def recreate() = {
+        val s = new Impl
+        instance.value_=(Some(s))
+        s
     }
 
     def currentTime = instance.value.get.currentTime

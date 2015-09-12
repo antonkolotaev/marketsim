@@ -32,6 +32,11 @@ object Remote {
         val Asks = new Queue(target.Asks, fromBook)
         val Bids = new Queue(target.Bids, fromBook)
 
+        def queue(side : Side) = side match {
+            case Sell => Asks
+            case Buy => Bids
+        }
+
         val tickMapper = target.tickMapper
         
         private def delay(whatToDo : => Unit) = 
