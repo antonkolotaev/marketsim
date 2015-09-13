@@ -13,7 +13,8 @@ class BookSpec extends Base {
             val initialPrice = Ticks(100)
 
             val book = new Book(tickMapper)
-            book fetchPriceLevelsTillVolume (this, 10)
+            book fetchPriceLevelsTillVolume ("sell", 10)
+            book fetchPriceLevelsTillVolume ("buy", -10)
 
             val queue = book queue side
             val queueOpposite = book queue side.opposite

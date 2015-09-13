@@ -82,6 +82,10 @@ package object linear {
     case class USD(centicents : Int)
     {
         override def toString = "$" + (centicents / 10000.0)
+
+        def * (x : Int) = USD(centicents * x)
+        def + (x : USD) = USD(centicents + x.centicents)
+        def - (x : USD) = USD(centicents - x.centicents)
     }
 
     def cents(x : Int) = USD(x * 100)
