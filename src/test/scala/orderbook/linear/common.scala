@@ -10,15 +10,15 @@ object common {
         class Listener(name : String) extends OrderListener
         {
             val onTraded = mockFunction[Traded, Unit](name + ".onTraded")
-            val onCancelled = mockFunction[Cancelled, Unit](name + ".onCancelled")
+            val onCancelled = mockFunction[Quantity, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[Unit](name + ".onCompleted")
 
             override def handle(traded : Traded) = onTraded(traded)
-            override def handle(cancelled : Cancelled) = onCancelled(cancelled)
+            override def handle(cancelled : Cancelled) = onCancelled(cancelled.amount)
             override def handle(completed : Completed) = onCompleted()
 
             def Cancelled(c : Quantity) = {
-                onCancelled expects orderbook.linear.Cancelled(c) once()
+                onCancelled expects c once()
                 this
             }
 
@@ -38,11 +38,11 @@ object common {
         class ListenerWithTime(name : String, up_down : core.Duration) extends OrderListener
         {
             val onTraded = mockFunction[Traded, core.Time, Unit](name + ".onTraded")
-            val onCancelled = mockFunction[Cancelled, core.Time, Unit](name + ".onCancelled")
+            val onCancelled = mockFunction[Quantity, core.Time, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[core.Time, Unit](name + ".onCompleted")
 
             override def handle(traded : Traded) = onTraded(traded, core.Scheduler.currentTime)
-            override def handle(cancelled : Cancelled) = onCancelled(cancelled, core.Scheduler.currentTime)
+            override def handle(cancelled : Cancelled) = onCancelled(cancelled.amount, core.Scheduler.currentTime)
             override def handle(completed : Completed) = onCompleted(core.Scheduler.currentTime)
 
             def after(dt : core.Duration) = core.Scheduler.currentTime + dt
@@ -59,7 +59,7 @@ object common {
             }
 
             def Cancelled(amount : Quantity) = {
-                onCancelled expects(orderbook.linear.Cancelled(amount), after(up_down)) once()
+                onCancelled expects (amount, after(up_down)) once()
                 this
             }
         }

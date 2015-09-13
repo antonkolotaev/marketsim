@@ -103,7 +103,11 @@ package object linear {
     }
     
     case class Traded(price : SignedTicks, volume : Quantity)
-    case class Cancelled(amount : Quantity)
+    {
+        def side = price.side
+    }
+
+    case class Cancelled(side : Side, amount : Quantity)
     case class Completed()
 
     /**

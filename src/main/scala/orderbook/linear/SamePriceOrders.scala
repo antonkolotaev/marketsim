@@ -41,7 +41,7 @@ class SamePriceOrders(val price : SignedTicks) {
     }
 
     private[linear] def cancel(e : Entry, amountToCancel : Quantity) = {
-        val cancelled = e cancel amountToCancel
+        val cancelled = e cancel (price.side, amountToCancel)
         totalVolume_ -= cancelled
         cancelled
     }

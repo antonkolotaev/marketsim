@@ -11,7 +11,7 @@ class EntrySpec extends common.Base {
         assert(e.unmatchedVolume == V)
 
         def cancelled(L : Listener, amount : Quantity) = 
-            L.onCancelled expects Cancelled(amount) once()
+            L.onCancelled expects amount once()
         
         def completed(L : Listener) = 
             L.onCompleted expects () once ()
@@ -28,7 +28,7 @@ class EntrySpec extends common.Base {
 
         val C = 5
         L Cancelled C
-        assert((e cancel C) == C)
+        assert((e cancel (Sell, C)) == C)
 
         assert(!e.fulfilled)
         assert(e.unmatchedVolume == V - C)
@@ -37,7 +37,7 @@ class EntrySpec extends common.Base {
     it should "allow cancel all amount" in new Initial {
 
         L Cancelled V Completed ()
-        assert((e cancel V) == V)
+        assert((e cancel (Sell, V)) == V)
 
         assert(e.fulfilled)
         assert(e.unmatchedVolume == 0)
@@ -48,7 +48,7 @@ class EntrySpec extends common.Base {
         val C = V + 10
         L Cancelled V Completed ()
 
-        assert((e cancel V) == V)
+        assert((e cancel (Sell, V)) == V)
 
         assert(e.fulfilled)
         assert(e.unmatchedVolume == 0)

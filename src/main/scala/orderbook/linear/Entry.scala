@@ -34,11 +34,11 @@ private[linear] class Entry(private var unmatched : Quantity,
      * @param amount -- amount to cancel
      * @return actually cancelled order volume
      */
-    def cancel(amount : Quantity) =
+    def cancel(side : Side, amount : Quantity) =
     {
         val toCancel = amount min unmatchedVolume
         unmatched -= toCancel
-        sender handle Cancelled(toCancel)
+        sender handle Cancelled(side, toCancel)
         if (unmatched == 0)
             sender handle Completed()
         toCancel

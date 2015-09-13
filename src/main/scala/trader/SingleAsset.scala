@@ -47,7 +47,7 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
 
     override def handle(traded : Traded) = {
         val priceInCurrency = book.tickMapper toCurrency traded.price.ticks
-        traded.price.side match {
+        traded.side match {
             case Buy =>
                 inventory setWithoutCommit (inventory() + traded.volume)
                 position setWithoutCommit (position() - traded.volume)
