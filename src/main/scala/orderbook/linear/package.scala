@@ -111,14 +111,14 @@ package object linear {
      */
     trait OrderListener {
         def handle(traded : Traded) {}
-        def cancelled(amount : Quantity) {}
+        def handle(cancelled : Cancelled) {}
         def completed() {}
     }
 
     class OrderListenerProxy(target : OrderListener) extends OrderListener
     {
         override def handle(traded : Traded) = target handle traded
-        override def cancelled(amount : Quantity) = target cancelled amount
+        override def handle(cancelled: Cancelled) = target handle cancelled
         override def completed() = target completed ()
     }
 

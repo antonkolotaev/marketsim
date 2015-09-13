@@ -60,7 +60,7 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
         core.Scheduler.asyncAgain { commit() }
     }
 
-    override def cancelled(amount : Quantity) = {
+    override def handle(cancelled : Cancelled) = {
 
     }
 

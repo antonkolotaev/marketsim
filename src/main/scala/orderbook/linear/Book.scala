@@ -50,7 +50,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
             q matchWith (MarketOrderPrice, order.volume, order.sender) match {
                 case 0 =>
                 case unmatched =>
-                    order.sender cancelled unmatched
+                    order.sender handle Cancelled(unmatched)
             }
             order.sender.completed()
             q commit ()

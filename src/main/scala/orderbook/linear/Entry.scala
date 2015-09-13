@@ -38,7 +38,7 @@ private[linear] class Entry(private var unmatched : Quantity,
     {
         val toCancel = amount min unmatchedVolume
         unmatched -= toCancel
-        sender cancelled toCancel
+        sender handle Cancelled(toCancel)
         if (unmatched == 0)
             sender completed ()
         toCancel

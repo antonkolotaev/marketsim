@@ -11,7 +11,7 @@ class EntrySpec extends common.Base {
         assert(e.unmatchedVolume == V)
 
         def cancelled(L : Listener, amount : Quantity) = 
-            L.onCancelled expects amount once()
+            L.onCancelled expects Cancelled(amount) once()
         
         def completed(L : Listener) = 
             L.onCompleted expects () once ()
