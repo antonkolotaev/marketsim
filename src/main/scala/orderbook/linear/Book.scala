@@ -35,7 +35,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
             val q = queue(order.side.opposite)
             q matchWith (price.opposite, order.volume, order.sender) match {
                 case 0 =>
-                    order.sender.completed()
+                    order.sender handle Completed()
                 case unmatched =>
                     val p = queue(order.side)
                     p store  (price, tickMapper toCurrency order.price, unmatched, order.sender, order.cancellationKey)
@@ -52,7 +52,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
                 case unmatched =>
                     order.sender handle Cancelled(unmatched)
             }
-            order.sender.completed()
+            order.sender handle Completed()
             q commit ()
         }
 

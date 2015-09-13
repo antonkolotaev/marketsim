@@ -64,5 +64,5 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
 
     }
 
-    override def completed() {}
+    override def handle(completed: Completed) {}
 }

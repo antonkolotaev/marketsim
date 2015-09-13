@@ -21,7 +21,7 @@ object Remote {
         
         override def handle(traded : Traded) = delay { original handle traded }
         override def handle(cancelled : Cancelled) = delay { original handle cancelled }
-        override def completed() = delay { original completed () }
+        override def handle(completed : Completed) = delay { original handle completed }
     }
 
     private val delayedListeners = collection.mutable.Map.empty[(OrderListener, core.Duration), OrderListener]

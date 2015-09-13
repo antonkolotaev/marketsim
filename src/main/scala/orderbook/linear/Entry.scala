@@ -40,7 +40,7 @@ private[linear] class Entry(private var unmatched : Quantity,
         unmatched -= toCancel
         sender handle Cancelled(toCancel)
         if (unmatched == 0)
-            sender completed ()
+            sender handle Completed()
         toCancel
     }
 
@@ -59,7 +59,7 @@ private[linear] class Entry(private var unmatched : Quantity,
         sender handle Traded(ourPrice, toTrade)
         incoming_sender handle Traded(ourPrice.opposite, toTrade)
         if (unmatched == 0)
-            sender completed()
+            sender handle Completed()
         toTrade
     }
 

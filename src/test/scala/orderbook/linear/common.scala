@@ -15,7 +15,7 @@ object common {
 
             override def handle(traded : Traded) = onTraded(traded)
             override def handle(cancelled : Cancelled) = onCancelled(cancelled)
-            override def completed() = onCompleted()
+            override def handle(completed : Completed) = onCompleted()
 
             def Cancelled(c : Quantity) = {
                 onCancelled expects orderbook.linear.Cancelled(c) once()
@@ -43,7 +43,7 @@ object common {
 
             override def handle(traded : Traded) = onTraded(traded, core.Scheduler.currentTime)
             override def handle(cancelled : Cancelled) = onCancelled(cancelled, core.Scheduler.currentTime)
-            override def completed() = onCompleted(core.Scheduler.currentTime)
+            override def handle(completed : Completed) = onCompleted(core.Scheduler.currentTime)
 
             def after(dt : core.Duration) = core.Scheduler.currentTime + dt
 
