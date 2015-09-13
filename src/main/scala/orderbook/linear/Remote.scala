@@ -23,6 +23,14 @@ object Remote {
         override def cancelled(amount : Quantity) = delay { original cancelled amount }
         override def completed() = delay { original completed () }
     }
+
+    private val delayedListeners = collection.mutable.Map.empty[(OrderListener, core.Duration), OrderListener]
+
+    private def delayedOrderListener(original : OrderListener, dt : core.Duration) =
+        delayedListeners getOrElseUpdate ((original, dt), new DelayedOrderListener(original, dt))
+
+    private[linear] def recreateDelayedListeners() = delayedListeners.clear()
+    private[linear] def delayedListenersCount = delayedListeners.size
     
     class Book[Currency](target   : AbstractOrderBook[Currency],
                          toBook   : core.Duration,
@@ -43,8 +51,8 @@ object Remote {
             Scheduler.after(toBook) { whatToDo }
         
         def cancel(token: Canceller, amountToCancel: Quantity) = delay { target.cancel(token, amountToCancel) }
-        def process(order: LimitOrder) = delay { target process order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
-        def process(order: MarketOrder) = delay { target process order.copy(sender = new DelayedOrderListener(order.sender, fromBook)) }
+        def process(order: LimitOrder) = delay { target process order.copy(sender = delayedOrderListener(order.sender, fromBook)) }
+        def process(order: MarketOrder) = delay { target process order.copy(sender = delayedOrderListener(order.sender, fromBook)) }
 
         def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity) = target fetchPriceLevelsTillVolume (user, limitVolume)
     }

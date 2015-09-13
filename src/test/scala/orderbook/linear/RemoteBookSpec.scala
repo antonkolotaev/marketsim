@@ -102,9 +102,13 @@ class RemoteBookSpec extends Base {
 
             expected(E.levels((initialPrice, V1)), E)
 
+            Remote.recreateDelayedListeners()
+
             val _1 = new OrderPlaced(initialPrice, V1)
 
             scheduler advance up
+
+            assert(Remote.delayedListenersCount == 1)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))()
 
@@ -157,6 +161,8 @@ class RemoteBookSpec extends Base {
             val _2 = new OrderPlaced(initialPrice, V2)
 
             scheduler advance up
+
+            assert(Remote.delayedListenersCount == 2)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: _2.volume :: Nil))()
 
