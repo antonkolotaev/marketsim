@@ -30,8 +30,7 @@ class RemoteBookSpec extends Base {
             val remoteQueue = remoteBook queue side
             val remoteQueueOpposite = remoteBook queue side.opposite
 
-            remoteBook fetchPriceLevelsTillVolume("sell", fetchVolume)
-            remoteBook fetchPriceLevelsTillVolume("buy", -fetchVolume)
+            remoteBook fetchPriceLevelsTillVolume  fetchVolume
 
             case class QueueState(best: Option[(Ticks, Quantity)],
                                   last: Option[(Ticks, Quantity)],

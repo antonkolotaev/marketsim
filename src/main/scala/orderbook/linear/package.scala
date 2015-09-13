@@ -135,16 +135,22 @@ package object linear {
         def process(order : LimitOrder)
         def process(order : MarketOrder)
         def cancel(token : Canceller, amountToCancel : Quantity)
-        def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity)
+        def fetchPriceLevelsTillVolume(limitVolume : Quantity)
     }
 
-    case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener)
+    trait AbstractOrder
+    {
+        val side : Side
+        val volume : Quantity
+    }
+
+    case class MarketOrder(side : Side, volume : Quantity, sender : OrderListener) extends AbstractOrder
 
     case class LimitOrder(side              : Side,
                           price             : Ticks,
                           volume            : Quantity,
                           sender            : OrderListener,
-                          cancellationKey   : Option[Canceller] = None)
+                          cancellationKey   : Option[Canceller] = None) extends AbstractOrder
 
     def cancellableLimitOrder(side              : Side,
                               price             : Ticks,

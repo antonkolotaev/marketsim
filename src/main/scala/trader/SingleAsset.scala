@@ -22,10 +22,26 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
         balance commit()
     }
 
+    def adjustPositionAndVolume(side : Side, volume : Quantity) = {
+        position setAndCommit (position() + (if (side == Sell) -volume else volume))
+        book fetchPriceLevelsTillVolume position() + inventory()
+    }
+
     def sendMarket(side : Side, volume : Quantity) = {
-        val order = new MarketOrder(side, volume, this)
-        position setAndCommit (position() + (if (side == Sell) volume else -volume))
-        book fetchPriceLevelsTillVolume (this, position())
+        adjustPositionAndVolume(side, volume)
+        book process new MarketOrder(side, volume, this)
+    }
+
+    def sendLimit(side : Side, price : USD, volume : Quantity, canceller : Option[Canceller] = None) = {
+        adjustPositionAndVolume(side, volume)
+        val ticks = book.tickMapper toTicks (price, side)
+        book process new LimitOrder(side, ticks, volume, this, canceller)
+    }
+
+    def sendCancellableLimit(side : Side, price : USD, volume : Quantity) = {
+        val canceller = new Canceller
+        sendLimit(side, price, volume, Some(canceller))
+        canceller
     }
 
     override def traded(price : SignedTicks, amount : Quantity) = {
@@ -38,7 +54,7 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
                 inventory setWithoutCommit (inventory() - amount)
                 balance setWithoutCommit(balance() + priceInCurrency * amount)
         }
-        commit()
+        core.Scheduler.asyncAgain { commit() }
     }
     override def cancelled(amount : Quantity) {}
     override def completed() {}

@@ -24,16 +24,9 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
         ret
     }
 
-    def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity) {
-
-        if (limitVolume > 0) // sell position => we need to know buy orders to cover it
-        {
-            Bids fetchPriceLevelsTillVolume (user, limitVolume)
-            Asks fetchPriceLevelsTillVolume (user, 0)
-        } else {
-            Bids fetchPriceLevelsTillVolume (user, 0)
-            Asks fetchPriceLevelsTillVolume (user, -limitVolume)
-        }
+    def fetchPriceLevelsTillVolume(limitVolume : Quantity) {
+        Bids fetchPriceLevelsTillVolume limitVolume
+        Asks fetchPriceLevelsTillVolume limitVolume
     }
 
     def process(order : LimitOrder) =

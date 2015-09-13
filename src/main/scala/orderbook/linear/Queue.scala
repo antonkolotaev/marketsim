@@ -101,12 +101,10 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
         priceLevels setWithoutCommit (bestPriceLevel levelsTill priceLevelToFetch)
     }
 
-    private val priceLevelsUsers = collection.mutable.Map.empty[AnyRef, Quantity]
     private var priceLevelToFetch = 0
 
-    def fetchPriceLevelsTillVolume(user : AnyRef, limitVolume : Quantity) = {
-        priceLevelsUsers.update(user, limitVolume)
-        priceLevelToFetch = priceLevelsUsers.values.max
+    def fetchPriceLevelsTillVolume(limitVolume : Quantity) = {
+        priceLevelToFetch = priceLevelToFetch max limitVolume
     }
 
 
