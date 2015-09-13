@@ -55,24 +55,23 @@ object Scheduler
         }
 
         def step() = {
-            if (future.isEmpty)
-                false
-            else {
-                val e = future.dequeue()
-                t = e.whenToHappen
-                current_id = e.uniqueId
-                e.handler()
-                true
-            }
+            val e = future.dequeue()
+            t = e.whenToHappen
+            current_id = e.uniqueId
+            e.handler()
         }
 
-        def fetchAll() = while (step()) {}
+        private def nextActionTime = if (future.isEmpty) Time(Int.MaxValue) else future.head.whenToHappen
+
+        def fetchAll() = while (future.nonEmpty) step()
 
         def workTill(limit : Time) =
         {
             var steps = 0
-            while (t < limit && step())
+            while (nextActionTime <= limit) {
+                step()
                 steps += 1
+            }
             t = limit
             steps
         }

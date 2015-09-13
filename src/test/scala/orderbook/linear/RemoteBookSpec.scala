@@ -10,6 +10,7 @@ class RemoteBookSpec extends Base {
         class Initial {
 
             val scheduler = core.Scheduler.recreate()
+            Remote.recreateDelayedListeners()
 
             val tickMapper = new LinearMapper(cents(1))
             val initialPrice = Ticks(100)
@@ -101,8 +102,6 @@ class RemoteBookSpec extends Base {
             val V1 = 9
 
             expected(E.levels((initialPrice, V1)), E)
-
-            Remote.recreateDelayedListeners()
 
             val _1 = new OrderPlaced(initialPrice, V1)
 
