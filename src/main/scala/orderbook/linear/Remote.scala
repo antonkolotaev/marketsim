@@ -1,17 +1,18 @@
 package orderbook.linear
 
 import core.Scheduler
+import ops._
 
 object Remote {
 
     class Queue[Currency](target : AbstractOrderQueue[Currency], dt : core.Duration)
         extends AbstractOrderQueue[Currency]
     {
-        val bestPrice = ops.delay(dt) { target.bestPrice }
-        val bestPriceVolume = ops.delay(dt) { target.bestPriceVolume }
-        val lastTrade = ops.delay(dt) { target.lastTrade }
-        val lastTrades = ops.delay(dt) { target.lastTrades }
-        val priceLevels = ops.delay(dt) { target.priceLevels }
+        val bestPrice = target.bestPrice delayed dt
+        val bestPriceVolume = target.bestPriceVolume delayed dt
+        val lastTrade = target.lastTrade delayed dt
+        val lastTrades = target.lastTrades delayed dt
+        val priceLevels = target.priceLevels delayed dt
     }
     
     class DelayedOrderListener(original : OrderListener, dt : core.Duration) extends OrderListener

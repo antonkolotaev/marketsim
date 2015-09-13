@@ -90,6 +90,7 @@ package object ops
     implicit class RichValue[A](a : reactive.Value[A])
     {
         def and[B](b : reactive.Value[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
+        def delayed(dt : core.Duration) = new Delay(a, dt)
     }
 
     import core._
@@ -107,7 +108,5 @@ package object ops
             }
         }
     }
-
-    def delay[A](dt : Duration)(a : reactive.Value[A]) = new Delay[A](a, dt)
 }
 
