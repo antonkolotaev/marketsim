@@ -8,12 +8,21 @@ object Scheduler
 
     class Impl {
 
-        type FutureEvent = (Time, EventId, () => Unit)
+        case class FutureEvent(whenToHappen : Time,
+                               sourceId     : EventId,
+                               uniqueId     : EventId,
+                               handler      : () => Unit)
 
         implicit object Ord extends Ordering[FutureEvent] {
             def compare(x: FutureEvent, y: FutureEvent) =
-                x._1.x compare y._1.x match {
-                    case 0 => -(x._2 compare y._2)
+                x.whenToHappen.x compare y.whenToHappen.x match {
+                    case 0 =>
+                        x.sourceId compare y.sourceId match {
+                            case 0 =>
+                                -(x.uniqueId compare y.uniqueId)
+                            case z =>
+                                -z
+                        }
                     case z => -z
                 }
         }
@@ -21,24 +30,38 @@ object Scheduler
         private val future  = new mutable.PriorityQueue[FutureEvent]()
         private var next_id = 0
         private var t       = Time(0)
+        private var current_id = -1
 
         def currentTime = t
 
         def schedule(actionTime : Time, handler : () => Unit)
         {
+            schedule(actionTime, next_id, handler)
+            next_id += 1
+        }
+
+        def scheduleAgain(actionTime : Time, handler : () => Unit)
+        {
+            schedule(actionTime, current_id, handler)
+        }
+
+        def schedule(actionTime : Time, id : Int, handler : () => Unit)
+        {
             if (actionTime < t)
                 throw new Exception(s"trying to schedule an event with $actionTime less than current time $t")
-            future += ((actionTime, next_id, handler))
-            next_id += 1
+            if (id > next_id)
+                throw new Exception(s"calling schedule with event id $id greater than already allocated id $next_id")
+            future += FutureEvent(actionTime, id, next_id, handler)
         }
 
         def step() = {
             if (future.isEmpty)
                 false
             else {
-                val (event_time, _, handler) = future.dequeue()
-                t = event_time
-                handler()
+                val e = future.dequeue()
+                t = e.whenToHappen
+                current_id = e.uniqueId
+                e.handler()
                 true
             }
         }
@@ -76,8 +99,16 @@ object Scheduler
     def schedule(absoluteTimeToAct : Time, whatToDo : => Unit) =
         instance.value.get.schedule(absoluteTimeToAct, () => whatToDo)
 
+    def scheduleAgain(absoluteTimeToAct : Time, whatToDo : => Unit) =
+        instance.value.get.scheduleAgain(absoluteTimeToAct, () => whatToDo)
+
     def after(relativeTimeToAct : Duration)(whatToDo : => Unit) =
         schedule(currentTime + relativeTimeToAct, whatToDo)
 
+    def afterAgain(relativeTimeToAct : Duration)(whatToDo : => Unit) =
+        scheduleAgain(currentTime + relativeTimeToAct, whatToDo)
+
     def async(whatToDo : => Unit) = schedule(currentTime, whatToDo)
+
+    def asyncAgain(whatToDo : => Unit) = scheduleAgain(currentTime, whatToDo)
 }

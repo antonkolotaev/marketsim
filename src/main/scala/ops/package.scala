@@ -96,9 +96,9 @@ package object ops
         override lazy val inputs = a :: Nil
 
         override def notifyExternalListenersIfValueChanged() : Unit = {
-            Scheduler.after (dt) {
+            Scheduler.afterAgain (dt) {
                 setWithoutCommit(a())
-                Scheduler async {
+                Scheduler asyncAgain {
                     commit()
                 }
             }

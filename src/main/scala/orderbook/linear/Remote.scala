@@ -17,7 +17,7 @@ object Remote {
     class DelayedOrderListener(original : OrderListener, dt : core.Duration) extends OrderListener
     {
         private def delay(whatToDo : => Unit) =
-            Scheduler.after(dt) { whatToDo }
+            Scheduler.afterAgain(dt) { whatToDo }
         
         override def traded(price : SignedTicks, amount : Quantity) = delay { original.traded(price, amount) }
         override def cancelled(amount : Quantity) = delay { original cancelled amount }
