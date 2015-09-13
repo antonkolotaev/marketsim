@@ -33,12 +33,10 @@ class BookSpec extends Base {
 
             val E = QueueState(None, None, Nil, Nil)
 
+            import ops._
+
             def toQueueState(queue : Queue[USD]) =
-                Unary(ops.and(
-                    ops.and(queue.bestPrice, queue.bestPriceVolume),
-                    ops.and(
-                        ops.and(queue.lastTrade, queue.lastTrades),
-                        queue.priceLevels)))
+                Unary((queue.bestPrice and queue.bestPriceVolume) and ((queue.lastTrade and queue.lastTrades) and queue.priceLevels))
                 {
                     case ((Some(p), Some(v)), last) => QueueState(Some(p,v), last._1._1, last._1._2, last._2)
                     case ((None, None), last) => QueueState(None, last._1._1, last._1._2, last._2)
@@ -48,7 +46,7 @@ class BookSpec extends Base {
             val onChanged =
                 mockFunction[(QueueState, QueueState), Unit]("onChanged")
 
-            ops.and(toQueueState(queue), toQueueState(queueOpposite)) += onChanged
+            toQueueState(queue) and toQueueState(queueOpposite) += onChanged
 
             def checkResult(expected: LevelInfo*)(expectedOpposite : LevelInfo*) = {
                 checkResultImpl(side)(Some(queue.bestLevel), expected.toList)

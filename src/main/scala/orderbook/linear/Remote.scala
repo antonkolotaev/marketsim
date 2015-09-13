@@ -29,7 +29,7 @@ object Remote {
     private def delayedOrderListener(original : OrderListener, dt : core.Duration) =
         delayedListeners getOrElseUpdate ((original, dt), new DelayedOrderListener(original, dt))
 
-    private[linear] def recreateDelayedListeners() = delayedListeners.clear()
+    /*private[linear]*/ def recreateDelayedListeners() = delayedListeners.clear()
     private[linear] def delayedListenersCount = delayedListeners.size
     
     class Book[Currency](target   : AbstractOrderBook[Currency],

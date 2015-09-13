@@ -17,6 +17,10 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
 
     val balance = new Variable(cents(0))
 
+    //val bestLevelPrice = reactive.IfThenElse()
+
+    //val balanceClearedAtBestLevel =
+
     private def commit() = {
         inventory commit()
         balance commit()
@@ -61,7 +65,8 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
     }
 
     override def handle(cancelled : Cancelled) = {
-
+        position setWithoutCommit (position() +
+            (if (cancelled.side == Buy) -cancelled.amount else +cancelled.amount))
     }
 
     override def handle(completed: Completed) {}

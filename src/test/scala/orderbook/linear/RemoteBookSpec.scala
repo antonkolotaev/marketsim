@@ -46,12 +46,10 @@ class RemoteBookSpec extends Base {
 
             val E = QueueState(None, None, Nil, Nil)
 
+            import ops._
+
             def toQueueState(queue: AbstractOrderQueue[USD]) =
-                Unary(ops.and(
-                    ops.and(queue.bestPrice, queue.bestPriceVolume),
-                    ops.and(
-                        ops.and(queue.lastTrade, queue.lastTrades),
-                        queue.priceLevels))) {
+                Unary((queue.bestPrice and queue.bestPriceVolume) and ((queue.lastTrade and queue.lastTrades) and queue.priceLevels)) {
                     case ((Some(p), Some(v)), last) => QueueState(Some(p, v), last._1._1, last._1._2, last._2)
                     case ((None, None), last) => QueueState(None, last._1._1, last._1._2, last._2)
                     case _ => throw new Exception("cannot happen")
@@ -60,14 +58,14 @@ class RemoteBookSpec extends Base {
             val onChangedLocally =
                 mockFunction[(QueueState, QueueState, core.Time), Unit]("onChangedLocally")
 
-            ops.and(toQueueState(localQueue), toQueueState(localQueueOpposite)) += {
+            toQueueState(localQueue) and toQueueState(localQueueOpposite) += {
                 case (q,p) => onChangedLocally(q, p, core.Scheduler.currentTime)
             }
 
             val onChangedRemotely =
                 mockFunction[(QueueState, QueueState, core.Time), Unit]("onChangedRemotely")
 
-            ops.and(toQueueState(remoteQueue), toQueueState(remoteQueueOpposite)) += {
+            toQueueState(remoteQueue) and toQueueState(remoteQueueOpposite) += {
                 case (q,p) => onChangedRemotely(q, p, core.Scheduler.currentTime)
             }
 

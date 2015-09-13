@@ -87,7 +87,10 @@ package object ops
         }
     }
 
-    def and[A,B](a : reactive.Value[A], b : reactive.Value[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
+    implicit class RichValue[A](a : reactive.Value[A])
+    {
+        def and[B](b : reactive.Value[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
+    }
 
     import core._
 

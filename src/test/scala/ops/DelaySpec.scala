@@ -19,7 +19,7 @@ class DelaySpec extends FlatSpec with MockFactory {
             val B = new VariableOpt[Int]
             val dB = delay(dt){ B }
 
-            val result = and(dA, dB)
+            val result = dA and dB
 
             val handler = mockFunction[(Option[Int], Option[Int]), Unit]("handler")
 
