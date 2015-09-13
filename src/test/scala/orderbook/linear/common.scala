@@ -9,11 +9,11 @@ object common {
     {
         class Listener(name : String) extends OrderListener
         {
-            val onTraded = mockFunction[SignedTicks, Quantity, Unit](name + ".onTraded")
+            val onTraded = mockFunction[Traded, Unit](name + ".onTraded")
             val onCancelled = mockFunction[Quantity, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[Unit](name + ".onCompleted")
 
-            override def traded(price : SignedTicks, amountTraded : Quantity) = onTraded(price, amountTraded)
+            override def handle(traded : Traded) = onTraded(traded)
             override def cancelled(amount : Quantity) = onCancelled(amount)
             override def completed() = onCompleted()
 
@@ -28,8 +28,8 @@ object common {
             }
 
             def Traded(p : SignedTicks, v : Quantity, incoming : Listener) = {
-                onTraded expects (p, v) once ()
-                incoming.onTraded expects (p.opposite, v) once ()
+                onTraded expects orderbook.linear.Traded(p, v) once ()
+                incoming.onTraded expects orderbook.linear.Traded(p.opposite, v) once ()
                 this
             }
 
@@ -37,19 +37,19 @@ object common {
 
         class ListenerWithTime(name : String, up_down : core.Duration) extends OrderListener
         {
-            val onTraded = mockFunction[SignedTicks, Quantity, core.Time, Unit](name + ".onTraded")
+            val onTraded = mockFunction[Traded, core.Time, Unit](name + ".onTraded")
             val onCancelled = mockFunction[Quantity, core.Time, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[core.Time, Unit](name + ".onCompleted")
 
-            override def traded(price : SignedTicks, amountTraded : Quantity) = onTraded(price, amountTraded, core.Scheduler.currentTime)
+            override def handle(traded : Traded) = onTraded(traded, core.Scheduler.currentTime)
             override def cancelled(amount : Quantity) = onCancelled(amount, core.Scheduler.currentTime)
             override def completed() = onCompleted(core.Scheduler.currentTime)
 
             def after(dt : core.Duration) = core.Scheduler.currentTime + dt
 
             def Traded(price : SignedTicks, tradeVolume : Quantity, incomingEvents : ListenerWithTime) = {
-                onTraded expects(price, tradeVolume, after(up_down)) once()
-                incomingEvents.onTraded expects(price.opposite, tradeVolume, after(up_down)) once()
+                onTraded expects(orderbook.linear.Traded(price, tradeVolume), after(up_down)) once()
+                incomingEvents.onTraded expects (orderbook.linear.Traded(price.opposite, tradeVolume), after(up_down)) once()
                 this
             }
 

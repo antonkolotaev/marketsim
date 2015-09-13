@@ -20,6 +20,7 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
     private def commit() = {
         inventory commit()
         balance commit()
+        position commit()
     }
 
     def adjustPositionAndVolume(side : Side, volume : Quantity) = {
@@ -44,18 +45,24 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
         canceller
     }
 
-    override def traded(price : SignedTicks, amount : Quantity) = {
-        val priceInCurrency = book.tickMapper toCurrency price.ticks
-        price.side match {
+    override def handle(traded : Traded) = {
+        val priceInCurrency = book.tickMapper toCurrency traded.price.ticks
+        traded.price.side match {
             case Buy =>
-                inventory setWithoutCommit (inventory() + amount)
-                balance setWithoutCommit(balance() - priceInCurrency * amount)
+                inventory setWithoutCommit (inventory() + traded.volume)
+                position setWithoutCommit (position() - traded.volume)
+                balance setWithoutCommit(balance() - priceInCurrency * traded.volume)
             case Sell =>
-                inventory setWithoutCommit (inventory() - amount)
-                balance setWithoutCommit(balance() + priceInCurrency * amount)
+                inventory setWithoutCommit (inventory() - traded.volume)
+                position setWithoutCommit (position() + traded.volume)
+                balance setWithoutCommit(balance() + priceInCurrency * traded.volume)
         }
         core.Scheduler.asyncAgain { commit() }
     }
-    override def cancelled(amount : Quantity) {}
+
+    override def cancelled(amount : Quantity) = {
+
+    }
+
     override def completed() {}
 }

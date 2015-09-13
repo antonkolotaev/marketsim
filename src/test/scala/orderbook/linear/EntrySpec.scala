@@ -17,8 +17,8 @@ class EntrySpec extends common.Base {
             L.onCompleted expects () once ()
 
         def traded(L : Listener, price : SignedTicks, amount : Quantity, incoming : Listener) = {
-            L.onTraded expects (price, amount) once()
-            incoming.onTraded expects (price.opposite, amount) once()
+            L.onTraded expects Traded(price, amount) once()
+            incoming.onTraded expects Traded(price.opposite, amount) once()
         }
     }
 

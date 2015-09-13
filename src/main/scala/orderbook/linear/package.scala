@@ -101,19 +101,23 @@ package object linear {
 
         def toCurrency(x : Ticks) = USD(x.value * tickSize.centicents)
     }
+    
+    case class Traded(price : SignedTicks, volume : Quantity)
+    case class Cancelled(amount : Quantity)
+    case class Completed()
 
     /**
      *  Interface for order event listeners
      */
     trait OrderListener {
-        def traded(price : SignedTicks, amount : Quantity) {}
+        def handle(traded : Traded) {}
         def cancelled(amount : Quantity) {}
         def completed() {}
     }
 
     class OrderListenerProxy(target : OrderListener) extends OrderListener
     {
-        override def traded(price : SignedTicks, amount : Quantity) = target traded (price, amount)
+        override def handle(traded : Traded) = target handle traded
         override def cancelled(amount : Quantity) = target cancelled amount
         override def completed() = target completed ()
     }

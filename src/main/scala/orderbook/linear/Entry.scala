@@ -56,8 +56,8 @@ private[linear] class Entry(private var unmatched : Quantity,
     def matchWith(ourPrice : SignedTicks, amount : Quantity, incoming_sender : OrderListener) = {
         val toTrade = amount min unmatchedVolume
         unmatched -= toTrade
-        sender traded (ourPrice, toTrade)
-        incoming_sender traded (ourPrice.opposite, toTrade)
+        sender handle Traded(ourPrice, toTrade)
+        incoming_sender handle Traded(ourPrice.opposite, toTrade)
         if (unmatched == 0)
             sender completed()
         toTrade
