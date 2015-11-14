@@ -59,8 +59,8 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
         val proxyEvents = new OrderListenerProxy(sender) {
             override def handle(traded : Traded) = {
                 super.handle(traded)
-                lastTrade setWithoutCommit Some(traded.price.ticks, traded.volume)
-                lastTrades setWithoutCommit (traded.price.ticks, traded.volume) :: lastTrades.value
+                lastTrade set Some(traded.price.ticks, traded.volume)
+                lastTrades set (traded.price.ticks, traded.volume) :: lastTrades.value
             }
         }
         clearLastTrades()
@@ -98,7 +98,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
     val priceLevels = new reactive.Variable[List[(Ticks, Currency, Quantity)]](Nil)
 
     def updatePriceLevels() = {
-        priceLevels setWithoutCommit (bestPriceLevel levelsTill priceLevelToFetch)
+        priceLevels set (bestPriceLevel levelsTill priceLevelToFetch)
     }
 
     private var priceLevelToFetch = 0
@@ -110,24 +110,16 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
 
     private def validateBestPrice(): Unit = {
         if (bestPriceLevel == terminal.level) {
-            bestPrice setWithoutCommit None
-            bestPriceVolume setWithoutCommit None
+            bestPrice set None
+            bestPriceVolume set None
         } else {
-            bestPrice setWithoutCommit Some(bestPriceLevel.price.ticks)
-            bestPriceVolume setWithoutCommit Some(bestPriceLevel.totalVolume)
+            bestPrice set Some(bestPriceLevel.price.ticks)
+            bestPriceVolume set Some(bestPriceLevel.totalVolume)
         }
         updatePriceLevels()
     }
 
-    private[linear] def clearLastTrades() = lastTrades setWithoutCommit Nil
-
-    private[linear] def commit() = {
-        bestPrice commit ()
-        bestPriceVolume commit ()
-        lastTrade commit()
-        lastTrades commit()
-        priceLevels commit()
-    }
+    private[linear] def clearLastTrades() = lastTrades set Nil
 }
 
 

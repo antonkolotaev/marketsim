@@ -39,9 +39,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
                 case unmatched =>
                     val p = queue(order.side)
                     p store  (price, tickMapper toCurrency order.price, unmatched, order.sender, order.cancellationKey)
-                    p commit ()
             }
-            q commit()
         }
 
     def process(order : MarketOrder) =
@@ -53,14 +51,12 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
                     order.sender handle Cancelled(order.side, unmatched)
             }
             order.sender handle Completed()
-            q commit ()
         }
 
     def cancel(token : Canceller, amountToCancel : Quantity) = {
         nonReenterable {
             token.side map { queue } foreach { queue =>
                 queue cancel(token, amountToCancel)
-                queue commit()
             }
         }
     }

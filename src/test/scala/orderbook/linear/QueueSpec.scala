@@ -1,5 +1,6 @@
 package orderbook.linear
 
+import core.{Duration, Scheduler}
 import orderbook.linear.common._
 
 class QueueSpec extends Base {
@@ -7,6 +8,10 @@ class QueueSpec extends Base {
     Side.choices foreach { side =>
 
         class Initial {
+
+            val scheduler = Scheduler.recreate()
+            val epsilon = Duration(1)
+            def step() = scheduler advance epsilon
 
             val initialPrice = Ticks(100) signed side
 
@@ -21,6 +26,8 @@ class QueueSpec extends Base {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
                 queue store (price, dummy, volume, events, Some(canceller))
+
+                step()
 
                 def Traded(v : Quantity, incoming : Listener) = { events Traded (price, v, incoming); this }
                 def Cancelled (c : Quantity) = { events Cancelled c; this }
@@ -37,18 +44,21 @@ class QueueSpec extends Base {
         it should "allow cancel small part of order" in new Initial {
             _1 Cancelled 5
             queue cancel (_1.canceller, 5)
+            step()
             checkResult(LevelInfo(initialPrice, _1.volume - 5 :: Nil))
         }
 
         it should "allow cancel order completely" in new Initial {
             _1 Cancelled _1.volume Completed ()
             queue cancel (_1.canceller, _1.volume)
+            step()
             checkResult()
         }
 
         it should "allow cancel more than unmatched amount of order" in new Initial {
             _1 Cancelled _1.volume Completed ()
             queue cancel (_1.canceller, _1.volume + 5)
+            step()
             checkResult()
         }
 
@@ -68,6 +78,7 @@ class QueueSpec extends Base {
             _1 Traded (c1, Incoming)
 
             assert(queue.matchWith(initialPrice, c1, Incoming) == 0)
+            step()
             checkResult(LevelInfo(initialPrice, _1.volume - c1 :: Nil))
         }
 
@@ -80,6 +91,7 @@ class QueueSpec extends Base {
             val incomingPrice = initialPrice moreAggressiveBy 1
 
             assert(queue.matchWith(incomingPrice, c1, Incoming) == c1)
+            step()
             checkResult(LevelInfo(initialPrice, _1.volume :: Nil))
         }
 
@@ -111,6 +123,7 @@ class QueueSpec extends Base {
             _1 Traded (_1.volume, Incoming) Completed()
 
             assert(queue.matchWith(initialPrice, _1.volume, Incoming) == 0)
+            step()
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
         }
 
@@ -126,6 +139,7 @@ class QueueSpec extends Base {
             _1 Traded (_1.volume, Incoming) Completed()
 
             assert(queue.matchWith(p, c, Incoming) == c - _1.volume)
+            step()
             checkResult(LevelInfo(lessAggressivePrice, _2.volume :: Nil))
         }
 
@@ -139,6 +153,7 @@ class QueueSpec extends Base {
             _2 Traded (_2.volume, Incoming) Completed()
 
             assert(queue.matchWith(MarketOrderPrice, c, Incoming) == c - _1.volume - _2.volume)
+            step()
             checkResult()
         }
 
@@ -148,6 +163,7 @@ class QueueSpec extends Base {
             val v3 = 7
 
             queue store (slightlyLessAggressivePrice, dummy, v3, emptyListener, None)
+            step()
 
             checkResult(
                 LevelInfo(initialPrice, _1.volume :: Nil),

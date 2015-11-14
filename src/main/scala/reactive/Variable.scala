@@ -33,6 +33,11 @@ class Variable[T](initialValue : T) extends Signal[T](initialValue)
             invalidate()
     }
 
+    def set(x : T) = {
+        setWithoutCommit(x)
+        core.Scheduler atStepEnd { commit() }
+    }
+
     def commit() = {
         if (dirty) {
             dirty = false

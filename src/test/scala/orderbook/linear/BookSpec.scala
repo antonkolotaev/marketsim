@@ -1,5 +1,6 @@
 package orderbook.linear
 
+import core.{Duration, Scheduler}
 import orderbook.linear.common._
 import reactive.Unary
 
@@ -8,6 +9,10 @@ class BookSpec extends Base {
     Side.choices foreach { side =>
 
         class Initial {
+
+            val scheduler = Scheduler.recreate()
+            val epsilon = Duration(1)
+            def step() = scheduler advance epsilon
 
             val tickMapper = new LinearMapper(cents(1))
             val initialPrice = Ticks(100)
@@ -63,6 +68,7 @@ class BookSpec extends Base {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
                 book process LimitOrder(side, price, volume, events, Some(canceller))
+                step()
 
                 def Traded(v : Quantity, incoming : Listener) = { events Traded (signedPrice, v, incoming); this }
                 def Cancelled (c : Quantity) = { events Cancelled c; this }
@@ -85,6 +91,7 @@ class BookSpec extends Base {
             expected(E.levels((initialPrice, 9 - 5)), E)
 
             book cancel (_1.canceller, 5)
+            step()
             checkResult(LevelInfo(_1.signedPrice, _1.volume - 5 :: Nil))()
         }
 
@@ -92,6 +99,7 @@ class BookSpec extends Base {
             _1 Cancelled _1.volume Completed ()
             expected(E, E)
             book cancel (_1.canceller, _1.volume)
+            step()
             checkResult()()
         }
 
@@ -99,6 +107,7 @@ class BookSpec extends Base {
             _1 Cancelled _1.volume Completed ()
             expected(E, E)
             book cancel (_1.canceller, _1.volume + 5)
+            step()
             checkResult()()
         }
 
@@ -123,6 +132,7 @@ class BookSpec extends Base {
             expected(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E)
 
             book process LimitOrder(side.opposite, initialPrice, c1, Incoming)
+            step()
 
             checkResult(LevelInfo(_1.signedPrice, _1.volume - c1 :: Nil))()
         }
@@ -139,6 +149,7 @@ class BookSpec extends Base {
             expected(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E)
 
             book process MarketOrder(side.opposite, c1, Incoming)
+            step()
 
             checkResult(LevelInfo(_1.signedPrice, _1.volume - c1 :: Nil))()
         }
@@ -154,6 +165,7 @@ class BookSpec extends Base {
             expected(E levels ((initialPrice, 9)), E levels ((incomingPrice.ticks, 5)))
 
             book process LimitOrder(side.opposite, incomingPrice.ticks, c1, Incoming)
+            step()
 
             checkResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))(LevelInfo(incomingPrice.opposite, c1 :: Nil))
         }
@@ -184,6 +196,7 @@ class BookSpec extends Base {
                 E levels ((slightlyMoreAggressivePrice.ticks, c1 - _2.volume)))
 
             book process LimitOrder(side.opposite, slightlyMoreAggressivePrice.ticks, c1, Incoming)
+            step()
 
             checkResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))(LevelInfo(slightlyMoreAggressivePrice.opposite, c1 - _2.volume :: Nil))
         }
@@ -204,6 +217,7 @@ class BookSpec extends Base {
                 )
 
             book process LimitOrder(side.opposite, notAggressivePrice.ticks, c1, Incoming)
+            step()
 
             checkResult()(LevelInfo(notAggressivePrice.opposite, c1 - _2.volume - _1.volume :: Nil))
         }
@@ -220,6 +234,7 @@ class BookSpec extends Base {
             expected(E trades((_1.price, _1.volume), (_2.price, _2.volume)), E)
 
             book process MarketOrder(side.opposite, c1, Incoming)
+            step()
 
             checkResult()()
         }

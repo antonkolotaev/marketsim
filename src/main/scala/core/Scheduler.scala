@@ -8,10 +8,10 @@ object Scheduler
 
     class Impl {
 
-        case class FutureEvent(whenToHappen : Time,
-                               sourceId     : EventId,
-                               uniqueId     : EventId,
-                               handler      : () => Unit)
+        case class FutureEvent(whenToHappen : Time,         // when this event should happen
+                               sourceId     : EventId,      // what event caused this event
+                               uniqueId     : EventId,      // unique id of the event (do we really need it?)
+                               handler      : () => Unit)   // function to call when the event happens
 
         implicit object Ord extends Ordering[FutureEvent] {
             def compare(x: FutureEvent, y: FutureEvent) =
@@ -30,7 +30,8 @@ object Scheduler
         private val future  = new mutable.PriorityQueue[FutureEvent]()
         private var next_id = 0
         private var t       = Time(0)
-        private var current_id = -1
+        private var current_source_id = -1
+        private var finalizers = List.empty[() => Unit]
 
         def currentTime = t
 
@@ -42,7 +43,7 @@ object Scheduler
 
         def scheduleAgain(actionTime : Time, handler : () => Unit)
         {
-            schedule(actionTime, current_id, handler)
+            schedule(actionTime, current_source_id, handler)
         }
 
         def schedule(actionTime : Time, id : Int, handler : () => Unit)
@@ -54,11 +55,25 @@ object Scheduler
             future += FutureEvent(actionTime, id, next_id, handler)
         }
 
+        def addFinalizer(action : () => Unit) = {
+            finalizers = action :: finalizers
+        }
+
         def step() = {
             val e = future.dequeue()
+            val oldT = t
+            val oldSourceId = current_source_id
             t = e.whenToHappen
-            current_id = e.uniqueId
+            current_source_id = e.sourceId
             e.handler()
+            if (future.isEmpty || future.head.whenToHappen != oldT || future.head.sourceId != oldSourceId){
+                runFinalizers()
+            }
+        }
+
+        private def runFinalizers() = {
+            finalizers foreach { _ apply() }
+            finalizers = Nil
         }
 
         private def nextActionTime = if (future.isEmpty) Time(Int.MaxValue) else future.head.whenToHappen
@@ -72,6 +87,7 @@ object Scheduler
                 step()
                 steps += 1
             }
+            runFinalizers()
             t = limit
             steps
         }
@@ -95,11 +111,14 @@ object Scheduler
 
     def currentTime = instance.value.get.currentTime
 
+    def atStepEnd(action : => Unit) =
+        instance.value.get addFinalizer (() => action)
+
     def schedule(absoluteTimeToAct : Time, whatToDo : => Unit) =
-        instance.value.get.schedule(absoluteTimeToAct, () => whatToDo)
+        instance.value.get schedule (absoluteTimeToAct, () => whatToDo)
 
     def scheduleAgain(absoluteTimeToAct : Time, whatToDo : => Unit) =
-        instance.value.get.scheduleAgain(absoluteTimeToAct, () => whatToDo)
+        instance.value.get scheduleAgain (absoluteTimeToAct, () => whatToDo)
 
     def after(relativeTimeToAct : Duration)(whatToDo : => Unit) =
         schedule(currentTime + relativeTimeToAct, whatToDo)
