@@ -8,9 +8,6 @@ object Remote {
     class Queue[Currency](target : AbstractOrderQueue[Currency], dt : core.Duration)
         extends AbstractOrderQueue[Currency]
     {
-        val bestPrice = target.bestPrice delayed dt
-        val bestPriceVolume = target.bestPriceVolume delayed dt
-        val lastTrade = target.lastTrade delayed dt
         val lastTrades = target.lastTrades delayed dt
         val priceLevels = target.priceLevels delayed dt
     }

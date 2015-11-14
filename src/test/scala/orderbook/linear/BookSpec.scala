@@ -21,13 +21,13 @@ class BookSpec extends Base {
             case class QueueState(best : Option[(Ticks, Quantity)],
                                   last : Option[(Ticks, Quantity)],
                                   lasts : List[(Ticks, Quantity)],
-                                  levels : List[(USD, Quantity)])
+                                  levels : List[(Ticks, USD, Quantity)])
             {
                 def trades(lasts : (Ticks, Quantity)*) =
                     copy(lasts = lasts.toList, last = lasts.headOption)
 
                 def levels(levels : (Ticks, Quantity)*) =
-                    copy(levels = levels.toList map { case (t,v) => (tickMapper toCurrency t, v min 10) },
+                    copy(levels = levels.toList map { case (t,v) => (t, tickMapper toCurrency t, v min 10) },
                          best = levels.headOption)
             }
 

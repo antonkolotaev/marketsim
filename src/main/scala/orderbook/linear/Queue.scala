@@ -95,7 +95,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
     val bestPriceVolume = new VariableOpt[Quantity]
     val lastTrade = new VariableOpt[(Ticks, Quantity)]
     val lastTrades = new reactive.Variable[List[(Ticks, Quantity)]](Nil)
-    val priceLevels = new reactive.Variable[List[(Currency, Quantity)]](Nil)
+    val priceLevels = new reactive.Variable[List[(Ticks, Currency, Quantity)]](Nil)
 
     def updatePriceLevels() = {
         priceLevels setWithoutCommit (bestPriceLevel levelsTill priceLevelToFetch)
