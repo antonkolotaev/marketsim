@@ -9,8 +9,8 @@ package reactive
  * @tparam B -- value type of the input observable B
  * @tparam Result -- result type of 'f'
  */
-case class Binary[A,B, Result](a : Value[A],
-                               b : Value[B])
+case class Binary[A,B, Result](a : Signal[A],
+                               b : Signal[B])
                               (f : (A,B) => Result)
     extends BinaryBase[A,B,Result](a, b, f(a(), b()))
 {

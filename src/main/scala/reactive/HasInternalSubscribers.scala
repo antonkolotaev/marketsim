@@ -6,17 +6,17 @@ package reactive
 trait HasInternalSubscribers
 {
     // all dependent values are derived from Value[T]
-    self : Value[_] =>
+    self : Signal[_] =>
 
     /**
      * Observables dependent on this value
      */
-    protected val internal = new Subscribers[Value[_]]
+    protected val internal = new Subscribers[Signal[_]]
 
     /**
      * list of input observables for this observable
      */
-    def inputs : List[Value[_]]
+    def inputs : List[Signal[_]]
 
     /**
      * This method is called by descendants to update outgoing links

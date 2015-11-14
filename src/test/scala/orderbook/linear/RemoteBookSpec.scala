@@ -1,10 +1,9 @@
 package orderbook.linear
 
 import orderbook.linear.common._
-import reactive.Unary
 
 class RemoteBookSpec extends Base {
-
+/*
     Side.choices foreach { side =>
 
         class Initial {
@@ -290,5 +289,5 @@ class RemoteBookSpec extends Base {
 
             checkLocalResult()()
         }
-    }
+    } */
 }

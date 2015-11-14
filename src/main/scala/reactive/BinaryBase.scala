@@ -1,7 +1,7 @@
 package reactive
 
-abstract class BinaryBase[A,B, Result](a : Value[A], b : Value[B], initialValue : Result)
-    extends Value[Result](initialValue)
+abstract class BinaryBase[A,B, Result](a : Signal[A], b : Signal[B], initialValue : Result)
+    extends Signal[Result](initialValue)
 {
     protected def F(a : A, b : B) : Result
 
@@ -28,11 +28,11 @@ abstract class BinaryBase[A,B, Result](a : Value[A], b : Value[B], initialValue 
     /**
      * Makes the current value of the observable consistent with the inputs
      */
-    def validate() = {
+    def validate(notifyExternal : Boolean) = {
         //println(s"validate $this")
         // if any input observables changed
-        val newA = a()
-        val newB = b()
+        val newA = a(notifyExternal)
+        val newB = b(notifyExternal)
         if (cachedA != newA || cachedB != newB) {
             // let's cache them
             cachedA = newA

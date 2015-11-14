@@ -6,10 +6,10 @@ package reactive
  * @param initialValue -- initial value of the variable
  * @tparam T - type of value held by our observable
  */
-class Variable[T](initialValue : T) extends Value[T](initialValue)
+class Variable[T](initialValue : T) extends Signal[T](initialValue)
 {
     // variables don't have any inputs
-    def inputs = List.empty[Value[T]]
+    def inputs = List.empty[Signal[T]]
 
     finalConstruct()
 
@@ -17,7 +17,7 @@ class Variable[T](initialValue : T) extends Value[T](initialValue)
      * Variable state is always consistent so we don't need 
      * to provide non-trivial implementation for this method
      */
-    protected def validate() {}
+    protected def validate(notifyExternal : Boolean) {}
 
     /**
      * Sets variable value and causes recalculation of dependent observables

@@ -87,15 +87,20 @@ package object ops
         }
     }
 
-    implicit class RichValue[A](a : reactive.Value[A])
+    implicit class RichValue[A](a : reactive.Signal[A])
     {
-        def and[B](b : reactive.Value[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
+        def and[B](b : reactive.Signal[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
         def delayed(dt : core.Duration) = new Delay(a, dt)
+    }
+
+    implicit class OrderingValue[A : Ordering](a : reactive.Signal[A])
+    {
+        def < (b : reactive.Signal[A]) = reactive.Binary(a,b) { case (x,y) => implicitly[Ordering[A]].compare(x,y) }
     }
 
     import core._
 
-    class Delay[A](a : reactive.Value[A], dt : Duration) extends reactive.Variable[A](a())
+    class Delay[A](a : reactive.Signal[A], dt : Duration) extends reactive.Variable[A](a())
     {
         override lazy val inputs = a :: Nil
 

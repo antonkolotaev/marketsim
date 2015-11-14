@@ -14,16 +14,16 @@ package object reactive {
             value += handler
         }
 
-        def ifThenElse[T](condition     : Value[Boolean],
-                          ifBranch      : Value[T],
-                          elseBranch    : Value[T])
+        def ifThenElse[T](condition     : Signal[Boolean],
+                          ifBranch      : Signal[T],
+                          elseBranch    : Signal[T])
         = new {
             val value = IfThenElse(condition, ifBranch, elseBranch)
             val handler = mockFunction[T, Unit]("event")
             value += handler
         }
 
-        class ToUpperCaseBase(source : Value[String], initialValue : String)
+        class ToUpperCaseBase(source : Signal[String], initialValue : String)
         {
             val back = mockFunction[String, Unit]("back")
             back expects initialValue once ()
@@ -43,18 +43,18 @@ package object reactive {
             val value = new ToUpperCase
         }
 
-        def toUpperCase(source : Value[String], initialValue : String) =
+        def toUpperCase(source : Signal[String], initialValue : String) =
             new ToUpperCaseBase(source, initialValue)
 
-        def toUpperCaseHandled(source : Value[String], initialValue : String) =
+        def toUpperCaseHandled(source : Signal[String], initialValue : String) =
             new ToUpperCaseBase(source, initialValue) 
             {
                 val handler = mockFunction[String, Unit]
                 value += handler
             }
 
-        def concat(a : Value[String],
-                   b : Value[String],
+        def concat(a : Signal[String],
+                   b : Signal[String],
                    initialValueA : String,
                    initialValueB : String)
         = new {

@@ -128,11 +128,11 @@ package object linear {
 
     trait AbstractOrderQueue[Currency]
     {
-        val bestPrice : reactive.Value[Option[Ticks]]
-        val bestPriceVolume : reactive.Value[Option[Quantity]]
-        val lastTrade : reactive.Value[Option[(Ticks, Quantity)]]
-        val lastTrades : reactive.Value[List[(Ticks, Quantity)]]
-        val priceLevels : reactive.Value[List[(Currency, Quantity)]]
+        val bestPrice : reactive.Signal[Option[Ticks]]
+        val bestPriceVolume : reactive.Signal[Option[Quantity]]
+        val lastTrade : reactive.Signal[Option[(Ticks, Quantity)]]
+        val lastTrades : reactive.Signal[List[(Ticks, Quantity)]]
+        val priceLevels : reactive.Signal[List[(Currency, Quantity)]]
     }
 
     trait AbstractOrderBook[Currency]

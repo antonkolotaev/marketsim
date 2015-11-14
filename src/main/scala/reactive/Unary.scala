@@ -7,7 +7,7 @@ package reactive
  * @tparam A -- value type of the input observable
  * @tparam Result -- result type of 'f'
  */
-case class Unary[A,Result](a : Value[A])
+case class Unary[A,Result](a : Signal[A])
                           (f : A => Result)
     extends UnaryBase[A, Result](a, f(a()))
 {

@@ -1,7 +1,7 @@
 package reactive
 
-abstract class UnaryBase[A,Result](a : Value[A], initialValue : Result)
-    extends Value[Result](initialValue)
+abstract class UnaryBase[A,Result](a : Signal[A], initialValue : Result)
+    extends Signal[Result](initialValue)
 {
     if (apply() != initialValue){
         //println(s"${apply()} != $initialValue")
@@ -23,9 +23,10 @@ abstract class UnaryBase[A,Result](a : Value[A], initialValue : Result)
     /**
      * Makes the current value of the observable consistent with the input
      */
-    def validate() = {
-        if (cachedA != a()) {
-            cachedA = a()
+    def validate(notifyExternal : Boolean) = {
+        val current = a(notifyExternal)
+        if (cachedA != current) {
+            cachedA = current
             updateValue(F(cachedA))
         }
     }

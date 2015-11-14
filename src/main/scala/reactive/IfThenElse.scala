@@ -7,10 +7,10 @@ package reactive
  * @param elseBranch -- input observable for negative case
  * @tparam Result -- type of values involved
  */
-case class IfThenElse[Result](condition  : Value[Boolean],
-                              ifBranch   : Value[Result],
-                              elseBranch : Value[Result])
-    extends Value[Result](if (condition()) ifBranch() else elseBranch())
+case class IfThenElse[Result](condition  : Signal[Boolean],
+                              ifBranch   : Signal[Result],
+                              elseBranch : Signal[Result])
+    extends Signal[Result](if (condition()) ifBranch() else elseBranch())
 {
     private var cachedCondition = condition()
     private var cachedIf        = ifBranch()
@@ -23,21 +23,28 @@ case class IfThenElse[Result](condition  : Value[Boolean],
     /**
      * Makes the current value of the observable consistent with the input values
      */
-    def validate() = {
+    def validate(notifyExternal : Boolean) = {
         // if condition changed
-        if (cachedCondition != condition())
+        val newCondition = condition(notifyExternal)
+        if (cachedCondition != newCondition)
             // cache it
-            cachedCondition = condition()
+            cachedCondition = newCondition
 
         // if positive branch active and has changed
-        if (cachedCondition && ifBranch() != cachedIf)
+        if (cachedCondition) {
+            val newIf = ifBranch(notifyExternal)
+            if (newIf != cachedIf)
             // cache it
-            cachedIf = ifBranch()
+                cachedIf = newIf
+        }
 
         // if negative branch active and has changed
-        if (!cachedCondition && elseBranch() != cachedElse)
-            // cache it
-            cachedElse = elseBranch()
+        if (!cachedCondition) {
+            val newElse = elseBranch(notifyExternal)
+            if (newElse != cachedElse)
+                // cache it
+                cachedElse = elseBranch()
+        }
 
         // update current value and if changed notify all dependent observables and listeners
         updateValue(if (cachedCondition) cachedIf else cachedElse)
