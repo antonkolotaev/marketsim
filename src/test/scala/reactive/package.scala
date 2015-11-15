@@ -6,9 +6,7 @@ package object reactive {
     trait TestBase extends FlatSpec with MockFactory
     {
         def variable[T](initialValue : T) = new {
-            class Var extends Variable(initialValue){
-                override def toString() = initialValue.toString
-            }
+            class Var extends Variable(initialValue, initialValue.toString)
             val value : Variable[T] = new Var()
             val handler = mockFunction[T, Unit]("event")
             value += handler
@@ -33,7 +31,7 @@ package object reactive {
                 s.toUpperCase
             }
 
-            class ToUpperCase extends UnaryBase(source, impl(initialValue))
+            class ToUpperCase extends UnaryBase(source, impl(initialValue), "toUpper")
             {
                 override def F(s : String) = impl(s)
 
@@ -66,11 +64,9 @@ package object reactive {
                 s"($x$y)".toUpperCase
             }
 
-            case class Concat() extends BinaryBase(a,b,impl(initialValueA, initialValueB))
+            case class Concat() extends BinaryBase(a,b,impl(initialValueA, initialValueB),"+")
             {
                 override def F(x : String, y : String) = impl(x, y)
-
-                override def toString() = s"Concat($a, $b)"
             }
 
             val value = Concat()

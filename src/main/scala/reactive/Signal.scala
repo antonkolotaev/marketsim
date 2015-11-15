@@ -36,7 +36,7 @@ abstract class Signal[T](protected var value_ : T)
      */
     protected def validate(notifyExternal : Boolean)
 
-    private def validateAndNotifyExternal(notifyExternal : Boolean): Unit = {
+    protected def validateAndNotifyExternal(notifyExternal : Boolean): Unit = {
         val oldValue = value_
         validate(notifyExternal)
         if (dirty || extrenalsAreToBeNotified) {
@@ -81,7 +81,7 @@ abstract class Signal[T](protected var value_ : T)
      */
     protected var dirty = false
 
-    private var extrenalsAreToBeNotified = false
+    protected var extrenalsAreToBeNotified = false
 
     /**
      * Replaces the current value by 'x'.

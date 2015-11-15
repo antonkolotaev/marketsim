@@ -11,7 +11,6 @@ object Remote {
     class Queue[Currency](target : AbstractOrderQueue[Currency], fromBook : core.Duration)
         extends AbstractOrderQueue[Currency]
     {
-        val lastTrades = target.lastTrades delayed fromBook
         val priceLevels = target.priceLevels delayed fromBook
 
         target.tradeDone += { trade => delay(fromBook) { tradeDone fire trade } }

@@ -43,7 +43,7 @@ class BookSpec extends Base {
             import ops._
 
             def toQueueState(queue : Queue[USD]) =
-                Unary(queue.priceLevels)
+                Unary(queue.priceLevels, "toQueue")
                 {
                     levels => QueueState(levels map { case (p,c,v) => LevelDescription(p,c,v) })
                 }

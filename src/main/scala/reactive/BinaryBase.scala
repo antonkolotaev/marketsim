@@ -1,6 +1,6 @@
 package reactive
 
-abstract class BinaryBase[A,B, Result](a : Signal[A], b : Signal[B], initialValue : Result)
+abstract class BinaryBase[A,B, Result](a : Signal[A], b : Signal[B], initialValue : Result, label : String)
     extends Signal[Result](initialValue)
 {
     protected def F(a : A, b : B) : Result
@@ -41,4 +41,6 @@ abstract class BinaryBase[A,B, Result](a : Signal[A], b : Signal[B], initialValu
             updateValue(F(cachedA, cachedB))
         }
     }
+
+    override def toString() = s"($a $label $b)"
 }

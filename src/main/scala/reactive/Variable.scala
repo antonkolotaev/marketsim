@@ -6,7 +6,7 @@ package reactive
  * @param initialValue -- initial value of the variable
  * @tparam T - type of value held by our observable
  */
-class Variable[T](initialValue : T) extends Signal[T](initialValue)
+class Variable[T](initialValue : T, label : String) extends Signal[T](initialValue)
 {
     // variables don't have any inputs
     def inputs = List.empty[Signal[T]]
@@ -17,7 +17,7 @@ class Variable[T](initialValue : T) extends Signal[T](initialValue)
      * Variable state is always consistent so we don't need 
      * to provide non-trivial implementation for this method
      */
-    protected def validate(notifyExternal : Boolean) {}
+    protected def validate(notifyExternal : Boolean) = commit()
 
     /**
      * Sets variable value and causes recalculation of dependent observables
@@ -39,7 +39,7 @@ class Variable[T](initialValue : T) extends Signal[T](initialValue)
     }
 
     def commit() = {
-        if (dirty) {
+        if (dirty || extrenalsAreToBeNotified) {
             dirty = false
             external foreach { _ apply value_ }
             internal foreach { _ notifyExternalListenersIfValueChanged () }
@@ -49,4 +49,6 @@ class Variable[T](initialValue : T) extends Signal[T](initialValue)
     override def apply() = value_
 
     def value = value_
+
+    override def toString() = label
 }

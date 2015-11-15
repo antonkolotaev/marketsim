@@ -10,9 +10,10 @@ package reactive
  * @tparam Result -- result type of 'f'
  */
 case class Binary[A,B, Result](a : Signal[A],
-                               b : Signal[B])
+                               b : Signal[B],
+                               label : String)
                               (f : (A,B) => Result)
-    extends BinaryBase[A,B,Result](a, b, f(a(), b()))
+    extends BinaryBase[A,B,Result](a, b, f(a(), b()), label)
 {
     protected def F(a : A, b : B) = f(a,b)
 }

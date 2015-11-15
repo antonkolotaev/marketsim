@@ -1,7 +1,5 @@
 package orderbook.linear
 
-import reactive.VariableOpt
-
 /**
  * Represents a queue of limit orders of one side
  * @param side -- side of orders held in the queue
@@ -23,8 +21,6 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
      * Reference to the best price level
      */
     private var bestPriceLevel = terminal.level
-
-    override def toString = bestPriceLevel.levels mkString "\n"
 
     /**
      * Stores a limit order in the queue
@@ -60,11 +56,8 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
             override def handle(traded : Traded) = {
                 super.handle(traded)
                 tradeDone fire TradeDone(traded.price.opposite, traded.volume)
-                lastTrade set Some(traded.price.ticks, traded.volume)
-                lastTrades set (traded.price.ticks, traded.volume) :: lastTrades.value
             }
         }
-        clearLastTrades()
         val unmatched = bestPriceLevel matchWith (limitPrice, volume, proxyEvents)
         removeEmptyBestLevels()
         unmatched
@@ -92,14 +85,12 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
 
     def allOrders = bestPriceLevel.allOrders takeWhile (_ != terminal.info)
 
-    val bestPrice = new VariableOpt[Ticks]
-    val bestPriceVolume = new VariableOpt[Quantity]
-    val lastTrade = new VariableOpt[(Ticks, Quantity)]
-    val lastTrades = new reactive.Variable[List[(Ticks, Quantity)]](Nil)
-    val priceLevels = new reactive.Variable[List[(Ticks, Currency, Quantity)]](Nil)
+    val priceLevels = new reactive.Variable[List[(Ticks, Currency, Quantity)]](Nil, s"PriceLevels($this)")
 
     def updatePriceLevels() = {
-        priceLevels set (bestPriceLevel levelsTill priceLevelToFetch)
+        val levels = bestPriceLevel levelsTill priceLevelToFetch
+        //println(s"T = ${core.Scheduler.currentTime}; $priceLevels <- $levels")
+        priceLevels set levels
     }
 
     private var priceLevelToFetch = 0
@@ -108,19 +99,15 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
         priceLevelToFetch = priceLevelToFetch max limitVolume
     }
 
-
-    private def validateBestPrice(): Unit = {
-        if (bestPriceLevel == terminal.level) {
-            bestPrice set None
-            bestPriceVolume set None
-        } else {
-            bestPrice set Some(bestPriceLevel.price.ticks)
-            bestPriceVolume set Some(bestPriceLevel.totalVolume)
-        }
-        updatePriceLevels()
+    override def toString = side match {
+        case Buy => "Bids"
+        case Sell => "Asks"
     }
 
-    private[linear] def clearLastTrades() = lastTrades set Nil
+
+    private def validateBestPrice(): Unit = {
+        updatePriceLevels()
+    }
 }
 
 

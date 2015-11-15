@@ -1,6 +1,6 @@
 package reactive
 
-abstract class UnaryBase[A,Result](a : Signal[A], initialValue : Result)
+abstract class UnaryBase[A,Result](a : Signal[A], initialValue : Result, label : String)
     extends Signal[Result](initialValue)
 {
     if (apply() != initialValue){
@@ -30,4 +30,6 @@ abstract class UnaryBase[A,Result](a : Signal[A], initialValue : Result)
             updateValue(F(cachedA))
         }
     }
+
+    override def toString() = s"$label($a)"
 }

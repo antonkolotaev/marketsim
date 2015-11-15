@@ -89,25 +89,29 @@ package object ops
 
     implicit class RichValue[A](a : reactive.Signal[A])
     {
-        def and[B](b : reactive.Signal[B]) = reactive.Binary(a,b) { case (x,y) => (x,y) }
+        def and[B](b : reactive.Signal[B]) = reactive.Binary(a,b, "and") { case (x,y) => (x,y) }
         def delayed(dt : core.Duration) = new Delay(a, dt)
     }
 
     implicit class OrderingValue[A : Ordering](a : reactive.Signal[A])
     {
-        def < (b : reactive.Signal[A]) = reactive.Binary(a,b) { case (x,y) => implicitly[Ordering[A]].compare(x,y) }
+        def < (b : reactive.Signal[A]) = reactive.Binary(a,b, "<") { case (x,y) => implicitly[Ordering[A]].compare(x,y) }
     }
 
     import core._
 
-    class Delay[A](a : reactive.Signal[A], dt : Duration) extends reactive.Variable[A](a())
+    class Delay[A](a : reactive.Signal[A], dt : Duration) extends reactive.Variable[A](a(), s"$a delayed $dt")
     {
         override lazy val inputs = a :: Nil
 
         override def notifyExternalListenersIfValueChanged() : Unit = {
             val currentValue = a()
+            //println(s"T = ${Scheduler.currentTime}; scheduling ${this} <- ${currentValue}")
             Scheduler.afterAgain (dt) {
                 this set currentValue
+                //val t = Scheduler.currentTime
+                //val label = toString
+                //println(s"T = $t; ${this} <- ${currentValue}")
             }
         }
     }

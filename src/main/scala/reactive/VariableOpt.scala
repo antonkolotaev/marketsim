@@ -1,3 +1,3 @@
 package reactive
 
-class VariableOpt[T] extends Variable[Option[T]](None)
+class VariableOpt[T](label : String) extends Variable[Option[T]](None, label)

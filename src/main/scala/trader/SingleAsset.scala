@@ -8,14 +8,14 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
     /**
      * Number of assets owned by the trader at the moment
      */
-    val inventory = new Variable(0)
+    val inventory = new Variable(0, s"Inventory($this)")
 
     /**
      * Position of the trader at market: positive if sells, negative if buys
      */
-    val position = new Variable(0)
+    val position = new Variable(0, s"Position($this)")
 
-    val balance = new Variable(cents(0))
+    val balance = new Variable(cents(0), s"Balance($this)")
 
     //val bestLevelPrice = reactive.IfThenElse()
 

@@ -13,10 +13,10 @@ class DelaySpec extends FlatSpec with MockFactory {
 
             val dt = Duration(5)
 
-            val A = new VariableOpt[Int]
+            val A = new VariableOpt[Int]("A")
             val dA = A delayed dt
 
-            val B = new VariableOpt[Int]
+            val B = new VariableOpt[Int]("B")
             val dB = B delayed dt
 
             val result = dA and dB

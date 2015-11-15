@@ -137,34 +137,27 @@ package object linear {
 
     trait AbstractOrderQueue[Currency]
     {
-        val lastTrades : reactive.Signal[List[(Ticks, Quantity)]]
         val priceLevels : reactive.Signal[List[(Ticks, Currency, Quantity)]]
 
         val tradeDone = new Event[TradeDone]
     }
 
     case class BestPrice[Currency](queue : AbstractOrderQueue[Currency])
-        extends reactive.UnaryBase(queue.priceLevels, Option.empty[Ticks])
+        extends reactive.UnaryBase(queue.priceLevels, Option.empty[Ticks], s"BestPrice($queue)")
     {
         def F(a : List[(Ticks, Currency, Quantity)]) = a.headOption map { _._1 }
     }
 
     case class BestPriceCurrency[Currency](queue : AbstractOrderQueue[Currency])
-        extends reactive.UnaryBase(queue.priceLevels, Option.empty[Currency])
+        extends reactive.UnaryBase(queue.priceLevels, Option.empty[Currency], s"BestPriceCurrency($queue)")
     {
         def F(a : List[(Ticks, Currency, Quantity)]) = a.headOption map { _._2 }
     }
 
     case class BestPriceVolume[Currency](queue : AbstractOrderQueue[Currency])
-        extends reactive.UnaryBase(queue.priceLevels, Option.empty[Quantity])
+        extends reactive.UnaryBase(queue.priceLevels, Option.empty[Quantity], s"BestPriceVolume($queue)")
     {
         def F(a : List[(Ticks, Currency, Quantity)]) = a.headOption map { _._3 }
-    }
-
-    case class LastTrade[Currency](queue : AbstractOrderQueue[Currency])
-        extends reactive.UnaryBase(queue.lastTrades, Option.empty[(Ticks, Quantity)])
-    {
-        def F(a : List[(Ticks, Quantity)]) = a.lastOption
     }
 
     trait AbstractOrderBook[Currency]

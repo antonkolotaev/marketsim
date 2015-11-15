@@ -32,11 +32,6 @@ class RemoteBookSpec extends Base {
 
             remoteBook fetchPriceLevelsTillVolume  fetchVolume
 
-            case class TradeDescription(price : Ticks, volume : Quantity)
-            {
-                override def toString = s"$volume@$price"
-            }
-
             case class LevelDescription(inTicks : Ticks, inCurrency : USD, volume : Quantity)
             {
                 override def toString = s"$volume@$inTicks"
@@ -44,27 +39,22 @@ class RemoteBookSpec extends Base {
 
             def fmt[X](xs : List[X]) = xs mkString ("[",",","]")
 
-            case class QueueState(lasts: List[TradeDescription],
-                                  levels: List[LevelDescription]) {
-                def trades(lasts: (Ticks, Quantity)*) =
-                    copy(lasts = {lasts map {case (p,v) => TradeDescription(p,v)}}.toList)
+            case class QueueState(levels: List[LevelDescription]) {
 
                 def levels(levels: (Ticks, Quantity)*) =
                     copy(levels = levels.toList map { case (t, v) => LevelDescription(t, tickMapper toCurrency t, v min fetchVolume) })
 
-                override def toString = s"{ levels = ${fmt(levels)}; trades = ${fmt(lasts)} }"
+                override def toString = s"{ levels = ${fmt(levels)} }"
             }
 
-            val E = QueueState(Nil, Nil)
+            val E = QueueState(Nil)
 
             import ops._
 
             def toQueueState(queue: AbstractOrderQueue[USD]) =
-                Unary(queue.lastTrades and queue.priceLevels) {
-                    case ((last, best)) =>
-                        QueueState(
-                                last map { case (p,v) => TradeDescription(p,v)},
-                                best map { case (p,c,v) => LevelDescription(p,c,v)})
+                Unary(queue.priceLevels, "toQueue") {
+                    case best =>
+                        QueueState(best map { case (p,c,v) => LevelDescription(p,c,v)})
                 }
 
             val onChangedLocally =
@@ -81,9 +71,18 @@ class RemoteBookSpec extends Base {
                 case (q,p) => onChangedRemotely(q, p, core.Scheduler.currentTime)
             }
 
-            def expected(q : QueueState, p : QueueState) = {
+            val onTraded =
+                mockFunction[TradeDone, Unit]("onTraded")
+
+            remoteQueue.tradeDone += onTraded
+
+
+            def expected(q : QueueState, p : QueueState, trades : (Ticks, Quantity)*) = {
                 onChangedLocally expects (q,p,after(up)) once ()
                 onChangedRemotely expects(q,p, after(up_down)) once ()
+                trades foreach { t =>
+                    onTraded expects TradeDone(t._1 signed side, t._2) once ()
+                }
             }
 
             def checkLocalResult(expected: LevelInfo*)(expectedOpposite: LevelInfo*) = {
@@ -185,7 +184,7 @@ class RemoteBookSpec extends Base {
             _1 Traded (c1, Incoming)
             Incoming Completed()
 
-            expected(E levels ((initialPrice, V1 - c1)) trades ((initialPrice, c1)), E)
+            expected(E levels ((initialPrice, V1 - c1)), E, (initialPrice, c1))
 
             remoteBook process LimitOrder(side.opposite, initialPrice, c1, Incoming)
 
@@ -204,7 +203,7 @@ class RemoteBookSpec extends Base {
             _1 Traded (c1, Incoming)
             Incoming Completed()
 
-            expected(E levels ((initialPrice, V1 - c1)) trades ((initialPrice, c1)), E)
+            expected(E levels ((initialPrice, V1 - c1)), E, (initialPrice, c1))
 
             remoteBook process MarketOrder(side.opposite, c1, Incoming)
 
@@ -246,7 +245,7 @@ class RemoteBookSpec extends Base {
 
         it should "accept orders of more aggressive price" in new WithMoreAggressive {}
 
-        it should "match first order completely with a limit order having too big volume but not very aggressive price" in new WithMoreAggressive {
+        it should "match first order completely with a limit order having too big volume but not very aggressive price at" + side in new WithMoreAggressive {
 
             val c1 = _1.volume + _2.volume + 5
 
@@ -255,8 +254,10 @@ class RemoteBookSpec extends Base {
             _2 Traded (_2.volume, Incoming) Completed()
 
             expected(
-                E levels ((initialPrice, V1)) trades ((moreAggressivePrice.ticks, _2.volume)),
-                E levels ((slightlyMoreAggressivePrice.ticks, c1 - _2.volume)))
+                E levels ((initialPrice, V1)),
+                E levels ((slightlyMoreAggressivePrice.ticks, c1 - _2.volume)),
+                (moreAggressivePrice.ticks, _2.volume)
+            )
 
             remoteBook process LimitOrder(side.opposite, slightlyMoreAggressivePrice.ticks, c1, Incoming)
 
@@ -275,8 +276,9 @@ class RemoteBookSpec extends Base {
             _2 Traded (_2.volume, Incoming) Completed()
 
             expected(
-                E trades((_1.price, _1.volume), (_2.price, _2.volume)),
-                E levels ((notAggressivePrice.ticks, c1 - _2.volume - _1.volume)))
+                E,
+                E levels ((notAggressivePrice.ticks, c1 - _2.volume - _1.volume)),
+                (_1.price, _1.volume), (_2.price, _2.volume))
 
             remoteBook process LimitOrder(side.opposite, notAggressivePrice.ticks, c1, Incoming)
 
@@ -294,7 +296,7 @@ class RemoteBookSpec extends Base {
 
             Incoming Cancelled c1 - _1.volume - _2.volume Completed()
 
-            expected(E trades((_1.price, _1.volume), (_2.price, _2.volume)), E)
+            expected(E, E, (_1.price, _1.volume), (_2.price, _2.volume))
 
             remoteBook process MarketOrder(side.opposite, c1, Incoming)
 
