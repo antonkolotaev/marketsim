@@ -30,8 +30,10 @@ class DelaySpec extends FlatSpec with MockFactory {
                 handler(x)
             }
 
-            A setAndCommit Some(12)
-            B setAndCommit Some(34)
+            Scheduler schedule (Time(0), {
+                A set Some(12)
+                B set Some(34)
+            })
 
             scheduler advance Duration(4)
 

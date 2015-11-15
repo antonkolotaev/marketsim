@@ -31,14 +31,13 @@ object Scheduler
         private var next_id = 0
         private var t       = Time(0)
         private var current_source_id = -1
-        private var finalizers = List.empty[() => Unit]
+        private var toCommit = Set.empty[reactive.Variable[_]]
 
         def currentTime = t
 
         def schedule(actionTime : Time, handler : () => Unit)
         {
             schedule(actionTime, next_id, handler)
-            next_id += 1
         }
 
         def scheduleAgain(actionTime : Time, handler : () => Unit)
@@ -53,27 +52,26 @@ object Scheduler
             if (id > next_id)
                 throw new Exception(s"calling schedule with event id $id greater than already allocated id $next_id")
             future += FutureEvent(actionTime, id, next_id, handler)
+            next_id += 1
         }
 
-        def addFinalizer(action : () => Unit) = {
-            finalizers = action :: finalizers
+        def add(v : reactive.Variable[_]) = {
+            toCommit = toCommit + v
         }
 
         def step() = {
             val e = future.dequeue()
-            val oldT = t
-            val oldSourceId = current_source_id
             t = e.whenToHappen
             current_source_id = e.sourceId
             e.handler()
-            if (future.isEmpty || future.head.whenToHappen != oldT || future.head.sourceId != oldSourceId){
+            if (future.isEmpty || future.head.whenToHappen != t || future.head.sourceId != current_source_id){
                 runFinalizers()
             }
         }
 
         private def runFinalizers() = {
-            finalizers foreach { _ apply() }
-            finalizers = Nil
+            toCommit foreach { _ commit () }
+            toCommit = Set.empty[reactive.Variable[_]]
         }
 
         private def nextActionTime = if (future.isEmpty) Time(Int.MaxValue) else future.head.whenToHappen
@@ -111,8 +109,8 @@ object Scheduler
 
     def currentTime = instance.value.get.currentTime
 
-    def atStepEnd(action : => Unit) =
-        instance.value.get addFinalizer (() => action)
+    def commitAtStepEnd(v : reactive.Variable[_]) =
+        instance.value.get add v
 
     def schedule(absoluteTimeToAct : Time, whatToDo : => Unit) =
         instance.value.get schedule (absoluteTimeToAct, () => whatToDo)

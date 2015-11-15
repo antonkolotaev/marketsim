@@ -5,6 +5,8 @@ package object linear {
     case class Ticks(value : Int)
     {
         def signed(side : Side) = side makeSigned this
+
+        override def toString = s"${value}pts"
     }
 
     case class SignedTicks(value : Int)
@@ -110,6 +112,11 @@ package object linear {
     case class Cancelled(side : Side, amount : Quantity)
     case class Completed()
 
+    class Event[T] extends reactive.HasExternalSubscribers[T]
+    {
+        def fire (x : T) = external foreach { _ apply x }
+    }
+
     /**
      *  Interface for order event listeners
      */
@@ -126,10 +133,14 @@ package object linear {
         override def handle(completed : Completed) = target handle completed
     }
 
+    case class TradeDone(price : SignedTicks, volume : Quantity)
+
     trait AbstractOrderQueue[Currency]
     {
         val lastTrades : reactive.Signal[List[(Ticks, Quantity)]]
         val priceLevels : reactive.Signal[List[(Ticks, Currency, Quantity)]]
+
+        val tradeDone = new Event[TradeDone]
     }
 
     case class BestPrice[Currency](queue : AbstractOrderQueue[Currency])

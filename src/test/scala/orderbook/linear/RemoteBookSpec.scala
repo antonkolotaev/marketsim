@@ -1,9 +1,10 @@
 package orderbook.linear
 
 import orderbook.linear.common._
+import reactive.Unary
 
 class RemoteBookSpec extends Base {
-/*
+
     Side.choices foreach { side =>
 
         class Initial {
@@ -31,27 +32,39 @@ class RemoteBookSpec extends Base {
 
             remoteBook fetchPriceLevelsTillVolume  fetchVolume
 
-            case class QueueState(best: Option[(Ticks, Quantity)],
-                                  last: Option[(Ticks, Quantity)],
-                                  lasts: List[(Ticks, Quantity)],
-                                  levels: List[(USD, Quantity)]) {
-                def trades(lasts: (Ticks, Quantity)*) =
-                    copy(lasts = lasts.toList, last = lasts.headOption)
-
-                def levels(levels: (Ticks, Quantity)*) =
-                    copy(levels = levels.toList map { case (t, v) => (tickMapper toCurrency t, v min fetchVolume) },
-                        best = levels.headOption)
+            case class TradeDescription(price : Ticks, volume : Quantity)
+            {
+                override def toString = s"$volume@$price"
             }
 
-            val E = QueueState(None, None, Nil, Nil)
+            case class LevelDescription(inTicks : Ticks, inCurrency : USD, volume : Quantity)
+            {
+                override def toString = s"$volume@$inTicks"
+            }
+
+            def fmt[X](xs : List[X]) = xs mkString ("[",",","]")
+
+            case class QueueState(lasts: List[TradeDescription],
+                                  levels: List[LevelDescription]) {
+                def trades(lasts: (Ticks, Quantity)*) =
+                    copy(lasts = {lasts map {case (p,v) => TradeDescription(p,v)}}.toList)
+
+                def levels(levels: (Ticks, Quantity)*) =
+                    copy(levels = levels.toList map { case (t, v) => LevelDescription(t, tickMapper toCurrency t, v min fetchVolume) })
+
+                override def toString = s"{ levels = ${fmt(levels)}; trades = ${fmt(lasts)} }"
+            }
+
+            val E = QueueState(Nil, Nil)
 
             import ops._
 
             def toQueueState(queue: AbstractOrderQueue[USD]) =
-                Unary((queue.bestPrice and queue.bestPriceVolume) and ((queue.lastTrade and queue.lastTrades) and queue.priceLevels)) {
-                    case ((Some(p), Some(v)), last) => QueueState(Some(p, v), last._1._1, last._1._2, last._2)
-                    case ((None, None), last) => QueueState(None, last._1._1, last._1._2, last._2)
-                    case _ => throw new Exception("cannot happen")
+                Unary(queue.lastTrades and queue.priceLevels) {
+                    case ((last, best)) =>
+                        QueueState(
+                                last map { case (p,v) => TradeDescription(p,v)},
+                                best map { case (p,c,v) => LevelDescription(p,c,v)})
                 }
 
             val onChangedLocally =
@@ -289,5 +302,5 @@ class RemoteBookSpec extends Base {
 
             checkLocalResult()()
         }
-    } */
+    }
 }

@@ -23,33 +23,38 @@ class BookSpec extends Base {
             val queue = book queue side
             val queueOpposite = book queue side.opposite
 
-            case class QueueState(best : Option[(Ticks, Quantity)],
-                                  last : Option[(Ticks, Quantity)],
-                                  lasts : List[(Ticks, Quantity)],
-                                  levels : List[(Ticks, USD, Quantity)])
+            case class LevelDescription(inTicks : Ticks, inCurrency : USD, volume : Quantity)
             {
-                def trades(lasts : (Ticks, Quantity)*) =
-                    copy(lasts = lasts.toList, last = lasts.headOption)
-
-                def levels(levels : (Ticks, Quantity)*) =
-                    copy(levels = levels.toList map { case (t,v) => (t, tickMapper toCurrency t, v min 10) },
-                         best = levels.headOption)
+                override def toString = s"$volume@$inTicks"
             }
 
-            val E = QueueState(None, None, Nil, Nil)
+            def fmt[X](xs : List[X]) = xs mkString ("[",",","]")
+
+            case class QueueState(levels: List[LevelDescription]) {
+
+                def levels(levels: (Ticks, Quantity)*) =
+                    copy(levels = levels.toList map { case (t, v) => LevelDescription(t, tickMapper toCurrency t, v min 10) })
+
+                override def toString = s"{ levels = ${fmt(levels)} }"
+            }
+
+            val E = QueueState(Nil)
 
             import ops._
 
             def toQueueState(queue : Queue[USD]) =
-                Unary((queue.bestPrice and queue.bestPriceVolume) and ((queue.lastTrade and queue.lastTrades) and queue.priceLevels))
+                Unary(queue.priceLevels)
                 {
-                    case ((Some(p), Some(v)), last) => QueueState(Some(p,v), last._1._1, last._1._2, last._2)
-                    case ((None, None), last) => QueueState(None, last._1._1, last._1._2, last._2)
-                    case _ => throw new Exception("cannot happen")
+                    levels => QueueState(levels map { case (p,c,v) => LevelDescription(p,c,v) })
                 }
 
             val onChanged =
                 mockFunction[(QueueState, QueueState), Unit]("onChanged")
+
+            val onTraded =
+                mockFunction[TradeDone, Unit]("onTraded")
+
+            queue.tradeDone += onTraded
 
             toQueueState(queue) and toQueueState(queueOpposite) += onChanged
 
@@ -58,8 +63,12 @@ class BookSpec extends Base {
                 checkResultImpl(side.opposite)(Some(queueOpposite.bestLevel), expectedOpposite.toList)
             }
 
-            def expected(q : QueueState, p : QueueState) =
+            def expected(q : QueueState, p : QueueState, trades : (Ticks, Quantity)*) = {
                 onChanged expects(q, p) once()
+                trades foreach { t =>
+                    onTraded expects TradeDone(t._1 signed side, t._2) once ()
+                }
+            }
 
 
             class OrderPlaced(val price : Ticks, val volume : Quantity)
@@ -129,7 +138,7 @@ class BookSpec extends Base {
             _1 Traded (c1, Incoming)
             Incoming Completed()
 
-            expected(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E)
+            expected(E levels ((initialPrice, 9 - 5)), E, (initialPrice, 5))
 
             book process LimitOrder(side.opposite, initialPrice, c1, Incoming)
             step()
@@ -146,7 +155,7 @@ class BookSpec extends Base {
             _1 Traded (c1, Incoming)
             Incoming Completed ()
 
-            expected(E levels ((initialPrice, 9 - 5)) trades ((initialPrice, 5)), E)
+            expected(E levels ((initialPrice, 9 - 5)), E, (initialPrice, 5))
 
             book process MarketOrder(side.opposite, c1, Incoming)
             step()
@@ -192,8 +201,9 @@ class BookSpec extends Base {
             _2 Traded (_2.volume, Incoming) Completed ()
 
             expected(
-                E levels ((initialPrice, 9)) trades ((moreAggressivePrice.ticks, _2.volume)),
-                E levels ((slightlyMoreAggressivePrice.ticks, c1 - _2.volume)))
+                E levels ((initialPrice, 9)),
+                E levels ((slightlyMoreAggressivePrice.ticks, c1 - _2.volume)),
+                (moreAggressivePrice.ticks, _2.volume))
 
             book process LimitOrder(side.opposite, slightlyMoreAggressivePrice.ticks, c1, Incoming)
             step()
@@ -212,9 +222,9 @@ class BookSpec extends Base {
             _2 Traded (_2.volume, Incoming) Completed ()
 
             expected(
-                E trades ((_1.price, _1.volume), (_2.price, _2.volume)),
-                E levels ((notAggressivePrice.ticks, c1 - _2.volume - _1.volume))
-                )
+                E,
+                E levels ((notAggressivePrice.ticks, c1 - _2.volume - _1.volume)),
+                (_1.price, _1.volume), (_2.price, _2.volume))
 
             book process LimitOrder(side.opposite, notAggressivePrice.ticks, c1, Incoming)
             step()
@@ -231,7 +241,7 @@ class BookSpec extends Base {
             _2 Traded (_2.volume, Incoming) Completed ()
             Incoming Cancelled c1 - _1.volume - _2.volume Completed()
 
-            expected(E trades((_1.price, _1.volume), (_2.price, _2.volume)), E)
+            expected(E, E, (_1.price, _1.volume), (_2.price, _2.volume))
 
             book process MarketOrder(side.opposite, c1, Incoming)
             step()

@@ -59,6 +59,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
         val proxyEvents = new OrderListenerProxy(sender) {
             override def handle(traded : Traded) = {
                 super.handle(traded)
+                tradeDone fire TradeDone(traded.price.opposite, traded.volume)
                 lastTrade set Some(traded.price.ticks, traded.volume)
                 lastTrades set (traded.price.ticks, traded.volume) :: lastTrades.value
             }

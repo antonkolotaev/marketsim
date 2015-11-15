@@ -5,21 +5,34 @@ import ops._
 
 object Remote {
 
-    class Queue[Currency](target : AbstractOrderQueue[Currency], dt : core.Duration)
+    private def delay(dt : core.Duration)(whatToDo : => Unit) =
+        Scheduler.afterAgain(dt) { whatToDo }
+
+    class Queue[Currency](target : AbstractOrderQueue[Currency], fromBook : core.Duration)
         extends AbstractOrderQueue[Currency]
     {
-        val lastTrades = target.lastTrades delayed dt
-        val priceLevels = target.priceLevels delayed dt
+        val lastTrades = target.lastTrades delayed fromBook
+        val priceLevels = target.priceLevels delayed fromBook
+
+        target.tradeDone += { trade => delay(fromBook) { tradeDone fire trade } }
+
     }
     
-    class DelayedOrderListener(original : OrderListener, dt : core.Duration) extends OrderListener
+    class DelayedOrderListener(original : OrderListener, fromBook : core.Duration) extends OrderListener
     {
-        private def delay(whatToDo : => Unit) =
-            Scheduler.afterAgain(dt) { whatToDo }
-        
-        override def handle(traded : Traded) = delay { original handle traded }
-        override def handle(cancelled : Cancelled) = delay { original handle cancelled }
-        override def handle(completed : Completed) = delay { original handle completed }
+        private def delay(whatToDo : => Unit) = Remote.delay(fromBook) { whatToDo }
+
+        override def handle(traded : Traded) = delay {
+            original handle traded
+        }
+
+        override def handle(cancelled : Cancelled) = delay {
+            original handle cancelled
+        }
+
+        override def handle(completed : Completed) = delay {
+            original handle completed
+        }
     }
 
     private val delayedListeners = collection.mutable.Map.empty[(OrderListener, core.Duration), OrderListener]

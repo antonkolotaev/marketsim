@@ -35,7 +35,7 @@ class Variable[T](initialValue : T) extends Signal[T](initialValue)
 
     def set(x : T) = {
         setWithoutCommit(x)
-        core.Scheduler atStepEnd { commit() }
+        core.Scheduler commitAtStepEnd this
     }
 
     def commit() = {
