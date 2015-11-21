@@ -42,7 +42,7 @@ class BookSpec extends Base {
 
             import marketsim.ops._
 
-            def toQueueState(queue: Queue[USD]) =
+            def toQueueState(queue: Queue) =
                 reactive.Unary(queue.priceLevels, "toQueue") {
                     levels => QueueState(levels map { case (p, v) => LevelDescription(p.ticks, tickMapper toCurrency p.ticks, v) })
                 }

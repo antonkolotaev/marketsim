@@ -52,7 +52,7 @@ class RemoteBookSpec extends Base {
 
             import marketsim.ops._
 
-            def toQueueState(queue: AbstractOrderQueue[USD]) =
+            def toQueueState(queue: AbstractOrderQueue) =
                 Unary(queue.priceLevels, "toQueue") {
                     case best =>
                         QueueState(best map { case (p, v) => LevelDescription(p.ticks, tickMapper toCurrency p.ticks, v) })

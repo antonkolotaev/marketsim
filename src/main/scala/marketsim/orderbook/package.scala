@@ -49,15 +49,15 @@ package object orderbook {
 
     case class TradeDone(price: SignedTicks, volume: Quantity)
 
-    trait AbstractOrderQueue[Currency] {
+    trait AbstractOrderQueue{
         val priceLevels: marketsim.reactive.Signal[List[(SignedTicks, Quantity)]]
 
         val tradeDone = new marketsim.reactive.Event[TradeDone]
     }
 
     trait AbstractOrderBook[Currency] {
-        val Asks: AbstractOrderQueue[Currency]
-        val Bids: AbstractOrderQueue[Currency]
+        val Asks: AbstractOrderQueue
+        val Bids: AbstractOrderQueue
         val tickMapper: TickMapper[Currency]
 
         def process(order: LimitOrder)

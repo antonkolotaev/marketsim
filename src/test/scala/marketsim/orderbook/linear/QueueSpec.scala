@@ -17,8 +17,7 @@ class QueueSpec extends Base {
 
             val initialPrice = Ticks(100) signed side
 
-            val dummy = USD(0)
-            val queue = new Queue(side, dummy)
+            val queue = new Queue(side)
 
             def checkResult(expected: LevelInfo*) =
                 checkResultImpl(side)(Some(queue.bestLevel), expected.toList)

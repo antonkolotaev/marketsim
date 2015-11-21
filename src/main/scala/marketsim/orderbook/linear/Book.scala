@@ -4,9 +4,8 @@ package linear
 
 class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrderBook[Currency] {
 
-    val infiniteCurrency = tickMapper toCurrency TerminalOrderPrice.ticks
-    val Asks = new Queue(Sell, infiniteCurrency)
-    val Bids = new Queue(Buy, infiniteCurrency)
+    val Asks = new Queue(Sell)
+    val Bids = new Queue(Buy)
 
     def cancellationToken = new Canceller
 
