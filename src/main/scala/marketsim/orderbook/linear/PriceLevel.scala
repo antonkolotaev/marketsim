@@ -1,4 +1,6 @@
-package marketsim.orderbook.linear
+package marketsim
+package orderbook
+package linear
 
 /**
  * Represents a queue of orders of the same price as a node of a double-linked list

@@ -1,4 +1,5 @@
-package marketsim.reactive
+package marketsim
+package reactive
 
 /**
  * A set of subscribers implemented on top of a list

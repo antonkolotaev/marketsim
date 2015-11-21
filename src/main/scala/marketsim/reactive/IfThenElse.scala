@@ -1,4 +1,5 @@
-package marketsim.reactive
+package marketsim
+package reactive
 
 /**
  * Computable observable for a conditional expression

@@ -1,4 +1,5 @@
-package marketsim.reactive
+package marketsim
+package reactive
 
 /**
  * Computable observable defined by a binary function

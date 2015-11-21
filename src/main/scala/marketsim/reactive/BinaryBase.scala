@@ -1,4 +1,5 @@
-package marketsim.reactive
+package marketsim
+package reactive
 
 abstract class BinaryBase[A,B, Result](a : Signal[A], b : Signal[B], initialValue : Result, label : String)
     extends Signal[Result](initialValue)

@@ -1,15 +1,16 @@
-package marketsim.orderbook.linear
+package marketsim
+package orderbook
+package linear
 
 /**
  * Represents a limit order stored in an order book
  * We store for it unmatched volume and its events listener
  * @param unmatched -- initial unmatched order volume
  * @param sender -- order events listener
- * Note that side and price of the order is kept in PriceLevel
+ *               Note that side and price of the order is kept in PriceLevel
  */
-private[linear] class Entry(private var unmatched : Quantity,
-                                    val sender : OrderListener)
-{
+private[linear] class Entry(private var unmatched: Quantity,
+                            val sender: OrderListener) {
     /**
      * @return Current unmatched volume
      */
@@ -20,7 +21,7 @@ private[linear] class Entry(private var unmatched : Quantity,
      * @param side -- order side passed from PriceLevel
      * @param price -- order price passed from PriceLevel
      */
-    def createInfo(side : Side, price : SignedTicks) =
+    def createInfo(side: Side, price: SignedTicks) =
         LimitOrderInfo(side, price, unmatched, sender)
 
     /**
@@ -34,8 +35,7 @@ private[linear] class Entry(private var unmatched : Quantity,
      * @param amount -- amount to cancel
      * @return actually cancelled order volume
      */
-    def cancel(side : Side, amount : Quantity) =
-    {
+    def cancel(side: Side, amount: Quantity) = {
         val toCancel = amount min unmatchedVolume
         unmatched -= toCancel
         sender handle Cancelled(side, toCancel)
@@ -53,7 +53,7 @@ private[linear] class Entry(private var unmatched : Quantity,
      *                        it is responsibility of the caller to call properly 'completed'
      * @return actually traded order volume
      */
-    def matchWith(ourPrice : SignedTicks, amount : Quantity, incoming_sender : OrderListener) = {
+    def matchWith(ourPrice: SignedTicks, amount: Quantity, incoming_sender: OrderListener) = {
         val toTrade = amount min unmatchedVolume
         unmatched -= toTrade
         sender handle Traded(ourPrice, toTrade)
@@ -65,3 +65,4 @@ private[linear] class Entry(private var unmatched : Quantity,
 
     override def toString = s"Entry($unmatchedVolume)"
 }
+

@@ -1,8 +1,7 @@
-package marketsim {
+package marketsim
 
 package object core {
 
 
 }
 
-}

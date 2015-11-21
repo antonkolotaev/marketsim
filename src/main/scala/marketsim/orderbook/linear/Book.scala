@@ -1,4 +1,6 @@
-package marketsim.orderbook.linear
+package marketsim
+package orderbook
+package linear
 
 class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrderBook[Currency] {
 

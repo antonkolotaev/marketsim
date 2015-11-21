@@ -1,10 +1,12 @@
-package marketsim.orderbook.linear
+package marketsim
+package orderbook
+package linear
 
 /**
  * Represents a queue of limit orders sharing the same price
  * It keeps track of cumulative volume of orders kept
  */
-class SamePriceOrders(val price : SignedTicks) {
+class SamePriceOrders(val price: SignedTicks) {
     private val entries_ = collection.mutable.Queue.empty[Entry]
     private var totalVolume_ : Quantity = 0
 
@@ -21,9 +23,15 @@ class SamePriceOrders(val price : SignedTicks) {
     /**
      * @return description for orders kept in the queue. used for debugging purposes
      */
-    def ownOrders = entries_ map { _ createInfo (side, price) }
+    def ownOrders = entries_ map {
+        _ createInfo(side, price)
+    }
 
-    override def toString = s"[$price : ${entries_ map { _.unmatchedVolume } mkString " "}]"
+    override def toString = s"[$price : ${
+        entries_ map {
+            _.unmatchedVolume
+        } mkString " "
+    }]"
 
     /**
      * Stores the order in the queue.
@@ -32,16 +40,17 @@ class SamePriceOrders(val price : SignedTicks) {
      * @param sender -- order event listener for the order to be stored
      * @return -- order cancellation token
      */
-    protected[linear] def storeImpl(volume : Quantity, sender : OrderListener, cancellationKey: Option[Canceller]) =
-    {
+    protected[linear] def storeImpl(volume: Quantity, sender: OrderListener, cancellationKey: Option[Canceller]) = {
         val e = new Entry(volume, sender)
         entries_ enqueue e
         totalVolume_ += volume
-        cancellationKey foreach { _ set (e, this) }
+        cancellationKey foreach {
+            _ set(e, this)
+        }
     }
 
-    private[linear] def cancel(e : Entry, amountToCancel : Quantity) = {
-        val cancelled = e cancel (price.side, amountToCancel)
+    private[linear] def cancel(e: Entry, amountToCancel: Quantity) = {
+        val cancelled = e cancel(price.side, amountToCancel)
         totalVolume_ -= cancelled
         cancelled
     }
@@ -54,11 +63,11 @@ class SamePriceOrders(val price : SignedTicks) {
      * @param sender -- order event listener for the incoming order
      * @return unmatched volume of the incoming order
      */
-    protected[linear] def matchImpl(volume : Quantity, sender : OrderListener) = {
+    protected[linear] def matchImpl(volume: Quantity, sender: OrderListener) = {
         var unmatched = volume
         while (unmatched > 0 && entries_.nonEmpty) {
             val e = entries_.head
-            val traded = e matchWith (price, unmatched, sender)
+            val traded = e matchWith(price, unmatched, sender)
             unmatched -= traded
             totalVolume_ -= traded
             if (e.fulfilled)
@@ -67,3 +76,4 @@ class SamePriceOrders(val price : SignedTicks) {
         unmatched
     }
 }
+

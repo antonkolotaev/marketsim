@@ -1,6 +1,6 @@
-package marketsim {
-package orderbook {
-package linear {
+package marketsim
+package orderbook
+package linear
 
 import core.Scheduler
 import ops._
@@ -88,4 +88,3 @@ object Remote {
 
 }
 
-}}}

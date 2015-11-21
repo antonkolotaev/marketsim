@@ -1,4 +1,4 @@
-package marketsim {
+package marketsim
 
 package object ops {
 
@@ -123,4 +123,3 @@ package object ops {
 
 }
 
-}

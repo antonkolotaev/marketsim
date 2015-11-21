@@ -1,4 +1,4 @@
-package marketsim {
+package marketsim
 
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
@@ -74,7 +74,5 @@ package object reactive {
             value += handler
         }
     }
-
-}
 
 }

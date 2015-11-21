@@ -1,5 +1,5 @@
-package marketsim {
-package ops {
+package marketsim
+package ops
 
 
 import marketsim.core._
@@ -49,4 +49,3 @@ class DelaySpec extends FlatSpec with MockFactory {
 
 }
 
-}}

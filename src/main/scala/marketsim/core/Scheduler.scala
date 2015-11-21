@@ -1,5 +1,5 @@
-package marketsim {
-package core {
+package marketsim
+package core
 
 import scala.collection.mutable
 
@@ -129,5 +129,3 @@ object Scheduler {
 
     def asyncAgain(whatToDo: => Unit) = scheduleAgain(currentTime, whatToDo)
 }
-
-}}

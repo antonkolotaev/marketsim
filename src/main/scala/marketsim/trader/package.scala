@@ -1,7 +1,6 @@
-package marketsim {
+package marketsim
 
 package object trader {
 
 }
 
-}

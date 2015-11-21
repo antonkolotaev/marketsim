@@ -1,4 +1,5 @@
-package marketsim.ops
+package marketsim
+package ops
 
 import org.scalatest.FlatSpec
 

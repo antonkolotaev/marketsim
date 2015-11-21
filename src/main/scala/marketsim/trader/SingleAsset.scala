@@ -1,4 +1,5 @@
-package marketsim.trader
+package marketsim
+package trader
 
 import marketsim.reactive.Variable
 import marketsim.orderbook.linear._

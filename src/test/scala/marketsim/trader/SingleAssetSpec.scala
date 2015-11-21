@@ -1,6 +1,5 @@
-package marketsim {
-package trader {
-
+package marketsim
+package trader
 
 import marketsim.orderbook.linear._
 
@@ -31,5 +30,3 @@ class SingleAssetSpec extends marketsim.orderbook.linear.common.Base {
 
     }
 }
-
-}}

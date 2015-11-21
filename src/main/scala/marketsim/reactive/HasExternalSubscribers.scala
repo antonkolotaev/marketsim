@@ -1,4 +1,5 @@
-package marketsim.reactive
+package marketsim
+package reactive
 
 /**
  * External interface of our event propagation system

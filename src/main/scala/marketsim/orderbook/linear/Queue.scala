@@ -1,4 +1,6 @@
-package marketsim.orderbook.linear
+package marketsim
+package orderbook
+package linear
 
 /**
  * Represents a queue of limit orders of one side

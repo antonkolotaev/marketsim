@@ -1,3 +1,4 @@
-package marketsim.reactive
+package marketsim
+package reactive
 
 class VariableOpt[T](label : String) extends Variable[Option[T]](None, label)
