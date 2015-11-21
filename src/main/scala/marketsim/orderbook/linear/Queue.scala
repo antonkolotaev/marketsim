@@ -50,12 +50,17 @@ class Queue(side : Side) extends AbstractOrderQueue
      * @param sender -- events for the incoming order
      * @return -- unmatched volume of the incoming order
      */
-    private[linear] def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderListener) : Quantity = {
-        val proxyEvents = new OrderListenerProxy(sender) {
-            override def handle(traded : Traded) = {
-                super.handle(traded)
+    private[linear] def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderBase) : Quantity = {
+        val proxyEvents = new OrderBase {
+            def fire(traded : Traded) = {
+                sender fire traded
                 tradeDone fire TradeDone(traded.price.opposite, traded.volume)
             }
+            def fire(cancelled: Cancelled) =
+                sender fire cancelled
+
+            def fire(completed: Completed) =
+                sender fire completed
         }
         val unmatched = bestPriceLevel matchWith (limitPrice, volume, proxyEvents)
         removeEmptyBestLevels()

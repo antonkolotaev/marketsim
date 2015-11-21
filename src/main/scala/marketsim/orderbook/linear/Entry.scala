@@ -15,13 +15,8 @@ private[linear] class Entry(val order : LimitOrder,
      */
     def unmatchedVolume = unmatched
 
-    /**
-     * Creates a limit order description
-     * @param side -- order side passed from PriceLevel
-     * @param price -- order price passed from PriceLevel
-     */
-    def createInfo(side: Side, price: SignedTicks) =
-        LimitOrderInfo(side, price, unmatched, order.sender)
+    def createInfo =
+        LimitOrderInfo(order.side, order.price, unmatched, order.sender)
 
     /**
      * @return true iff the order is completely matched or cancelled
@@ -37,9 +32,9 @@ private[linear] class Entry(val order : LimitOrder,
     def cancel(amount: Quantity) = {
         val toCancel = amount min unmatchedVolume
         unmatched -= toCancel
-        order.sender handle Cancelled(order.side, toCancel)
+        order fire Cancelled(order.side, toCancel)
         if (unmatched == 0)
-            order.sender handle Completed()
+            order fire Completed()
         toCancel
     }
 
@@ -51,13 +46,13 @@ private[linear] class Entry(val order : LimitOrder,
      *                        it is responsibility of the caller to call properly 'completed'
      * @return actually traded order volume
      */
-    def matchWith(amount: Quantity, incoming_sender: OrderListener) = {
+    def matchWith(amount: Quantity, incoming_sender: OrderBase) = {
         val toTrade = amount min unmatchedVolume
         unmatched -= toTrade
-        order.sender handle Traded(order.price, toTrade)
-        incoming_sender handle Traded(order.price.opposite, toTrade)
+        order fire Traded(order.price, toTrade)
+        incoming_sender fire Traded(order.price.opposite, toTrade)
         if (unmatched == 0)
-            order.sender handle Completed()
+            order fire Completed()
         toTrade
     }
 

@@ -41,9 +41,7 @@ package object orderbook {
 
     class OrderListenerProxy(target: OrderListener) extends OrderListener {
         override def handle(traded: Traded) = target handle traded
-
         override def handle(cancelled: Cancelled) = target handle cancelled
-
         override def handle(completed: Completed) = target handle completed
     }
 
@@ -71,15 +69,30 @@ package object orderbook {
         def cancellationToken : AbstractCanceller
     }
 
-    case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener)
+    trait OrderBase
+    {
+        def fire(traded: Traded)
+        def fire(cancelled: Cancelled)
+        def fire(completed: Completed)
+    }
+
+    case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener) extends OrderBase
+    {
+        def fire(traded: Traded) = sender handle traded
+        def fire(cancelled: Cancelled) = sender handle cancelled
+        def fire(completed: Completed) = sender handle completed
+    }
 
     // TODO: introduce id
     case class LimitOrder(price: SignedTicks,
                           volume: Quantity,
                           sender: OrderListener,
-                          cancellationKey: Option[linear.Canceller] = None)
+                          cancellationKey: Option[linear.Canceller] = None) extends OrderBase
     {
         def side = price.side
+        def fire(traded: Traded) = sender handle traded
+        def fire(cancelled: Cancelled) = sender handle cancelled
+        def fire(completed: Completed) = sender handle completed
     }
 
 

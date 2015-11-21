@@ -63,7 +63,7 @@ class PriceLevel(price : SignedTicks,
      * @param sender -- events for the incoming order
      * @return -- unmatched volume of the incoming order
      */
-    def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderListener) : Quantity =
+    def matchWith(limitPrice : SignedTicks, volume : Quantity, sender : OrderBase) : Quantity =
         
         if (limitPrice isMoreAggressiveThan price)
             volume

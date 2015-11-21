@@ -24,7 +24,7 @@ class SamePriceOrders(val price: SignedTicks) {
      * @return description for orders kept in the queue. used for debugging purposes
      */
     def ownOrders = entries_ map {
-        _ createInfo(side, price)
+        _.createInfo
     }
 
     override def toString = s"[$price : ${
@@ -62,7 +62,7 @@ class SamePriceOrders(val price: SignedTicks) {
      * @param sender -- order event listener for the incoming order
      * @return unmatched volume of the incoming order
      */
-    protected[linear] def matchImpl(volume: Quantity, sender: OrderListener) = {
+    protected[linear] def matchImpl(volume: Quantity, sender: OrderBase) = {
         var unmatched = volume
         while (unmatched > 0 && entries_.nonEmpty) {
             val e = entries_.head

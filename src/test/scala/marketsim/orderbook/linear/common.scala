@@ -9,7 +9,7 @@ object common {
 
     class Base extends FlatSpec with MockFactory {
 
-        class Listener(name: String) extends OrderListener {
+        class Listener(name: String) extends OrderListener with OrderBase {
             val onTraded = mockFunction[Traded, Unit](name + ".onTraded")
             val onCancelled = mockFunction[Quantity, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[Unit](name + ".onCompleted")
@@ -19,6 +19,12 @@ object common {
             override def handle(cancelled: Cancelled) = onCancelled(cancelled.amount)
 
             override def handle(completed: Completed) = onCompleted()
+
+            override def fire(traded: Traded) = onTraded(traded)
+
+            override def fire(cancelled: Cancelled) = onCancelled(cancelled.amount)
+
+            override def fire(completed: Completed) = onCompleted()
 
             def Cancelled(c: Quantity) = {
                 onCancelled expects c once()
