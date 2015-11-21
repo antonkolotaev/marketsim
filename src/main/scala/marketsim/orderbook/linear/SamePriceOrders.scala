@@ -36,15 +36,14 @@ class SamePriceOrders(val price: SignedTicks) {
     /**
      * Stores the order in the queue.
      * Updates cumulative volume of orders
-     * @param volume -- size of order to be stored
-     * @param sender -- order event listener for the order to be stored
+     * @param unmatchedVolume -- size of order to be stored
      * @return -- order cancellation token
      */
-    protected[linear] def storeImpl(order : LimitOrder, volume: Quantity, sender: OrderListener, cancellationKey: Option[Canceller]) = {
-        val e = new Entry(order, volume)
+    protected[linear] def storeImpl(order : LimitOrder, unmatchedVolume: Quantity) = {
+        val e = new Entry(order, unmatchedVolume)
         entries_ enqueue e
-        totalVolume_ += volume
-        cancellationKey foreach {
+        totalVolume_ += unmatchedVolume
+        order.cancellationKey foreach {
             _ set(e, this)
         }
     }

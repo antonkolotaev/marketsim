@@ -54,8 +54,8 @@ private[linear] class Entry(val order : LimitOrder,
     def matchWith(amount: Quantity, incoming_sender: OrderListener) = {
         val toTrade = amount min unmatchedVolume
         unmatched -= toTrade
-        order.sender handle Traded(order.signedPrice, toTrade)
-        incoming_sender handle Traded(order.signedPrice.opposite, toTrade)
+        order.sender handle Traded(order.price, toTrade)
+        incoming_sender handle Traded(order.price.opposite, toTrade)
         if (unmatched == 0)
             order.sender handle Completed()
         toTrade

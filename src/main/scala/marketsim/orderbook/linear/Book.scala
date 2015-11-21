@@ -35,7 +35,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
 
     def process(order : LimitOrder) =
         nonReenterable {
-            val price = order.signedPrice
+            val price = order.price
             val q = queue(order.side.opposite)
             q matchWith (price.opposite, order.volume, order.sender) match {
                 case 0 =>
@@ -43,7 +43,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
                 case unmatched =>
                     val p = queue(order.side)
                     val cancellationToken = order.cancellationKey map { x => x.asInstanceOf[Canceller] }
-                    p store  (order, price, tickMapper toCurrency order.price, unmatched, order.sender, cancellationToken)
+                    p store  (order, tickMapper toCurrency order.price.ticks, unmatched)
             }
         }
 

@@ -95,13 +95,12 @@ package object orderbook {
     case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener)
 
     // TODO: introduce id
-    case class LimitOrder(signedPrice: SignedTicks,
+    case class LimitOrder(price: SignedTicks,
                           volume: Quantity,
                           sender: OrderListener,
-                          cancellationKey: Option[AbstractCanceller] = None)
+                          cancellationKey: Option[linear.Canceller] = None)
     {
-        def price = signedPrice.ticks
-        def side = signedPrice.side
+        def side = price.side
     }
 
 

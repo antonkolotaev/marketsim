@@ -30,7 +30,7 @@ class PriceLevelSpec extends common.Base {
                 val canceller = new Canceller
                 val order = new LimitOrder(price, volume, events, Some(canceller))
 
-                q store (order, price, dummy, volume, events, Some(canceller))
+                q store (order, dummy, volume)
 
                 def Traded(v : Quantity, incoming : Listener) = { events Traded (price, v, incoming); this }
                 def Cancelled (c : Quantity) = { events Cancelled c; this }

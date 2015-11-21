@@ -28,7 +28,7 @@ class QueueSpec extends Base {
                 val canceller = new Canceller
                 val order = new LimitOrder(price, volume, events, Some(canceller))
 
-                queue store(order, price, dummy, volume, events, Some(canceller))
+                queue store(order, dummy, volume)
 
                 step()
 
@@ -174,7 +174,7 @@ class QueueSpec extends Base {
             val v3 = 7
 
             val order = new LimitOrder(slightlyLessAggressivePrice, v3, emptyListener, None)
-            queue store(order, slightlyLessAggressivePrice, dummy, v3, emptyListener, None)
+            queue store(order, dummy, v3)
             step()
 
             checkResult(
