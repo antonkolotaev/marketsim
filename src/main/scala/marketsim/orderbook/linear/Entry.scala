@@ -6,12 +6,10 @@ package linear
  * Represents a limit order stored in an order book
  * We store for it unmatched volume and its events listener
  * @param unmatched -- initial unmatched order volume
- * @param sender -- order events listener
- *               Note that side and price of the order is kept in PriceLevel
+ * @param order -- order stored
  */
 private[linear] class Entry(val order : LimitOrder,
-                            private var unmatched: Quantity,
-                            val sender: OrderListener) {
+                            private var unmatched: Quantity) {
     /**
      * @return Current unmatched volume
      */
@@ -23,7 +21,7 @@ private[linear] class Entry(val order : LimitOrder,
      * @param price -- order price passed from PriceLevel
      */
     def createInfo(side: Side, price: SignedTicks) =
-        LimitOrderInfo(side, price, unmatched, sender)
+        LimitOrderInfo(side, price, unmatched, order.sender)
 
     /**
      * @return true iff the order is completely matched or cancelled
@@ -36,31 +34,30 @@ private[linear] class Entry(val order : LimitOrder,
      * @param amount -- amount to cancel
      * @return actually cancelled order volume
      */
-    def cancel(side: Side, amount: Quantity) = {
+    def cancel(amount: Quantity) = {
         val toCancel = amount min unmatchedVolume
         unmatched -= toCancel
-        sender handle Cancelled(side, toCancel)
+        order.sender handle Cancelled(order.side, toCancel)
         if (unmatched == 0)
-            sender handle Completed()
+            order.sender handle Completed()
         toCancel
     }
 
     /**
      * Matches the order with incoming order
      * fires 'traded' event and if the order gets completely traded fires 'completed'
-     * @param ourPrice -- price of the entry passed from PriceLevel, used for 'traded' event
      * @param amount -- incoming order size
      * @param incoming_sender -- incoming order events; 'traded' event will be fired,
      *                        it is responsibility of the caller to call properly 'completed'
      * @return actually traded order volume
      */
-    def matchWith(ourPrice: SignedTicks, amount: Quantity, incoming_sender: OrderListener) = {
+    def matchWith(amount: Quantity, incoming_sender: OrderListener) = {
         val toTrade = amount min unmatchedVolume
         unmatched -= toTrade
-        sender handle Traded(ourPrice, toTrade)
-        incoming_sender handle Traded(ourPrice.opposite, toTrade)
+        order.sender handle Traded(order.signedPrice, toTrade)
+        incoming_sender handle Traded(order.signedPrice.opposite, toTrade)
         if (unmatched == 0)
-            sender handle Completed()
+            order.sender handle Completed()
         toTrade
     }
 

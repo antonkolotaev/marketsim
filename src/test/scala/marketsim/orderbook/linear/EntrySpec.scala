@@ -7,8 +7,9 @@ class EntrySpec extends common.Base {
     class Initial {
         val V = 9
         val L = new Listener("Initial")
-        val order = new LimitOrder(Sell, Ticks(100), V, L, None)
-        val e = new Entry(order, V, L)
+        val P = SignedTicks(97)
+        val order = new LimitOrder(Sell, P.ticks, V, L, None)
+        val e = new Entry(order, V)
 
         assert(!e.fulfilled)
         assert(e.unmatchedVolume == V)
@@ -31,7 +32,7 @@ class EntrySpec extends common.Base {
 
         val C = 5
         L Cancelled C
-        assert((e cancel (Sell, C)) == C)
+        assert((e cancel C) == C)
 
         assert(!e.fulfilled)
         assert(e.unmatchedVolume == V - C)
@@ -40,7 +41,7 @@ class EntrySpec extends common.Base {
     it should "allow cancel all amount" in new Initial {
 
         L Cancelled V Completed ()
-        assert((e cancel (Sell, V)) == V)
+        assert((e cancel V) == V)
 
         assert(e.fulfilled)
         assert(e.unmatchedVolume == 0)
@@ -51,14 +52,13 @@ class EntrySpec extends common.Base {
         val C = V + 10
         L Cancelled V Completed ()
 
-        assert((e cancel (Sell, V)) == V)
+        assert((e cancel V) == V)
 
         assert(e.fulfilled)
         assert(e.unmatchedVolume == 0)
     }
 
     class Matching extends Initial {
-        val P = SignedTicks(97)
         val incoming = new Listener("Incoming")
     }
 
@@ -66,7 +66,7 @@ class EntrySpec extends common.Base {
         val C = 5
         L Traded (P, C, incoming)
 
-        assert((e matchWith (P, C, incoming)) == 5)
+        assert((e matchWith (C, incoming)) == 5)
 
         assert(!e.fulfilled)
         assert(e.unmatchedVolume == V - C)
@@ -75,7 +75,7 @@ class EntrySpec extends common.Base {
     it should "allow trade all amount" in new Matching {
 
         L Traded (P, V, incoming) Completed()
-        assert((e matchWith (P,V, incoming)) == V)
+        assert((e matchWith (V, incoming)) == V)
 
         assert(e.fulfilled)
         assert(e.unmatchedVolume == 0)
@@ -84,7 +84,7 @@ class EntrySpec extends common.Base {
     it should "allow trade more than all amount" in new Matching {
 
         L Traded (P, V, incoming) Completed()
-        assert((e matchWith (P,V + 10, incoming)) == V)
+        assert((e matchWith (V + 10, incoming)) == V)
 
         assert(e.fulfilled)
         assert(e.unmatchedVolume == 0)

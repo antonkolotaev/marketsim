@@ -41,7 +41,7 @@ class SamePriceOrders(val price: SignedTicks) {
      * @return -- order cancellation token
      */
     protected[linear] def storeImpl(order : LimitOrder, volume: Quantity, sender: OrderListener, cancellationKey: Option[Canceller]) = {
-        val e = new Entry(order, volume, sender)
+        val e = new Entry(order, volume)
         entries_ enqueue e
         totalVolume_ += volume
         cancellationKey foreach {
@@ -50,7 +50,7 @@ class SamePriceOrders(val price: SignedTicks) {
     }
 
     private[linear] def cancel(e: Entry, amountToCancel: Quantity) = {
-        val cancelled = e cancel(price.side, amountToCancel)
+        val cancelled = e cancel amountToCancel
         totalVolume_ -= cancelled
         cancelled
     }
@@ -67,7 +67,7 @@ class SamePriceOrders(val price: SignedTicks) {
         var unmatched = volume
         while (unmatched > 0 && entries_.nonEmpty) {
             val e = entries_.head
-            val traded = e matchWith(price, unmatched, sender)
+            val traded = e matchWith(unmatched, sender)
             unmatched -= traded
             totalVolume_ -= traded
             if (e.fulfilled)

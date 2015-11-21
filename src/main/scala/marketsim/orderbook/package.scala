@@ -104,6 +104,9 @@ package object orderbook {
                           volume: Quantity,
                           sender: OrderListener,
                           cancellationKey: Option[AbstractCanceller] = None) extends AbstractOrder
+    {
+        def signedPrice = price signed side
+    }
 
 
     case class LimitOrderInfo(side: Side, price: SignedTicks, unmatchedVolume: Quantity, sender: OrderListener)
