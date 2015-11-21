@@ -1,8 +1,8 @@
 package trader
 
-import orderbook.linear._
+import marketsim.orderbook.linear._
 
-class SingleAssetSpec extends orderbook.linear.common.Base {
+class SingleAssetSpec extends marketsim.orderbook.linear.common.Base {
 
     Side.choices foreach { side =>
 

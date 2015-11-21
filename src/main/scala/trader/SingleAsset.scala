@@ -1,7 +1,7 @@
 package trader
 
 import reactive.Variable
-import orderbook.linear._
+import marketsim.orderbook.linear._
 
 class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
 {

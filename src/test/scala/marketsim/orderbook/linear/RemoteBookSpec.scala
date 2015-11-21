@@ -1,6 +1,6 @@
-package orderbook.linear
+package marketsim.orderbook.linear
 
-import orderbook.linear.common._
+import marketsim.orderbook.linear.common._
 import reactive.Unary
 
 class RemoteBookSpec extends Base {

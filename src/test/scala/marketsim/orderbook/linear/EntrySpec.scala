@@ -1,4 +1,4 @@
-package orderbook.linear
+package marketsim.orderbook.linear
 
 class EntrySpec extends common.Base {
 

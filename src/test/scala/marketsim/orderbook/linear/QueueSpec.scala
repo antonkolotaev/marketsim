@@ -1,7 +1,7 @@
-package orderbook.linear
+package marketsim.orderbook.linear
 
 import core.{Duration, Scheduler}
-import orderbook.linear.common._
+import marketsim.orderbook.linear.common._
 
 class QueueSpec extends Base {
 

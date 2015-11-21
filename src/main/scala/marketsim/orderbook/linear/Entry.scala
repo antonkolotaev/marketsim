@@ -1,4 +1,4 @@
-package orderbook.linear
+package marketsim.orderbook.linear
 
 /**
  * Represents a limit order stored in an order book

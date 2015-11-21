@@ -1,4 +1,4 @@
-package orderbook
+package marketsim.orderbook
 
 package object linear {
 
@@ -112,10 +112,6 @@ package object linear {
     case class Cancelled(side : Side, amount : Quantity)
     case class Completed()
 
-    class Event[T] extends reactive.HasExternalSubscribers[T]
-    {
-        def fire (x : T) = external foreach { _ apply x }
-    }
 
     /**
      *  Interface for order event listeners
@@ -139,7 +135,7 @@ package object linear {
     {
         val priceLevels : reactive.Signal[List[(Ticks, Currency, Quantity)]]
 
-        val tradeDone = new Event[TradeDone]
+        val tradeDone = new reactive.Event[TradeDone]
     }
 
     case class BestPrice[Currency](queue : AbstractOrderQueue[Currency])
