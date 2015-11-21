@@ -43,7 +43,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
                 case unmatched =>
                     val p = queue(order.side)
                     val cancellationToken = order.cancellationKey map { x => x.asInstanceOf[Canceller] }
-                    p store  (order, tickMapper toCurrency order.price.ticks, unmatched)
+                    p store  (order, unmatched)
             }
         }
 

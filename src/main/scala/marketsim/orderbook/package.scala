@@ -50,30 +50,9 @@ package object orderbook {
     case class TradeDone(price: SignedTicks, volume: Quantity)
 
     trait AbstractOrderQueue[Currency] {
-        val priceLevels: marketsim.reactive.Signal[List[(Ticks, Currency, Quantity)]]
+        val priceLevels: marketsim.reactive.Signal[List[(SignedTicks, Quantity)]]
 
         val tradeDone = new marketsim.reactive.Event[TradeDone]
-    }
-
-    case class BestPrice[Currency](queue: AbstractOrderQueue[Currency])
-        extends marketsim.reactive.UnaryBase(queue.priceLevels, Option.empty[Ticks], s"BestPrice($queue)") {
-        def F(a: List[(Ticks, Currency, Quantity)]) = a.headOption map {
-            _._1
-        }
-    }
-
-    case class BestPriceCurrency[Currency](queue: AbstractOrderQueue[Currency])
-        extends marketsim.reactive.UnaryBase(queue.priceLevels, Option.empty[Currency], s"BestPriceCurrency($queue)") {
-        def F(a: List[(Ticks, Currency, Quantity)]) = a.headOption map {
-            _._2
-        }
-    }
-
-    case class BestPriceVolume[Currency](queue: AbstractOrderQueue[Currency])
-        extends marketsim.reactive.UnaryBase(queue.priceLevels, Option.empty[Quantity], s"BestPriceVolume($queue)") {
-        def F(a: List[(Ticks, Currency, Quantity)]) = a.headOption map {
-            _._3
-        }
     }
 
     trait AbstractOrderBook[Currency] {

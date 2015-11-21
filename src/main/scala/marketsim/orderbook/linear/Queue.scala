@@ -14,7 +14,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
         val listener = new OrderListener {}
         val dummyOrder = new LimitOrder(TerminalOrderPrice, 1, listener, None)
 
-        val level = new PriceLevel(TerminalOrderPrice, infiniteCurrency, None, None)
+        val level = new PriceLevel(TerminalOrderPrice, None, None)
         level storeImpl (dummyOrder, volume)
 
         val info = level.allOrders.head
@@ -27,19 +27,17 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
 
     /**
      * Stores a limit order in the queue
-     * @param priceInCurrency -- price of an order to keep in currency
      * @param volume -- volume of an order to keep
      * @param order -- order to keep
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
     private[linear] def store(order          : LimitOrder,
-                              priceInCurrency: Currency,
                               volume         : Quantity) =
     {
         if (order.price.isMoreAggressiveThan(bestPriceLevel.price)) {
-            bestPriceLevel = new PriceLevel(order.price, priceInCurrency, None, Some(bestPriceLevel))
+            bestPriceLevel = new PriceLevel(order.price, None, Some(bestPriceLevel))
         }
-        bestPriceLevel store(order, priceInCurrency, volume)
+        bestPriceLevel store(order, volume)
         validateBestPrice()
     }
 
@@ -86,7 +84,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
 
     def allOrders = bestPriceLevel.allOrders takeWhile (_ != terminal.info)
 
-    val priceLevels = new marketsim.reactive.Variable[List[(Ticks, Currency, Quantity)]](Nil, s"PriceLevels($this)")
+    val priceLevels = new marketsim.reactive.Variable[List[(SignedTicks, Quantity)]](Nil, s"PriceLevels($this)")
 
     def updatePriceLevels() = {
         val levels = bestPriceLevel levelsTill priceLevelToFetch

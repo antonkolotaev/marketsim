@@ -13,9 +13,9 @@ package linear
  *             we suppose that the last valid level references to an level with infinite price =>
  *                  we need to make one comparison less
  */
-class PriceLevel[Currency](price : SignedTicks, val priceInCurrency : Currency,
-                           private var prev : Option[PriceLevel[Currency]],
-                           private var next : Option[PriceLevel[Currency]])
+class PriceLevel(price : SignedTicks,
+                   private var prev : Option[PriceLevel],
+                   private var next : Option[PriceLevel])
   extends SamePriceOrders(price)
 {
     // at first we register this node in the previous and the next nodes
@@ -31,28 +31,27 @@ class PriceLevel[Currency](price : SignedTicks, val priceInCurrency : Currency,
     def getPrevious = prev
     def getNext = next
 
-    def levels : List[PriceLevel[Currency]] = this :: {next map { _.levels } getOrElse Nil}
+    def levels : List[PriceLevel] = this :: {next map { _.levels } getOrElse Nil}
 
-    def levelsTill(volumeToFetch : Quantity) : List[(Ticks, Currency, Quantity)] =
+    def levelsTill(volumeToFetch : Quantity) : List[(SignedTicks, Quantity)] =
         if (volumeToFetch > 0 && next.nonEmpty)
-            (price.ticks, priceInCurrency, totalVolume min volumeToFetch) ::
+            (price, totalVolume min volumeToFetch) ::
                 { next.get levelsTill (volumeToFetch - totalVolume) }
         else
             Nil
 
     /**
      * Stores a limit order in the queue
-     * @param priceInCurrency -- price of an order to keep in currency
      * @param unmatchedVolume -- volume of an order to keep
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
-    def store(order : LimitOrder, priceInCurrency : Currency, unmatchedVolume : Quantity) : Unit =
+    def store(order : LimitOrder, unmatchedVolume : Quantity) : Unit =
 
         if (!price.isMoreAggressiveThan(next.get.price)) // we assume that an order with infinite price ends the queue
-            next.get store (order, priceInCurrency, unmatchedVolume)
+            next.get store (order, unmatchedVolume)
         else
             (if (order.price == this.price)  this else
-            /*  order.price > price */ new PriceLevel(order.price, priceInCurrency, Some(this), next)
+            /*  order.price > price */ new PriceLevel(order.price, Some(this), next)
                 ) storeImpl (order, unmatchedVolume)
 
     /**

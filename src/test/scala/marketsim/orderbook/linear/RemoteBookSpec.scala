@@ -55,7 +55,7 @@ class RemoteBookSpec extends Base {
             def toQueueState(queue: AbstractOrderQueue[USD]) =
                 Unary(queue.priceLevels, "toQueue") {
                     case best =>
-                        QueueState(best map { case (p, c, v) => LevelDescription(p, c, v) })
+                        QueueState(best map { case (p, v) => LevelDescription(p.ticks, tickMapper toCurrency p.ticks, v) })
                 }
 
             val onChangedLocally =

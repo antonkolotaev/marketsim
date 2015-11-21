@@ -8,16 +8,15 @@ class PriceLevelSpec extends common.Base {
 
     Side.choices foreach { side =>
 
-        def checkResult[Currency](mostAggressive : PriceLevel[Currency], expected : LevelInfo*) =
+        def checkResult[Currency](mostAggressive : PriceLevel, expected : LevelInfo*) =
             checkResultImpl(side)(Some(mostAggressive), expected.toList)
 
         class Initial {
 
             val initialPrice = Ticks(100) signed side
-            val dummy = USD(0)
 
-            val bestPriceLevel = new PriceLevel(TerminalOrderPrice, dummy, None, None)
-            val q = new PriceLevel(initialPrice, dummy, None, Some(bestPriceLevel))
+            val bestPriceLevel = new PriceLevel(TerminalOrderPrice, None, None)
+            val q = new PriceLevel(initialPrice, None, Some(bestPriceLevel))
 
             assert(q.totalVolume == 0)
             assert(q.price == initialPrice)
@@ -30,7 +29,7 @@ class PriceLevelSpec extends common.Base {
                 val canceller = new Canceller
                 val order = new LimitOrder(price, volume, events, Some(canceller))
 
-                q store (order, dummy, volume)
+                q store (order, volume)
 
                 def Traded(v : Quantity, incoming : Listener) = { events Traded (price, v, incoming); this }
                 def Cancelled (c : Quantity) = { events Cancelled c; this }

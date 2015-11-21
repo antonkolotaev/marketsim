@@ -44,7 +44,7 @@ class BookSpec extends Base {
 
             def toQueueState(queue: Queue[USD]) =
                 reactive.Unary(queue.priceLevels, "toQueue") {
-                    levels => QueueState(levels map { case (p, c, v) => LevelDescription(p, c, v) })
+                    levels => QueueState(levels map { case (p, v) => LevelDescription(p.ticks, tickMapper toCurrency p.ticks, v) })
                 }
 
             val onChanged =
