@@ -92,20 +92,16 @@ package object orderbook {
         def cancellationToken : AbstractCanceller
     }
 
-    trait AbstractOrder {
-        val side: Side
-        val volume: Quantity
-    }
+    case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener)
 
-    case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener) extends AbstractOrder
-
-    case class LimitOrder(side: Side,
-                          price: Ticks,
+    // TODO: introduce id
+    case class LimitOrder(signedPrice: SignedTicks,
                           volume: Quantity,
                           sender: OrderListener,
-                          cancellationKey: Option[AbstractCanceller] = None) extends AbstractOrder
+                          cancellationKey: Option[AbstractCanceller] = None)
     {
-        def signedPrice = price signed side
+        def price = signedPrice.ticks
+        def side = signedPrice.side
     }
 
 

@@ -13,7 +13,7 @@ class SamePriceOrdersSpec extends common.Base {
         {
             val listener = new Listener(volume.toString)
             val canceller = new Canceller
-            val order = new LimitOrder(Sell, P.ticks, volume, listener, Some(canceller))
+            val order = new LimitOrder(P, volume, listener, Some(canceller))
             level storeImpl (order, volume, listener, Some(canceller))
 
             def Traded(v : Quantity, incoming : Listener) = { listener Traded (P, v, incoming); this }

@@ -12,7 +12,7 @@ package object linear {
                               price: Ticks,
                               volume: Quantity,
                               sender: OrderListener) =
-        LimitOrder(side, price, volume, sender, Some(new linear.Canceller))
+        LimitOrder(price signed side, volume, sender, Some(new linear.Canceller))
 
 }
 

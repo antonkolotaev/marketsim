@@ -41,7 +41,7 @@ class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook
     def sendLimit(side : Side, price : USD, volume : Quantity, canceller : Option[Canceller] = None) = {
         adjustPositionAndVolume(side, volume)
         val ticks = book.tickMapper toTicks (price, side)
-        book process new orderbook.LimitOrder(side, ticks, volume, this, canceller)
+        book process new orderbook.LimitOrder(ticks signed side, volume, this, canceller)
     }
 
     def sendCancellableLimit(side : Side, price : USD, volume : Quantity) = {

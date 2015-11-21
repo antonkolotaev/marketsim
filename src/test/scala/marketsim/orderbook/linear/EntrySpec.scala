@@ -8,7 +8,7 @@ class EntrySpec extends common.Base {
         val V = 9
         val L = new Listener("Initial")
         val P = SignedTicks(97)
-        val order = new LimitOrder(Sell, P.ticks, V, L, None)
+        val order = new LimitOrder(P, V, L, None)
         val e = new Entry(order, V)
 
         assert(!e.fulfilled)

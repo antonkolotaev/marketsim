@@ -95,7 +95,7 @@ class RemoteBookSpec extends Base {
                 val signedPrice = price signed side
                 val events = new ListenerWithTime(s"$price.$volume", up_down)
                 val canceller = new Canceller
-                remoteBook process LimitOrder(side, price, volume, events, Some(canceller))
+                remoteBook process LimitOrder(signedPrice, volume, events, Some(canceller))
 
                 def Traded(volume: Quantity, incoming: ListenerWithTime) =
                     events Traded(signedPrice, volume, incoming)
@@ -187,7 +187,7 @@ class RemoteBookSpec extends Base {
 
             expected(E levels ((initialPrice, V1 - c1)), E, (initialPrice, c1))
 
-            remoteBook process LimitOrder(side.opposite, initialPrice, c1, Incoming)
+            remoteBook process LimitOrder(initialPrice signed side.opposite, c1, Incoming)
 
             scheduler advance up
 
@@ -222,7 +222,7 @@ class RemoteBookSpec extends Base {
 
             expected(E levels ((initialPrice, V1)), E levels ((incomingPrice.ticks, c1)))
 
-            remoteBook process LimitOrder(side.opposite, incomingPrice.ticks, c1, Incoming)
+            remoteBook process LimitOrder(incomingPrice.opposite, c1, Incoming)
 
             scheduler advance up_down + epsilon
 
@@ -260,7 +260,7 @@ class RemoteBookSpec extends Base {
                 (moreAggressivePrice.ticks, _2.volume)
             )
 
-            remoteBook process LimitOrder(side.opposite, slightlyMoreAggressivePrice.ticks, c1, Incoming)
+            remoteBook process LimitOrder(slightlyMoreAggressivePrice.opposite, c1, Incoming)
 
             scheduler advance up_down + epsilon
 
@@ -281,7 +281,7 @@ class RemoteBookSpec extends Base {
                 E levels ((notAggressivePrice.ticks, c1 - _2.volume - _1.volume)),
                 (_1.price, _1.volume), (_2.price, _2.volume))
 
-            remoteBook process LimitOrder(side.opposite, notAggressivePrice.ticks, c1, Incoming)
+            remoteBook process LimitOrder(notAggressivePrice.opposite, c1, Incoming)
 
             scheduler advance up_down + epsilon
 

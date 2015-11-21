@@ -28,7 +28,7 @@ class PriceLevelSpec extends common.Base {
             {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
-                val order = new LimitOrder(side, price.ticks, volume, events, Some(canceller))
+                val order = new LimitOrder(price, volume, events, Some(canceller))
 
                 q store (order, price, dummy, volume, events, Some(canceller))
 

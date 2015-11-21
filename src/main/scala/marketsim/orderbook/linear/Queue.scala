@@ -12,7 +12,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
     private val terminal = new {
         val volume = 1
         val listener = new OrderListener {}
-        val dummyOrder = new LimitOrder(side, TerminalOrderPrice.ticks, 1, listener, None)
+        val dummyOrder = new LimitOrder(TerminalOrderPrice, 1, listener, None)
 
         val level = new PriceLevel(TerminalOrderPrice, infiniteCurrency, None, None)
         level storeImpl (dummyOrder, volume, listener, None)
