@@ -17,10 +17,10 @@ class SingleAssetSpec extends marketsim.orderbook.linear.common.Base {
 
             val localBook = new Book(tickMapper)
 
-            val up = core.Duration(3)
-            val down = core.Duration(5)
+            val up = Duration(3)
+            val down = Duration(5)
             val up_down = up + down
-            val epsilon = core.Duration(1)
+            val epsilon = Duration(1)
 
             val remoteBook = new Remote.Book(localBook, up, down)
             val remoteQueue = remoteBook queue side

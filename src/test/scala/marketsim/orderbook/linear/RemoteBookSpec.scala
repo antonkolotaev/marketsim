@@ -23,10 +23,10 @@ class RemoteBookSpec extends Base {
             val localQueue = localBook queue side
             val localQueueOpposite = localBook queue side.opposite
 
-            val up = core.Duration(3)
-            val down = core.Duration(5)
+            val up = Duration(3)
+            val down = Duration(5)
             val up_down = up + down
-            val epsilon = core.Duration(1)
+            val epsilon = Duration(1)
 
             val remoteBook = new Remote.Book(localBook, up, down)
             val remoteQueue = remoteBook queue side
@@ -59,14 +59,14 @@ class RemoteBookSpec extends Base {
                 }
 
             val onChangedLocally =
-                mockFunction[(QueueState, QueueState, marketsim.core.Time), Unit]("onChangedLocally")
+                mockFunction[(QueueState, QueueState, Time), Unit]("onChangedLocally")
 
             toQueueState(localQueue) and toQueueState(localQueueOpposite) += {
                 case (q, p) => onChangedLocally(q, p, core.Scheduler.currentTime)
             }
 
             val onChangedRemotely =
-                mockFunction[(QueueState, QueueState, marketsim.core.Time), Unit]("onChangedRemotely")
+                mockFunction[(QueueState, QueueState, Time), Unit]("onChangedRemotely")
 
             toQueueState(remoteQueue) and toQueueState(remoteQueueOpposite) += {
                 case (q, p) => onChangedRemotely(q, p, core.Scheduler.currentTime)
@@ -106,7 +106,7 @@ class RemoteBookSpec extends Base {
                 def Completed() = events Completed()
             }
 
-            def after(dt: marketsim.core.Duration) = core.Scheduler.currentTime + dt
+            def after(dt: Duration) = core.Scheduler.currentTime + dt
 
             val V1 = 9
 

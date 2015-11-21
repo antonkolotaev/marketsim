@@ -1,4 +1,6 @@
-package marketsim.ops
+package marketsim {
+package ops {
+
 
 import marketsim.core._
 import org.scalamock.scalatest.MockFactory
@@ -30,14 +32,14 @@ class DelaySpec extends FlatSpec with MockFactory {
                 handler(x)
             }
 
-            Scheduler schedule (Time(0), {
+            Scheduler schedule(Time(0), {
                 A set Some(12)
                 B set Some(34)
             })
 
             scheduler advance Duration(4)
 
-            handler expects (Some(12), Some(34)) once ()
+            handler expects(Some(12), Some(34)) once()
 
             scheduler advance Duration(2)
         }
@@ -46,3 +48,5 @@ class DelaySpec extends FlatSpec with MockFactory {
 
 
 }
+
+}}

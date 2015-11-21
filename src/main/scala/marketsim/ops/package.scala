@@ -94,19 +94,19 @@ package object ops {
         }
     }
 
-    implicit class RichValue[A](a: marketsim.reactive.Signal[A]) {
-        def and[B](b: marketsim.reactive.Signal[B]) = reactive.Binary(a, b, "and") { case (x, y) => (x, y) }
+    implicit class RichValue[A](a: reactive.Signal[A]) {
+        def and[B](b: reactive.Signal[B]) = reactive.Binary(a, b, "and") { case (x, y) => (x, y) }
 
-        def delayed(dt: marketsim.core.Duration) = new Delay(a, dt)
+        def delayed(dt: Duration) = new Delay(a, dt)
     }
 
-    implicit class OrderingValue[A: Ordering](a: marketsim.reactive.Signal[A]) {
-        def <(b: marketsim.reactive.Signal[A]) = reactive.Binary(a, b, "<") { case (x, y) => implicitly[Ordering[A]].compare(x, y) }
+    implicit class OrderingValue[A: Ordering](a: reactive.Signal[A]) {
+        def <(b: reactive.Signal[A]) = reactive.Binary(a, b, "<") { case (x, y) => implicitly[Ordering[A]].compare(x, y) }
     }
 
-    import marketsim.core._
+    import core._
 
-    class Delay[A](a: marketsim.reactive.Signal[A], dt: Duration) extends marketsim.reactive.Variable[A](a(), s"$a delayed $dt") {
+    class Delay[A](a: reactive.Signal[A], dt: Duration) extends reactive.Variable[A](a(), s"$a delayed $dt") {
         override lazy val inputs = a :: Nil
 
         override def notifyExternalListenersIfValueChanged(): Unit = {
