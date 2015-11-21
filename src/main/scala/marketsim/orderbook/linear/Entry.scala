@@ -9,7 +9,8 @@ package linear
  * @param sender -- order events listener
  *               Note that side and price of the order is kept in PriceLevel
  */
-private[linear] class Entry(private var unmatched: Quantity,
+private[linear] class Entry(val order : LimitOrder,
+                            private var unmatched: Quantity,
                             val sender: OrderListener) {
     /**
      * @return Current unmatched volume

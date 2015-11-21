@@ -47,14 +47,14 @@ class PriceLevel[Currency](price : SignedTicks, val priceInCurrency : Currency,
      * @param sender -- order events
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
-    def store(price : SignedTicks, priceInCurrency : Currency, volume : Quantity, sender : OrderListener, cancellationKey : Option[Canceller]) : Unit =
+    def store(order : LimitOrder, price : SignedTicks, priceInCurrency : Currency, volume : Quantity, sender : OrderListener, cancellationKey : Option[Canceller]) : Unit =
 
         if (!price.isMoreAggressiveThan(next.get.price)) // we assume that an order with infinite price ends the queue
-            next.get store (price, priceInCurrency, volume, sender, cancellationKey)
+            next.get store (order, price, priceInCurrency, volume, sender, cancellationKey)
         else
             (if (price == this.price)  this else
             /*  order.price > price */ new PriceLevel(price, priceInCurrency, Some(this), next)
-                ) storeImpl (volume, sender, cancellationKey)
+                ) storeImpl (order, volume, sender, cancellationKey)
 
     /**
      * Matches with a limit order (volume, limitPrice, sender)

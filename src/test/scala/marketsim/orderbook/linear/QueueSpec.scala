@@ -26,7 +26,9 @@ class QueueSpec extends Base {
             class OrderPlaced(val price: SignedTicks, val volume: Quantity) {
                 val events = new Listener(s"$price.$volume")
                 val canceller = new Canceller
-                queue store(price, dummy, volume, events, Some(canceller))
+                val order = new LimitOrder(side, price.ticks, volume, events, Some(canceller))
+
+                queue store(order, price, dummy, volume, events, Some(canceller))
 
                 step()
 
@@ -171,7 +173,8 @@ class QueueSpec extends Base {
 
             val v3 = 7
 
-            queue store(slightlyLessAggressivePrice, dummy, v3, emptyListener, None)
+            val order = new LimitOrder(side, slightlyLessAggressivePrice.ticks, v3, emptyListener, None)
+            queue store(order, slightlyLessAggressivePrice, dummy, v3, emptyListener, None)
             step()
 
             checkResult(

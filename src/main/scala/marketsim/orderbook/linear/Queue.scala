@@ -12,9 +12,10 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
     private val terminal = new {
         val volume = 1
         val listener = new OrderListener {}
+        val dummyOrder = new LimitOrder(side, TerminalOrderPrice.ticks, 1, listener, None)
 
         val level = new PriceLevel(TerminalOrderPrice, infiniteCurrency, None, None)
-        level storeImpl (volume, listener, None)
+        level storeImpl (dummyOrder, volume, listener, None)
 
         val info = level.allOrders.head
     }
@@ -31,7 +32,8 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
      * @param sender -- order events
      * @return -- cancellation token: a functional object that can be used to cancel a part of the order
      */
-    private[linear] def store(price          : SignedTicks,
+    private[linear] def store(order          : LimitOrder,
+                              price          : SignedTicks,
                               priceInCurrency: Currency,
                               volume         : Quantity,
                               sender         : OrderListener,
@@ -40,7 +42,7 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
         if (price isMoreAggressiveThan bestPriceLevel.price) {
             bestPriceLevel = new PriceLevel(price, priceInCurrency, None, Some(bestPriceLevel))
         }
-        bestPriceLevel store(price, priceInCurrency, volume, sender, cancellationKey)
+        bestPriceLevel store(order, price, priceInCurrency, volume, sender, cancellationKey)
         validateBestPrice()
     }
 
