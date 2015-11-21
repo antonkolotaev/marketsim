@@ -4,7 +4,7 @@ package trader
 import marketsim.reactive.Variable
 import marketsim.orderbook.linear._
 
-class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
+class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook.OrderListener
 {
     /**
      * Number of assets owned by the trader at the moment
@@ -35,13 +35,13 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
 
     def sendMarket(side : Side, volume : Quantity) = {
         adjustPositionAndVolume(side, volume)
-        book process new MarketOrder(side, volume, this)
+        book process new orderbook.MarketOrder(side, volume, this)
     }
 
     def sendLimit(side : Side, price : USD, volume : Quantity, canceller : Option[Canceller] = None) = {
         adjustPositionAndVolume(side, volume)
         val ticks = book.tickMapper toTicks (price, side)
-        book process new LimitOrder(side, ticks, volume, this, canceller)
+        book process new orderbook.LimitOrder(side, ticks, volume, this, canceller)
     }
 
     def sendCancellableLimit(side : Side, price : USD, volume : Quantity) = {
@@ -50,7 +50,7 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
         canceller
     }
 
-    override def handle(traded : Traded) = {
+    override def handle(traded : orderbook.Traded) = {
         val priceInCurrency = book.tickMapper toCurrency traded.price.ticks
         traded.side match {
             case Buy =>
@@ -62,13 +62,13 @@ class SingleAsset(val book : AbstractOrderBook[USD]) extends OrderListener
                 position setWithoutCommit (position() + traded.volume)
                 balance setWithoutCommit(balance() + priceInCurrency * traded.volume)
         }
-        marketsim.core.Scheduler.asyncAgain { commit() }
+        core.Scheduler.asyncAgain { commit() }
     }
 
-    override def handle(cancelled : Cancelled) = {
+    override def handle(cancelled : orderbook.Cancelled) = {
         position setWithoutCommit (position() +
             (if (cancelled.side == Buy) -cancelled.amount else +cancelled.amount))
     }
 
-    override def handle(completed: Completed) {}
+    override def handle(completed: orderbook.Completed) {}
 }

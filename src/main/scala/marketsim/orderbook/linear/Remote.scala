@@ -69,7 +69,9 @@ object Remote {
                 whatToDo
             }
 
-        def cancel(token: Canceller, amountToCancel: Quantity) = delay {
+        def cancellationToken = target.cancellationToken
+
+        def cancel(token: AbstractCanceller, amountToCancel: Quantity) = delay {
             target.cancel(token, amountToCancel)
         }
 

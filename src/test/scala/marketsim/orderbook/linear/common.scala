@@ -31,8 +31,8 @@ object common {
             }
 
             def Traded(p: SignedTicks, v: Quantity, incoming: Listener) = {
-                onTraded expects orderbook.linear.Traded(p, v) once()
-                incoming.onTraded expects orderbook.linear.Traded(p.opposite, v) once()
+                onTraded expects orderbook.Traded(p, v) once()
+                incoming.onTraded expects orderbook.Traded(p.opposite, v) once()
                 this
             }
 
@@ -52,8 +52,8 @@ object common {
             def after(dt: Duration) = core.Scheduler.currentTime + dt
 
             def Traded(price: SignedTicks, tradeVolume: Quantity, incomingEvents: ListenerWithTime) = {
-                onTraded expects(orderbook.linear.Traded(price, tradeVolume), after(up_down)) once()
-                incomingEvents.onTraded expects(orderbook.linear.Traded(price.opposite, tradeVolume), after(up_down)) once()
+                onTraded expects(orderbook.Traded(price, tradeVolume), after(up_down)) once()
+                incomingEvents.onTraded expects(orderbook.Traded(price.opposite, tradeVolume), after(up_down)) once()
                 this
             }
 

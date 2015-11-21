@@ -11,7 +11,7 @@ class SingleAssetSpec extends marketsim.orderbook.linear.common.Base {
             val scheduler = core.Scheduler.recreate()
             Remote.recreateDelayedListeners()
 
-            val tickMapper = new LinearMapper(cents(1))
+            val tickMapper = new orderbook.LinearMapper(cents(1))
             val initialPrice = Ticks(100)
 
             val localBook = new Book(tickMapper)
