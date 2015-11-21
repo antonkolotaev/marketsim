@@ -1,7 +1,9 @@
-package marketsim.orderbook.linear
+package marketsim {
+package orderbook {
+package linear {
 
 import marketsim.orderbook.linear.common._
-import reactive.Unary
+import marketsim.reactive.Unary
 
 class RemoteBookSpec extends Base {
 
@@ -30,14 +32,13 @@ class RemoteBookSpec extends Base {
             val remoteQueue = remoteBook queue side
             val remoteQueueOpposite = remoteBook queue side.opposite
 
-            remoteBook fetchPriceLevelsTillVolume  fetchVolume
+            remoteBook fetchPriceLevelsTillVolume fetchVolume
 
-            case class LevelDescription(inTicks : Ticks, inCurrency : USD, volume : Quantity)
-            {
+            case class LevelDescription(inTicks: Ticks, inCurrency: USD, volume: Quantity) {
                 override def toString = s"$volume@$inTicks"
             }
 
-            def fmt[X](xs : List[X]) = xs mkString ("[",",","]")
+            def fmt[X](xs: List[X]) = xs mkString("[", ",", "]")
 
             case class QueueState(levels: List[LevelDescription]) {
 
@@ -49,26 +50,26 @@ class RemoteBookSpec extends Base {
 
             val E = QueueState(Nil)
 
-            import ops._
+            import marketsim.ops._
 
             def toQueueState(queue: AbstractOrderQueue[USD]) =
                 Unary(queue.priceLevels, "toQueue") {
                     case best =>
-                        QueueState(best map { case (p,c,v) => LevelDescription(p,c,v)})
+                        QueueState(best map { case (p, c, v) => LevelDescription(p, c, v) })
                 }
 
             val onChangedLocally =
-                mockFunction[(QueueState, QueueState, core.Time), Unit]("onChangedLocally")
+                mockFunction[(QueueState, QueueState, marketsim.core.Time), Unit]("onChangedLocally")
 
             toQueueState(localQueue) and toQueueState(localQueueOpposite) += {
-                case (q,p) => onChangedLocally(q, p, core.Scheduler.currentTime)
+                case (q, p) => onChangedLocally(q, p, core.Scheduler.currentTime)
             }
 
             val onChangedRemotely =
-                mockFunction[(QueueState, QueueState, core.Time), Unit]("onChangedRemotely")
+                mockFunction[(QueueState, QueueState, marketsim.core.Time), Unit]("onChangedRemotely")
 
             toQueueState(remoteQueue) and toQueueState(remoteQueueOpposite) += {
-                case (q,p) => onChangedRemotely(q, p, core.Scheduler.currentTime)
+                case (q, p) => onChangedRemotely(q, p, core.Scheduler.currentTime)
             }
 
             val onTraded =
@@ -77,11 +78,11 @@ class RemoteBookSpec extends Base {
             remoteQueue.tradeDone += onTraded
 
 
-            def expected(q : QueueState, p : QueueState, trades : (Ticks, Quantity)*) = {
-                onChangedLocally expects (q,p,after(up)) once ()
-                onChangedRemotely expects(q,p, after(up_down)) once ()
+            def expected(q: QueueState, p: QueueState, trades: (Ticks, Quantity)*) = {
+                onChangedLocally expects(q, p, after(up)) once()
+                onChangedRemotely expects(q, p, after(up_down)) once()
                 trades foreach { t =>
-                    onTraded expects TradeDone(t._1 signed side, t._2) once ()
+                    onTraded expects TradeDone(t._1 signed side, t._2) once()
                 }
             }
 
@@ -96,16 +97,16 @@ class RemoteBookSpec extends Base {
                 val canceller = new Canceller
                 remoteBook process LimitOrder(side, price, volume, events, Some(canceller))
 
-                def Traded(volume : Quantity, incoming : ListenerWithTime) =
-                    events Traded (signedPrice, volume, incoming)
+                def Traded(volume: Quantity, incoming: ListenerWithTime) =
+                    events Traded(signedPrice, volume, incoming)
 
-                def Cancelled(amount : Quantity) =
+                def Cancelled(amount: Quantity) =
                     events Cancelled amount
 
-                def Completed() = events Completed ()
+                def Completed() = events Completed()
             }
 
-            def after(dt : core.Duration) = core.Scheduler.currentTime + dt
+            def after(dt: marketsim.core.Duration) = core.Scheduler.currentTime + dt
 
             val V1 = 9
 
@@ -181,7 +182,7 @@ class RemoteBookSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1 Traded (c1, Incoming)
+            _1 Traded(c1, Incoming)
             Incoming Completed()
 
             expected(E levels ((initialPrice, V1 - c1)), E, (initialPrice, c1))
@@ -200,7 +201,7 @@ class RemoteBookSpec extends Base {
             val c1 = 5
             assert(c1 < _1.volume)
 
-            _1 Traded (c1, Incoming)
+            _1 Traded(c1, Incoming)
             Incoming Completed()
 
             expected(E levels ((initialPrice, V1 - c1)), E, (initialPrice, c1))
@@ -232,7 +233,7 @@ class RemoteBookSpec extends Base {
             val moreAggressivePrice = _1.signedPrice moreAggressiveBy 3
 
             val V2 = 8
-            expected(E levels ((moreAggressivePrice.ticks, V2), (initialPrice, fetchVolume - V2)), E)
+            expected(E levels((moreAggressivePrice.ticks, V2), (initialPrice, fetchVolume - V2)), E)
 
             val _2 = new OrderPlaced(moreAggressivePrice.ticks, V2)
 
@@ -251,7 +252,7 @@ class RemoteBookSpec extends Base {
 
             val slightlyMoreAggressivePrice = _1.signedPrice moreAggressiveBy 1
 
-            _2 Traded (_2.volume, Incoming) Completed()
+            _2 Traded(_2.volume, Incoming) Completed()
 
             expected(
                 E levels ((initialPrice, V1)),
@@ -272,8 +273,8 @@ class RemoteBookSpec extends Base {
 
             val notAggressivePrice = _1.signedPrice lessAggressiveBy 1
 
-            _1 Traded (_1.volume, Incoming) Completed()
-            _2 Traded (_2.volume, Incoming) Completed()
+            _1 Traded(_1.volume, Incoming) Completed()
+            _2 Traded(_2.volume, Incoming) Completed()
 
             expected(
                 E,
@@ -291,8 +292,8 @@ class RemoteBookSpec extends Base {
 
             val c1 = _1.volume + _2.volume + 5
 
-            _1 Traded (_1.volume, Incoming) Completed()
-            _2 Traded (_2.volume, Incoming) Completed()
+            _1 Traded(_1.volume, Incoming) Completed()
+            _2 Traded(_2.volume, Incoming) Completed()
 
             Incoming Cancelled c1 - _1.volume - _2.volume Completed()
 
@@ -306,3 +307,5 @@ class RemoteBookSpec extends Base {
         }
     }
 }
+
+}}}

@@ -1,8 +1,8 @@
 package marketsim.orderbook.linear
 
-import core.{Duration, Scheduler}
+import marketsim.core.{Duration, Scheduler}
 import marketsim.orderbook.linear.common._
-import reactive.Unary
+import marketsim.reactive.Unary
 
 class BookSpec extends Base {
 
@@ -40,7 +40,7 @@ class BookSpec extends Base {
 
             val E = QueueState(Nil)
 
-            import ops._
+            import marketsim.ops._
 
             def toQueueState(queue : Queue[USD]) =
                 Unary(queue.priceLevels, "toQueue")

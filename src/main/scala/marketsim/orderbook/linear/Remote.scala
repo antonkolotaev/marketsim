@@ -1,14 +1,14 @@
 package marketsim.orderbook.linear
 
-import core.Scheduler
-import ops._
+import marketsim.core.Scheduler
+import marketsim.ops._
 
 object Remote {
 
-    private def delay(dt : core.Duration)(whatToDo : => Unit) =
+    private def delay(dt : marketsim.core.Duration)(whatToDo : => Unit) =
         Scheduler.afterAgain(dt) { whatToDo }
 
-    class Queue[Currency](target : AbstractOrderQueue[Currency], fromBook : core.Duration)
+    class Queue[Currency](target : AbstractOrderQueue[Currency], fromBook : marketsim.core.Duration)
         extends AbstractOrderQueue[Currency]
     {
         val priceLevels = target.priceLevels delayed fromBook
@@ -17,7 +17,7 @@ object Remote {
 
     }
     
-    class DelayedOrderListener(original : OrderListener, fromBook : core.Duration) extends OrderListener
+    class DelayedOrderListener(original : OrderListener, fromBook : marketsim.core.Duration) extends OrderListener
     {
         private def delay(whatToDo : => Unit) = Remote.delay(fromBook) { whatToDo }
 
@@ -34,17 +34,17 @@ object Remote {
         }
     }
 
-    private val delayedListeners = collection.mutable.Map.empty[(OrderListener, core.Duration), OrderListener]
+    private val delayedListeners = collection.mutable.Map.empty[(OrderListener, marketsim.core.Duration), OrderListener]
 
-    private def delayedOrderListener(original : OrderListener, dt : core.Duration) =
+    private def delayedOrderListener(original : OrderListener, dt : marketsim.core.Duration) =
         delayedListeners getOrElseUpdate ((original, dt), new DelayedOrderListener(original, dt))
 
     /*private[linear]*/ def recreateDelayedListeners() = delayedListeners.clear()
     private[linear] def delayedListenersCount = delayedListeners.size
     
     class Book[Currency](target   : AbstractOrderBook[Currency],
-                         toBook   : core.Duration,
-                         fromBook : core.Duration)
+                         toBook   : marketsim.core.Duration,
+                         fromBook : marketsim.core.Duration)
         extends AbstractOrderBook[Currency]
     {
         val Asks = new Queue(target.Asks, fromBook)

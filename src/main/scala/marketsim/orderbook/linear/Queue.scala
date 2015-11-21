@@ -85,11 +85,11 @@ class Queue[Currency](side : Side, infiniteCurrency : Currency) extends Abstract
 
     def allOrders = bestPriceLevel.allOrders takeWhile (_ != terminal.info)
 
-    val priceLevels = new reactive.Variable[List[(Ticks, Currency, Quantity)]](Nil, s"PriceLevels($this)")
+    val priceLevels = new marketsim.reactive.Variable[List[(Ticks, Currency, Quantity)]](Nil, s"PriceLevels($this)")
 
     def updatePriceLevels() = {
         val levels = bestPriceLevel levelsTill priceLevelToFetch
-        //println(s"T = ${core.Scheduler.currentTime}; $priceLevels <- $levels")
+        //println(s"T = ${marketsim.core.Scheduler.currentTime}; $priceLevels <- $levels")
         priceLevels set levels
     }
 

@@ -38,10 +38,10 @@ package linear {
 
             }
 
-            class ListenerWithTime(name: String, up_down: core.Duration) extends OrderListener {
-                val onTraded = mockFunction[Traded, core.Time, Unit](name + ".onTraded")
-                val onCancelled = mockFunction[Quantity, core.Time, Unit](name + ".onCancelled")
-                val onCompleted = mockFunction[core.Time, Unit](name + ".onCompleted")
+            class ListenerWithTime(name: String, up_down: marketsim.core.Duration) extends OrderListener {
+                val onTraded = mockFunction[Traded, marketsim.core.Time, Unit](name + ".onTraded")
+                val onCancelled = mockFunction[Quantity, marketsim.core.Time, Unit](name + ".onCancelled")
+                val onCompleted = mockFunction[marketsim.core.Time, Unit](name + ".onCompleted")
 
                 override def handle(traded: Traded) = onTraded(traded, core.Scheduler.currentTime)
 
@@ -49,7 +49,7 @@ package linear {
 
                 override def handle(completed: Completed) = onCompleted(core.Scheduler.currentTime)
 
-                def after(dt: core.Duration) = core.Scheduler.currentTime + dt
+                def after(dt: marketsim.core.Duration) = core.Scheduler.currentTime + dt
 
                 def Traded(price: SignedTicks, tradeVolume: Quantity, incomingEvents: ListenerWithTime) = {
                     onTraded expects(orderbook.linear.Traded(price, tradeVolume), after(up_down)) once()
