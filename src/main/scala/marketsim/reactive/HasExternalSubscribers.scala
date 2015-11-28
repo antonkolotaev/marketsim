@@ -19,4 +19,6 @@ trait HasExternalSubscribers[T]
     def -= (listener : T => Unit) = {
         external remove listener
     }
+
+    def nonEmpty = external.nonEmpty
 }
