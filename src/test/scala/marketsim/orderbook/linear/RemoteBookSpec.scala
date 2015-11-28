@@ -12,7 +12,6 @@ class RemoteBookSpec extends Base {
         class Initial {
 
             val scheduler = core.Scheduler.recreate()
-            Remote.recreateDelayedListeners()
 
             val tickMapper = new LinearMapper(cents(1))
             val initialPrice = Ticks(100)
@@ -116,8 +115,6 @@ class RemoteBookSpec extends Base {
 
             scheduler advance up
 
-            assert(Remote.delayedListenersCount == 1)
-
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: Nil))()
 
             scheduler advance down + epsilon
@@ -169,8 +166,6 @@ class RemoteBookSpec extends Base {
             val _2 = new OrderPlaced(initialPrice, V2)
 
             scheduler advance up
-
-            assert(Remote.delayedListenersCount == 2)
 
             checkLocalResult(LevelInfo(_1.signedPrice, _1.volume :: _2.volume :: Nil))()
 

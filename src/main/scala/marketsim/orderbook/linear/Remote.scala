@@ -23,32 +23,7 @@ object Remote {
 
     }
 
-    class DelayedOrderListener(original: OrderListener, fromBook: Duration) extends OrderListener {
-        private def delay(whatToDo: => Unit) = Remote.delay(fromBook) {
-            whatToDo
-        }
-
-        override def handle(traded: Traded) = delay {
-            original handle traded
-        }
-
-        override def handle(cancelled: Cancelled) = delay {
-            original handle cancelled
-        }
-
-        override def handle(completed: Completed) = delay {
-            original handle completed
-        }
-    }
-
-    private val delayedListeners = collection.mutable.Map.empty[(OrderListener, Duration), OrderListener]
-
-    private def delayedOrderListener(original: OrderListener, dt: Duration) =
-        delayedListeners getOrElseUpdate((original, dt), new DelayedOrderListener(original, dt))
-
-    /*private[linear]*/ def recreateDelayedListeners() = delayedListeners.clear()
-
-    private[linear] def delayedListenersCount = delayedListeners.size
+    private def delayedOrderListener(original: OrderListener, dt: Duration) = original delayed dt
 
     class Book[Currency](val target: AbstractOrderBook[Currency],
                          toBook: Duration,

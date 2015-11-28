@@ -1,5 +1,7 @@
 package marketsim
 
+import marketsim.core.Scheduler
+
 package object orderbook {
 
     trait TickMapper[Currency] {
@@ -31,12 +33,40 @@ package object orderbook {
     /**
      * Interface for order event listeners
      */
-    trait OrderListener {
+    trait OrderListener { self =>
+
         def handle(traded: Traded) {}
 
         def handle(cancelled: Cancelled) {}
 
         def handle(completed: Completed) {}
+
+        def delayed(dt : Duration) : OrderListener = new OrderListener {
+
+            private def delay(whatToDo : => Unit): Unit = {
+                Scheduler.afterAgain(dt) {
+                    whatToDo
+                }
+            }
+
+            override def handle(traded: Traded): Unit = {
+                delay {
+                    self handle traded
+                }
+            }
+
+            override def handle(traded: Cancelled): Unit = {
+                delay {
+                    self handle traded
+                }
+            }
+
+            override def handle(traded: Completed): Unit = {
+                delay {
+                    self handle traded
+                }
+            }
+        }
     }
 
     class OrderListenerProxy(target: OrderListener) extends OrderListener {
