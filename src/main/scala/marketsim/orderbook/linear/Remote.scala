@@ -23,8 +23,6 @@ object Remote {
 
     }
 
-    private def delayedOrderListener(original: OrderListener, dt: Duration) = original delayed dt
-
     class Book[Currency](val target: AbstractOrderBook[Currency],
                          toBook: Duration,
                          fromBook: Duration)
@@ -54,12 +52,12 @@ object Remote {
         }
 
         def process(order: LimitOrder) = delay {
-            val delayed = order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            val delayed = order.copy(sender = order.sender delayed fromBook)
             target process delayed.asInstanceOf[target.LimitOrder]
         }
 
         def process(order: MarketOrder) = delay {
-            val delayed = order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            val delayed = order.copy(sender = order.sender delayed fromBook)
             target process delayed.asInstanceOf[target.MarketOrder]
         }
 
