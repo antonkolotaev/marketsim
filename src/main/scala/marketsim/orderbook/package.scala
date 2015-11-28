@@ -4,13 +4,18 @@ import marketsim.core.Scheduler
 
 package object orderbook {
 
-    trait TickMapper[Currency] {
+    trait TickMapper {
+        type Currency
+
         def toTicks(x: Currency, side: Side): Ticks
 
         def toCurrency(x: Ticks): Currency
     }
 
-    class LinearMapper(tickSize: USD) extends TickMapper[USD] {
+    class LinearMapper(tickSize: USD) extends TickMapper {
+
+        type Currency = USD
+
         def toTicks(x: USD, side: Side) = side match {
             case Buy => Ticks(math.floor(x.centicents / tickSize.centicents).toInt)
             case Sell => Ticks(math.ceil(x.centicents / tickSize.centicents).toInt)
@@ -79,45 +84,29 @@ package object orderbook {
 
     case class TradeDone(price: SignedTicks, volume: Quantity)
 
-    trait AbstractOrderQueue[Currency] {
+    trait AbstractOrderQueue {
+
+        type Currency
+
         val priceLevels: marketsim.reactive.Signal[List[(Ticks, Currency, Quantity)]]
 
         val tradeDone = new marketsim.reactive.Event[TradeDone]
     }
 
-    case class BestPrice[Currency](queue: AbstractOrderQueue[Currency])
-        extends marketsim.reactive.UnaryBase(queue.priceLevels, Option.empty[Ticks], s"BestPrice($queue)") {
-        def F(a: List[(Ticks, Currency, Quantity)]) = a.headOption map {
-            _._1
-        }
-    }
-
-    case class BestPriceCurrency[Currency](queue: AbstractOrderQueue[Currency])
-        extends marketsim.reactive.UnaryBase(queue.priceLevels, Option.empty[Currency], s"BestPriceCurrency($queue)") {
-        def F(a: List[(Ticks, Currency, Quantity)]) = a.headOption map {
-            _._2
-        }
-    }
-
-    case class BestPriceVolume[Currency](queue: AbstractOrderQueue[Currency])
-        extends marketsim.reactive.UnaryBase(queue.priceLevels, Option.empty[Quantity], s"BestPriceVolume($queue)") {
-        def F(a: List[(Ticks, Currency, Quantity)]) = a.headOption map {
-            _._3
-        }
-    }
-
-    trait AbstractOrderBook[Currency] {
+    trait AbstractOrderBook {
         val Asks: OrderQueue
         val Bids: OrderQueue
 
-        val tickMapper: TickMapper[Currency]
+        type Currency = TickMapper#Currency
+
+        val tickMapper: TickMapper
 
         def process(order: LimitOrder)
 
         def process(order: MarketOrder)
 
         type CancellationToken
-        type OrderQueue <: AbstractOrderQueue[Currency]
+        type OrderQueue <: AbstractOrderQueue
 
         def cancel(token: CancellationToken, amountToCancel: Quantity)
 

@@ -1,10 +1,9 @@
 package marketsim
 package trader
-
-import marketsim.reactive.Variable
-
-class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook.OrderListener
+/*
+class SingleAsset(val book : orderbook.AbstractOrderBook) extends orderbook.OrderListener
 {
+    type Currency = book.Currency
     /**
      * Number of assets owned by the trader at the moment
      */
@@ -36,7 +35,7 @@ class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook
         adjustPositionAndVolume(side, volume)
         book process new book.MarketOrder(side, volume, this)
     }
-/*
+
     def sendLimit(side : Side, price : USD, volume : Quantity, canceller : Option[orderbook.AbstractOrderBook[USD]#CancellationToken] = None) = {
         adjustPositionAndVolume(side, volume)
         val ticks = book.tickMapper toTicks (price, side)
@@ -50,7 +49,6 @@ class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook
         book process new book.LimitOrder(side, ticks, volume, this, canceller)
         canceller
     }
-*/
     override def handle(traded : orderbook.Traded) = {
         val priceInCurrency = book.tickMapper toCurrency traded.price.ticks
         traded.side match {
@@ -73,3 +71,4 @@ class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook
 
     override def handle(completed: orderbook.Completed) {}
 }
+*/

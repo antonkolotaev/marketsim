@@ -1,7 +1,7 @@
 package marketsim
 package trader
 
-class MarketGate[Currency](orderbook : marketsim.orderbook.AbstractOrderBook[Currency])
+class MarketGate(orderbook : marketsim.orderbook.AbstractOrderBook)
 {
     //val onOrderSent = new
 

@@ -12,21 +12,25 @@ object Remote {
             whatToDo
         }
 
-    class Queue[Currency](target: AbstractOrderQueue[Currency], fromBook: Duration)
-        extends AbstractOrderQueue[Currency] {
+    class Queue(val target: AbstractOrderQueue, fromBook: Duration)
+        extends AbstractOrderQueue
+    {
+        type Currency = target.Currency
+
         val priceLevels = target.priceLevels delayed fromBook
 
-        target.tradeDone += { trade => delay(fromBook) {
-            tradeDone fire trade
-        }
+        target.tradeDone += { trade =>
+            delay(fromBook) {
+                tradeDone fire trade
+            }
         }
 
     }
 
-    class Book[Currency](val target: AbstractOrderBook[Currency],
+    class Book(val target: AbstractOrderBook,
                          toBook: Duration,
                          fromBook: Duration)
-        extends AbstractOrderBook[Currency] {
+        extends AbstractOrderBook {
         val Asks = new OrderQueue(target.Asks, fromBook)
         val Bids = new OrderQueue(target.Bids, fromBook)
 
@@ -36,7 +40,7 @@ object Remote {
         }
 
         type CancellationToken = target.CancellationToken
-        type OrderQueue = Queue[Currency]
+        type OrderQueue = Queue
 
         val tickMapper = target.tickMapper
 

@@ -33,7 +33,7 @@ class RemoteBookSpec extends Base {
 
             remoteBook fetchPriceLevelsTillVolume fetchVolume
 
-            case class LevelDescription(inTicks: Ticks, inCurrency: USD, volume: Quantity) {
+            case class LevelDescription(inTicks: Ticks, inCurrency: tickMapper.Currency, volume: Quantity) {
                 override def toString = s"$volume@$inTicks"
             }
 
@@ -51,10 +51,10 @@ class RemoteBookSpec extends Base {
 
             import marketsim.ops._
 
-            def toQueueState(queue: AbstractOrderQueue[USD]) =
+            def toQueueState(queue: AbstractOrderQueue) =
                 Unary(queue.priceLevels, "toQueue") {
                     case best =>
-                        QueueState(best map { case (p, c, v) => LevelDescription(p, c, v) })
+                        QueueState(best map { case (p, c, v) => LevelDescription(p, c.asInstanceOf[tickMapper.Currency], v) })
                 }
 
             val onChangedLocally =

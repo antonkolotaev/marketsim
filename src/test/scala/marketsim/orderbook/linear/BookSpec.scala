@@ -24,7 +24,7 @@ class BookSpec extends Base {
             val queue = book queue side
             val queueOpposite = book queue side.opposite
 
-            case class LevelDescription(inTicks: Ticks, inCurrency: USD, volume: Quantity) {
+            case class LevelDescription(inTicks: Ticks, inCurrency: tickMapper.Currency, volume: Quantity) {
                 override def toString = s"$volume@$inTicks"
             }
 
@@ -42,9 +42,9 @@ class BookSpec extends Base {
 
             import marketsim.ops._
 
-            def toQueueState(queue: Queue[USD]) =
-                reactive.Unary(queue.priceLevels, "toQueue") {
-                    levels => QueueState(levels map { case (p, c, v) => LevelDescription(p, c, v) })
+            def toQueueState(q: queue.type) =
+                reactive.Unary(q.priceLevels, "toQueue") {
+                    levels => QueueState(levels map { case (p, c, v) => LevelDescription(p, c.asInstanceOf[tickMapper.Currency], v) })
                 }
 
             val onChanged =
@@ -55,7 +55,7 @@ class BookSpec extends Base {
 
             queue.tradeDone += onTraded
 
-            toQueueState(queue) and toQueueState(queueOpposite) += onChanged
+            toQueueState(queue) and toQueueState(queueOpposite.asInstanceOf[queue.type]) += onChanged
 
             def checkResult(expected: LevelInfo*)(expectedOpposite: LevelInfo*) = {
                 checkResultImpl(side)(Some(queue.bestLevel), expected.toList)
