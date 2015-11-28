@@ -35,7 +35,7 @@ class MarketClient(val orderbook : AbstractOrderBook) extends OrderListener
         orderSent fire order
     }
 
-    def sendLimitOrder(side : Side, volume : Quantity, ticks : Ticks, cancellable : Boolean) = {
+    def sendLimitOrder(side : Side, ticks : Ticks, volume : Quantity, cancellable : Boolean) = {
         val listener =
             if (hasOrderSubscriptions)
                 new InstanceListener
@@ -52,11 +52,11 @@ class MarketClient(val orderbook : AbstractOrderBook) extends OrderListener
         cancellationToken
     }
 
-    def sendLimitOrder(side : Side, volume : Quantity, ticks : Ticks): Unit =
-        sendLimitOrder(side, volume, ticks, cancellable = false)
+    def sendLimitOrder(side : Side, ticks : Ticks, volume : Quantity): Unit =
+        sendLimitOrder(side, ticks, volume, cancellable = false)
 
-    def sendCancellableLimitOrder(side : Side, volume : Quantity, ticks : Ticks) =
-        sendLimitOrder(side, volume, ticks, cancellable = true).get
+    def sendCancellableLimitOrder(side : Side, ticks : Ticks, volume : Quantity) =
+        sendLimitOrder(side, ticks, volume, cancellable = true).get
 
     def cancel(token : CancellationToken, quantity: Quantity) =
         orderbook cancel (token, quantity)
