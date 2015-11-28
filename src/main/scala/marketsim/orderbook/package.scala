@@ -32,17 +32,9 @@ package object orderbook {
      * Interface for order event listeners
      */
     trait OrderListener {
-        def handle(traded: Traded) {}
-
-        def handle(cancelled: Cancelled) {}
-
-        def handle(completed: Completed) {}
-    }
-
-    class OrderListenerProxy(target: OrderListener) extends OrderListener {
-        override def handle(traded: Traded) = target handle traded
-        override def handle(cancelled: Cancelled) = target handle cancelled
-        override def handle(completed: Completed) = target handle completed
+        def handle(order : OrderBase, traded: Traded)
+        def handle(order : OrderBase, cancelled: Cancelled)
+        def handle(order : OrderBase, completed: Completed)
     }
 
     case class TradeDone(price: SignedTicks, volume: Quantity)
@@ -74,13 +66,16 @@ package object orderbook {
         def fire(traded: Traded)
         def fire(cancelled: Cancelled)
         def fire(completed: Completed)
+
+        def side : Side
+        def volume : Quantity
     }
 
     case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener) extends OrderBase
     {
-        def fire(traded: Traded) = sender handle traded
-        def fire(cancelled: Cancelled) = sender handle cancelled
-        def fire(completed: Completed) = sender handle completed
+        def fire(traded: Traded) = sender handle (this, traded)
+        def fire(cancelled: Cancelled) = sender handle (this, cancelled)
+        def fire(completed: Completed) = sender handle (this, completed)
     }
 
     // TODO: introduce id
@@ -90,9 +85,9 @@ package object orderbook {
                           cancellationKey: Option[linear.Canceller] = None) extends OrderBase
     {
         def side = price.side
-        def fire(traded: Traded) = sender handle traded
-        def fire(cancelled: Cancelled) = sender handle cancelled
-        def fire(completed: Completed) = sender handle completed
+        def fire(traded: Traded) = sender handle (this, traded)
+        def fire(cancelled: Cancelled) = sender handle (this, cancelled)
+        def fire(completed: Completed) = sender handle (this, completed)
     }
 
 

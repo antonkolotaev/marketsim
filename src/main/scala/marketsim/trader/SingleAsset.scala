@@ -50,7 +50,7 @@ class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook
         canceller
     }
 
-    override def handle(traded : orderbook.Traded) = {
+    override def handle(order : orderbook.OrderBase, traded : orderbook.Traded) = {
         val priceInCurrency = book.tickMapper toCurrency traded.price.ticks
         traded.side match {
             case Buy =>
@@ -65,10 +65,10 @@ class SingleAsset(val book : orderbook.AbstractOrderBook[USD]) extends orderbook
         core.Scheduler.asyncAgain { commit() }
     }
 
-    override def handle(cancelled : orderbook.Cancelled) = {
+    override def handle(order : orderbook.OrderBase, cancelled : orderbook.Cancelled) = {
         position setWithoutCommit (position() +
             (if (cancelled.side == Buy) -cancelled.amount else +cancelled.amount))
     }
 
-    override def handle(completed: orderbook.Completed) {}
+    override def handle(order : orderbook.OrderBase, completed: orderbook.Completed) {}
 }

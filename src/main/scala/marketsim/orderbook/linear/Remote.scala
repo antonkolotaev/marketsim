@@ -23,32 +23,26 @@ object Remote {
 
     }
 
-    class DelayedOrderListener(original: OrderListener, fromBook: Duration) extends OrderListener {
+    class DelayedOrderListener(original: OrderBase, fromBook: Duration) extends OrderListener {
         private def delay(whatToDo: => Unit) = Remote.delay(fromBook) {
             whatToDo
         }
 
-        override def handle(traded: Traded) = delay {
-            original handle traded
+        override def handle(order : OrderBase, traded: Traded) = delay {
+            original fire traded
         }
 
-        override def handle(cancelled: Cancelled) = delay {
-            original handle cancelled
+        override def handle(order : OrderBase, cancelled: Cancelled) = delay {
+            original fire cancelled
         }
 
-        override def handle(completed: Completed) = delay {
-            original handle completed
+        override def handle(order : OrderBase, completed: Completed) = delay {
+            original fire completed
         }
     }
 
-    private val delayedListeners = collection.mutable.Map.empty[(OrderListener, Duration), OrderListener]
-
-    private def delayedOrderListener(original: OrderListener, dt: Duration) =
-        delayedListeners getOrElseUpdate((original, dt), new DelayedOrderListener(original, dt))
-
-    /*private[linear]*/ def recreateDelayedListeners() = delayedListeners.clear()
-
-    private[linear] def delayedListenersCount = delayedListeners.size
+    private def delayedOrderListener(original: OrderBase, dt: Duration) =
+                                                new DelayedOrderListener(original, dt)
 
     class Book[Currency](target: AbstractOrderBook[Currency],
                          toBook: Duration,
@@ -76,11 +70,11 @@ object Remote {
         }
 
         def process(order: LimitOrder) = delay {
-            target process order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            target process order.copy(sender = delayedOrderListener(order, fromBook))
         }
 
         def process(order: MarketOrder) = delay {
-            target process order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            target process order.copy(sender = delayedOrderListener(order, fromBook))
         }
 
         def fetchPriceLevelsTillVolume(limitVolume: Quantity) = delay {

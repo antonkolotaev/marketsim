@@ -11,7 +11,11 @@ class Queue(side : Side) extends AbstractOrderQueue
     // we are going to mark the end of the queue by a dummy order with infinite price
     private val terminal = new {
         val volume = 1
-        val listener = new OrderListener {}
+        val listener = new OrderListener {
+            override def handle(order : OrderBase, traded: Traded){}
+            override def handle(order : OrderBase, cancelled: Cancelled){}
+            override def handle(order : OrderBase, completed: Completed){}
+        }
         val dummyOrder = new LimitOrder(TerminalOrderPrice, 1, listener, None)
 
         val level = new PriceLevel(TerminalOrderPrice, None, None)
@@ -61,6 +65,9 @@ class Queue(side : Side) extends AbstractOrderQueue
 
             def fire(completed: Completed) =
                 sender fire completed
+
+            def side = sender.side
+            def volume = sender.volume
         }
         val unmatched = bestPriceLevel matchWith (limitPrice, volume, proxyEvents)
         removeEmptyBestLevels()

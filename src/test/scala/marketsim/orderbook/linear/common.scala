@@ -14,17 +14,20 @@ object common {
             val onCancelled = mockFunction[Quantity, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[Unit](name + ".onCompleted")
 
-            override def handle(traded: Traded) = onTraded(traded)
+            override def handle(order : orderbook.OrderBase, traded: Traded) = onTraded(traded)
 
-            override def handle(cancelled: Cancelled) = onCancelled(cancelled.amount)
+            override def handle(order : orderbook.OrderBase, cancelled: Cancelled) = onCancelled(cancelled.amount)
 
-            override def handle(completed: Completed) = onCompleted()
+            override def handle(order : orderbook.OrderBase, completed: Completed) = onCompleted()
 
             override def fire(traded: Traded) = onTraded(traded)
 
             override def fire(cancelled: Cancelled) = onCancelled(cancelled.amount)
 
             override def fire(completed: Completed) = onCompleted()
+
+            def side = ???
+            def volume = ???
 
             def Cancelled(c: Quantity) = {
                 onCancelled expects c once()
@@ -49,11 +52,11 @@ object common {
             val onCancelled = mockFunction[Quantity, Time, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[Time, Unit](name + ".onCompleted")
 
-            override def handle(traded: Traded) = onTraded(traded, core.Scheduler.currentTime)
+            override def handle(order : orderbook.OrderBase, traded: Traded) = onTraded(traded, core.Scheduler.currentTime)
 
-            override def handle(cancelled: Cancelled) = onCancelled(cancelled.amount, core.Scheduler.currentTime)
+            override def handle(order : orderbook.OrderBase, cancelled: Cancelled) = onCancelled(cancelled.amount, core.Scheduler.currentTime)
 
-            override def handle(completed: Completed) = onCompleted(core.Scheduler.currentTime)
+            override def handle(order : orderbook.OrderBase, completed: Completed) = onCompleted(core.Scheduler.currentTime)
 
             def after(dt: Duration) = core.Scheduler.currentTime + dt
 
@@ -74,7 +77,11 @@ object common {
             }
         }
 
-        val emptyListener = new OrderListener {}
+        val emptyListener = new OrderListener {
+            override def handle(order : orderbook.OrderBase, traded: Traded){}
+            override def handle(order : orderbook.OrderBase, cancelled: Cancelled){}
+            override def handle(order : orderbook.OrderBase, completed: Completed){}
+        }
 
     }
 
