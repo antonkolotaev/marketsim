@@ -54,8 +54,8 @@ object Remote {
                          toBook: Duration,
                          fromBook: Duration)
         extends AbstractOrderBook[Currency] {
-        val Asks = new Queue(target.Asks, fromBook)
-        val Bids = new Queue(target.Bids, fromBook)
+        val Asks = new OrderQueue(target.Asks, fromBook)
+        val Bids = new OrderQueue(target.Bids, fromBook)
 
         def queue(side: Side) = side match {
             case Sell => Asks
@@ -63,6 +63,7 @@ object Remote {
         }
 
         type CancellationToken = target.CancellationToken
+        type OrderQueue = Queue[Currency]
 
         val tickMapper = target.tickMapper
 

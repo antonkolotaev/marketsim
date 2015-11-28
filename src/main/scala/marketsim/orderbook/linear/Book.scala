@@ -5,8 +5,8 @@ package linear
 class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrderBook[Currency] {
 
     val infiniteCurrency = tickMapper toCurrency TerminalOrderPrice.ticks
-    val Asks = new Queue(Sell, infiniteCurrency)
-    val Bids = new Queue(Buy, infiniteCurrency)
+    val Asks = new OrderQueue(Sell, infiniteCurrency)
+    val Bids = new OrderQueue(Buy, infiniteCurrency)
 
     def cancellationToken = new CancellationToken
 
@@ -16,6 +16,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
     }
 
     type CancellationToken = marketsim.orderbook.linear.Canceller
+    type OrderQueue = marketsim.orderbook.linear.Queue[Currency]
 
     override def toString = s"Asks($Asks)Bids($Bids)"
 

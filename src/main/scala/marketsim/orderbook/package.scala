@@ -77,8 +77,9 @@ package object orderbook {
     }
 
     trait AbstractOrderBook[Currency] {
-        val Asks: AbstractOrderQueue[Currency]
-        val Bids: AbstractOrderQueue[Currency]
+        val Asks: OrderQueue
+        val Bids: OrderQueue
+
         val tickMapper: TickMapper[Currency]
 
         def process(order: LimitOrder)
@@ -86,6 +87,7 @@ package object orderbook {
         def process(order: MarketOrder)
 
         type CancellationToken
+        type OrderQueue <: AbstractOrderQueue[Currency]
 
         def cancel(token: CancellationToken, amountToCancel: Quantity)
 
