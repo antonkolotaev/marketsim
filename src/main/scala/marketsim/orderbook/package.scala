@@ -85,26 +85,27 @@ package object orderbook {
 
         def process(order: MarketOrder)
 
-        def cancel(token: AbstractCanceller, amountToCancel: Quantity)
+        type CancellationToken
+
+        def cancel(token: CancellationToken, amountToCancel: Quantity)
 
         def fetchPriceLevelsTillVolume(limitVolume: Quantity)
 
-        def cancellationToken : AbstractCanceller
+        def cancellationToken : CancellationToken
+
+        case class LimitOrder(side: Side,
+                              price: Ticks,
+                              volume: Quantity,
+                              sender: OrderListener,
+                              cancellationKey: Option[CancellationToken] = None) extends AbstractOrder
+
+        case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener) extends AbstractOrder
     }
 
     trait AbstractOrder {
         val side: Side
         val volume: Quantity
     }
-
-    case class MarketOrder(side: Side, volume: Quantity, sender: OrderListener) extends AbstractOrder
-
-    case class LimitOrder(side: Side,
-                          price: Ticks,
-                          volume: Quantity,
-                          sender: OrderListener,
-                          cancellationKey: Option[AbstractCanceller] = None) extends AbstractOrder
-
 
     case class LimitOrderInfo(side: Side, price: SignedTicks, unmatchedVolume: Quantity, sender: OrderListener)
 

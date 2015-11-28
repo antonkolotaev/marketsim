@@ -8,12 +8,14 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
     val Asks = new Queue(Sell, infiniteCurrency)
     val Bids = new Queue(Buy, infiniteCurrency)
 
-    def cancellationToken = new Canceller
+    def cancellationToken = new CancellationToken
 
     def queue(side : Side) = side match {
         case Sell => Asks
         case Buy => Bids
     }
+
+    type CancellationToken = marketsim.orderbook.linear.Canceller
 
     override def toString = s"Asks($Asks)Bids($Bids)"
 
@@ -42,7 +44,7 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
                     order.sender handle Completed()
                 case unmatched =>
                     val p = queue(order.side)
-                    val cancellationToken = order.cancellationKey map { x => x.asInstanceOf[Canceller] }
+                    val cancellationToken = order.cancellationKey map { x => x.asInstanceOf[CancellationToken] }
                     p store  (price, tickMapper toCurrency order.price, unmatched, order.sender, cancellationToken)
             }
         }
@@ -58,11 +60,10 @@ class Book[Currency](val tickMapper: TickMapper[Currency]) extends AbstractOrder
             order.sender handle Completed()
         }
 
-    def cancel(token : AbstractCanceller, amountToCancel : Quantity) = {
+    def cancel(token : CancellationToken, amountToCancel : Quantity) = {
         nonReenterable {
-            val t = token.asInstanceOf[Canceller]
-            t.side map { queue } foreach { queue =>
-                queue cancel(t, amountToCancel)
+            token.side map { queue } foreach { queue =>
+                queue cancel(token, amountToCancel)
             }
         }
     }

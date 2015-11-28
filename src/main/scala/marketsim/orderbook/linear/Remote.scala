@@ -50,7 +50,7 @@ object Remote {
 
     private[linear] def delayedListenersCount = delayedListeners.size
 
-    class Book[Currency](target: AbstractOrderBook[Currency],
+    class Book[Currency](val target: AbstractOrderBook[Currency],
                          toBook: Duration,
                          fromBook: Duration)
         extends AbstractOrderBook[Currency] {
@@ -62,6 +62,8 @@ object Remote {
             case Buy => Bids
         }
 
+        type CancellationToken = target.CancellationToken
+
         val tickMapper = target.tickMapper
 
         private def delay(whatToDo: => Unit) =
@@ -71,16 +73,18 @@ object Remote {
 
         def cancellationToken = target.cancellationToken
 
-        def cancel(token: AbstractCanceller, amountToCancel: Quantity) = delay {
+        def cancel(token: CancellationToken, amountToCancel: Quantity) = delay {
             target.cancel(token, amountToCancel)
         }
 
         def process(order: LimitOrder) = delay {
-            target process order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            val delayed = order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            target process delayed.asInstanceOf[target.LimitOrder]
         }
 
         def process(order: MarketOrder) = delay {
-            target process order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            val delayed = order.copy(sender = delayedOrderListener(order.sender, fromBook))
+            target process delayed.asInstanceOf[target.MarketOrder]
         }
 
         def fetchPriceLevelsTillVolume(limitVolume: Quantity) = delay {
