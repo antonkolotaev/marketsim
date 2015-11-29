@@ -11,6 +11,8 @@ trait Side
      */
     def makeSigned(price : Ticks) : SignedTicks
 
+    def makeSigned(volume : Quantity) : Int
+
     def opposite : Side
 }
 
@@ -21,11 +23,13 @@ object Side {
 case object Sell extends Side
 {
     def makeSigned(price : Ticks) = SignedTicks(price.value)
+    def makeSigned(volume : Quantity) = -volume
     def opposite = Buy
 }
 
 case object Buy extends Side
 {
     def makeSigned(price : Ticks) = SignedTicks(-price.value)
+    def makeSigned(volume : Quantity) = +volume
     def opposite = Sell
 }
