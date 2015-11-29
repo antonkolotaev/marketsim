@@ -6,10 +6,8 @@ package linear
  * Represents a queue of limit orders of one side
  * @param side -- side of orders held in the queue
  */
-class Queue[C](side : Side, infiniteCurrency : C) extends AbstractOrderQueue
+class Queue(side : Side, infiniteCurrency : Currency) extends AbstractOrderQueue
 {
-    type Currency = C
-
     // we are going to mark the end of the queue by a dummy order with infinite price
     private val terminal = new {
         val volume = 1

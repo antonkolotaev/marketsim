@@ -16,7 +16,7 @@ class Book(val tickMapper: TickMapper) extends AbstractOrderBook {
     }
 
     type CancellationToken = marketsim.orderbook.linear.Canceller
-    type OrderQueue = marketsim.orderbook.linear.Queue[tickMapper.Currency]
+    type OrderQueue = marketsim.orderbook.linear.Queue
 
     override def toString = s"Asks($Asks)Bids($Bids)"
 

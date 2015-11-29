@@ -24,7 +24,7 @@ class BookSpec extends Base {
             val queue = book queue side
             val queueOpposite = book queue side.opposite
 
-            case class LevelDescription(inTicks: Ticks, inCurrency: tickMapper.Currency, volume: Quantity) {
+            case class LevelDescription(inTicks: Ticks, inCurrency: Currency, volume: Quantity) {
                 override def toString = s"$volume@$inTicks"
             }
 
@@ -44,7 +44,7 @@ class BookSpec extends Base {
 
             def toQueueState(q: queue.type) =
                 reactive.Unary(q.priceLevels, "toQueue") {
-                    levels => QueueState(levels map { case (p, c, v) => LevelDescription(p, c.asInstanceOf[tickMapper.Currency], v) })
+                    levels => QueueState(levels map { case (p, c, v) => LevelDescription(p, c.asInstanceOf[Currency], v) })
                 }
 
             val onChanged =

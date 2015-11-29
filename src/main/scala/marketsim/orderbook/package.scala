@@ -5,23 +5,19 @@ import marketsim.core.Scheduler
 package object orderbook {
 
     trait TickMapper {
-        type Currency
-
         def toTicks(x: Currency, side: Side): Ticks
 
         def toCurrency(x: Ticks): Currency
     }
 
-    class LinearMapper(tickSize: USD) extends TickMapper {
+    class LinearMapper(tickSize: Currency) extends TickMapper {
 
-        type Currency = USD
-
-        def toTicks(x: USD, side: Side) = side match {
-            case Buy => Ticks(math.floor(x.centicents / tickSize.centicents).toInt)
-            case Sell => Ticks(math.ceil(x.centicents / tickSize.centicents).toInt)
+        def toTicks(x: Currency, side: Side) = side match {
+            case Buy => Ticks(math.floor(x / tickSize).toInt)
+            case Sell => Ticks(math.ceil(x / tickSize).toInt)
         }
 
-        def toCurrency(x: Ticks) = USD(x.value * tickSize.centicents)
+        def toCurrency(x: Ticks) = tickSize * x.value
     }
 
     trait AbstractCanceller
@@ -86,8 +82,6 @@ package object orderbook {
 
     trait AbstractOrderQueue {
 
-        type Currency
-
         val priceLevels: marketsim.reactive.Signal[List[(Ticks, Currency, Quantity)]]
 
         val tradeDone = new marketsim.reactive.Event[TradeDone]
@@ -96,8 +90,6 @@ package object orderbook {
     trait AbstractOrderBook {
         val Asks: OrderQueue
         val Bids: OrderQueue
-
-        type Currency = TickMapper#Currency
 
         val tickMapper: TickMapper
 

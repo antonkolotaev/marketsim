@@ -8,13 +8,13 @@ class PriceLevelSpec extends common.Base {
 
     Side.choices foreach { side =>
 
-        def checkResult[Currency](mostAggressive : PriceLevel[Currency], expected : LevelInfo*) =
+        def checkResult[Currency](mostAggressive : PriceLevel, expected : LevelInfo*) =
             checkResultImpl(side)(Some(mostAggressive), expected.toList)
 
         class Initial {
 
             val initialPrice = Ticks(100) signed side
-            val dummy = USD(0)
+            val dummy = Currency(0)
 
             val bestPriceLevel = new PriceLevel(TerminalOrderPrice, dummy, None, None)
             val q = new PriceLevel(initialPrice, dummy, None, Some(bestPriceLevel))

@@ -38,17 +38,19 @@ package object marketsim {
 
     type Quantity = Int
 
-    case class USD(centicents: Int) {
+    case class Currency(centicents: Int) {
         override def toString = "$" + (centicents / 10000.0)
 
-        def *(x: Int) = USD(centicents * x)
+        def *(x: Int) = Currency(centicents * x)
 
-        def +(x: USD) = USD(centicents + x.centicents)
+        def +(x: Currency) = Currency(centicents + x.centicents)
 
-        def -(x: USD) = USD(centicents - x.centicents)
+        def -(x: Currency) = Currency(centicents - x.centicents)
+
+        def / (x : Currency) = 1.0 * centicents / x.centicents
     }
 
-    def cents(x: Int) = USD(x * 100)
+    def cents(x: Int) = Currency(x * 100)
 
     implicit val zeroUSD = cents(0)
 

@@ -74,7 +74,7 @@ object common {
 
     case class LevelInfo(price: SignedTicks, volumes: List[Quantity])
 
-    def checkResultImpl[Currency](side: Side)(mostAggressive: Option[PriceLevel[Currency]], expected: List[LevelInfo]): Unit = {
+    def checkResultImpl(side: Side)(mostAggressive: Option[PriceLevel], expected: List[LevelInfo]): Unit = {
         expected match {
             case Nil =>
                 assert(mostAggressive.isEmpty || mostAggressive.get.price == TerminalOrderPrice)

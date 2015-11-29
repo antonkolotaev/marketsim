@@ -13,9 +13,9 @@ package linear
  *             we suppose that the last valid level references to an level with infinite price =>
  *                  we need to make one comparison less
  */
-class PriceLevel[Currency](price : SignedTicks, val priceInCurrency : Currency,
-                           private var prev : Option[PriceLevel[Currency]],
-                           private var next : Option[PriceLevel[Currency]])
+class PriceLevel(price : SignedTicks, val priceInCurrency : Currency,
+                           private var prev : Option[PriceLevel],
+                           private var next : Option[PriceLevel])
   extends SamePriceOrders(price)
 {
     // at first we register this node in the previous and the next nodes
@@ -31,7 +31,7 @@ class PriceLevel[Currency](price : SignedTicks, val priceInCurrency : Currency,
     def getPrevious = prev
     def getNext = next
 
-    def levels : List[PriceLevel[Currency]] = this :: {next map { _.levels } getOrElse Nil}
+    def levels : List[PriceLevel] = this :: {next map { _.levels } getOrElse Nil}
 
     def levelsTill(volumeToFetch : Quantity) : List[(Ticks, Currency, Quantity)] =
         if (volumeToFetch > 0 && next.nonEmpty)
