@@ -4,16 +4,16 @@ package object ops {
 
     import language.implicitConversions
 
-    trait Conversion[From, To] {
+    trait Conversion[-From, +To] {
         def convert(from: From): To
     }
 
     object Conversions {
 
-        implicit def toOption[T, U](implicit ev: Conversion[T, U]): Conversion[T, Option[U]] =
+        /*implicit def toOption[T, U](implicit ev: Conversion[T, U]): Conversion[T, Option[U]] =
             new Conversion[T, Option[U]] {
                 def convert(x: T) = Some(ev.convert(x))
-            }
+            } */
 
         implicit def toOptionId[T]: Conversion[T, Option[T]] =
             new Conversion[T, Option[T]] {
@@ -86,11 +86,19 @@ package object ops {
             }
     }
 
-    object Addable extends Addable_Level2 {
+    object Addable extends Addable_Level1 {
         implicit def fromNumeric[T: Numeric]: PlusDefined[T, T] = new PlusDefined[T, T] {
             type Ret = T
 
             def plus(a: T, b: T) = implicitly[Numeric[T]].plus(a, b)
+        }
+
+        implicit def fromSignal[T : Numeric] : PlusDefined[reactive.Signal[T],reactive.Signal[T]] = new PlusDefined[reactive.Signal[T],reactive.Signal[T]] {
+            type Ret = reactive.Signal[T]
+
+            def plus(a: reactive.Signal[T], b: reactive.Signal[T]) =
+                reactive.Binary(a,b,"+") { case (x,y) => implicitly[Numeric[T]].plus(x, y) }
+
         }
     }
 
@@ -101,7 +109,8 @@ package object ops {
     }
 
     implicit class OrderingValue[A: Ordering](a: reactive.Signal[A]) {
-        def <(b: reactive.Signal[A]) = reactive.Binary(a, b, "<") { case (x, y) => implicitly[Ordering[A]].compare(x, y) }
+        def <(b: reactive.Signal[A]) = reactive.Binary(a, b, "<") { case (x, y) => implicitly[Ordering[A]].lt(x, y) }
+        def >(b: reactive.Signal[A]) = reactive.Binary(a, b, ">") { case (x, y) => implicitly[Ordering[A]].gt(x, y) }
     }
 
     import core._

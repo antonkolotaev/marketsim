@@ -82,10 +82,20 @@ package object orderbook {
 
     trait AbstractOrderQueue {
 
-        val priceLevels: marketsim.reactive.Signal[List[(Ticks, Currency, Quantity)]]
+        val priceLevels: reactive.Signal[List[(Ticks, Currency, Quantity)]]
 
-        val tradeDone = new marketsim.reactive.Event[TradeDone]
+        val tradeDone = new reactive.Event[TradeDone]
     }
+
+    def BestPrice(queue : AbstractOrderQueue) =
+        reactive.Unary(queue.priceLevels, s"$queue.BestPrice"){
+            levels => levels.headOption map { _._1 }
+        }
+
+    def BestPriceCurrency(queue : AbstractOrderQueue) =
+        reactive.Unary(queue.priceLevels, s"$queue.BestPriceCurrency"){
+            levels => levels.headOption map { _._2 }
+        }
 
     trait AbstractOrderBook {
         val Asks: OrderQueue
