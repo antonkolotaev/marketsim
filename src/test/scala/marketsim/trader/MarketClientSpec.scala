@@ -17,6 +17,8 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
             val tickMapper = new orderbook.LinearMapper(cents(1))
             val initialPrice = Ticks(100)
 
+            val priceCurrency = tickMapper toCurrency initialPrice
+
             val localBook = new Book(tickMapper)
 
             val up = Duration(3)
@@ -26,12 +28,14 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             val remoteBook = new Remote.Book(localBook, up, down)
 
-            case class State(inventory : Quantity)
+            case class State(inventory : Quantity, balance : Currency)
 
             class Trader(label : String)
             {
                 val client = new MarketClient(remoteBook)
-                val observableState = Unary(new Inventory(client), label + ".toState"){ x => State(x) }
+                val observableState =
+                    Unary(new Inventory(client) and new Balance(client), label + ".toState"){ case (i,b) => State(i,b) }
+
 
                 var orderSent : AbstractOrder = null  // it will keep the last sent order
 
@@ -105,7 +109,9 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, C))
 
-            stateChanged expects (State(side makeSigned C), State(side.opposite makeSigned C))
+            stateChanged expects (
+                State(side makeSigned C, (side makeSigned priceCurrency) * C),
+                State(side.opposite makeSigned C, (side.opposite makeSigned priceCurrency) * C))
 
             B.client sendMarketOrder (side.opposite, C)
 
@@ -126,7 +132,9 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
             A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, V1))
             A.orderCompleted expects A.orderSent
 
-            stateChanged expects (State(side makeSigned V1), State(side.opposite makeSigned V1))
+            stateChanged expects (
+                State(side makeSigned V1, (side makeSigned priceCurrency) * V1),
+                State(side.opposite makeSigned V1, (side.opposite makeSigned priceCurrency) * V1))
 
             B.client sendMarketOrder (side.opposite, C)
 
@@ -146,7 +154,9 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, C))
 
-            stateChanged expects (State(side makeSigned C), State(side.opposite makeSigned C))
+            stateChanged expects (
+                State(side makeSigned C, (side makeSigned priceCurrency) * C),
+                State(side.opposite makeSigned C, (side.opposite makeSigned priceCurrency) * C))
 
             B.client sendLimitOrder (side.opposite, initialPrice, C)
 
@@ -166,7 +176,9 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
             A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, V1))
             A.orderCompleted expects A.orderSent
 
-            stateChanged expects (State(side makeSigned V1), State(side.opposite makeSigned V1))
+            stateChanged expects (
+                State(side makeSigned V1, (side makeSigned priceCurrency) * V1),
+                State(side.opposite makeSigned V1, (side.opposite makeSigned priceCurrency) * V1))
 
             B.client sendLimitOrder (side.opposite, initialPrice, C)
 
