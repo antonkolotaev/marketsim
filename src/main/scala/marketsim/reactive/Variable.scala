@@ -11,6 +11,8 @@ class Variable[T](initialValue : T, label : String) extends Signal[T](initialVal
     // variables don't have any inputs
     def inputs = List.empty[Signal[T]]
 
+    private var valueBeforeCommit = initialValue
+
     finalConstruct()
 
     /**
@@ -39,10 +41,11 @@ class Variable[T](initialValue : T, label : String) extends Signal[T](initialVal
     }
 
     def commit() = {
-        if (dirty || extrenalsAreToBeNotified) {
+        if (valueBeforeCommit != value_) {
             dirty = false
             external foreach { _ apply value_ }
             internal foreach { _ notifyExternalListenersIfValueChanged () }
+            valueBeforeCommit = value_
         }
     }
 

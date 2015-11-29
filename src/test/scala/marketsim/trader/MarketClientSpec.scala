@@ -23,34 +23,43 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             val remoteBook = new Remote.Book(localBook, up, down)
 
-            val client = new MarketClient(remoteBook)
+            class Trader(label : String)
+            {
+                val client = new MarketClient(remoteBook)
+                val state = new Inventory(client)
 
-            var orderSent : AbstractOrder = null  // it will keep the last sent order
+                //val stateChanged = mockFunction[Int, Unit]("stateChanged")
 
-            val onTraded = mockFunction[Traded,Unit]("onTraded")
-            val onCancelled = mockFunction[Cancelled, Unit]("onCancelled")
-            val orderTraded = mockFunction[(AbstractOrder, Traded), Unit]("orderTraded")
-            val orderCancelled = mockFunction[(AbstractOrder, Quantity), Unit]("orderCancelled")
-            val orderCompleted = mockFunction[AbstractOrder, Unit]("orderCompleted")
+                //state += stateChanged
 
-            client.orderSent += { order => orderSent = order }
+                var orderSent : AbstractOrder = null  // it will keep the last sent order
 
-            client.onTraded += onTraded
-            client.onCancelled += onCancelled
+                val onTraded = mockFunction[Traded,Unit](label + ".onTraded")
+                val onCancelled = mockFunction[Cancelled, Unit](label + ".onCancelled")
+                val orderTraded = mockFunction[(AbstractOrder, Traded), Unit](label + ".orderTraded")
+                val orderCancelled = mockFunction[(AbstractOrder, Quantity), Unit](label + ".orderCancelled")
+                val orderCompleted = mockFunction[AbstractOrder, Unit](label + ".orderCompleted")
 
-            client.orderTraded += orderTraded
-            client.orderCancelled += orderCancelled
-            client.orderCompleted += orderCompleted
+                client.orderSent += { order => orderSent = order }
+
+                client.onTraded += onTraded
+                client.onCancelled += onCancelled
+
+                client.orderTraded += orderTraded
+                client.orderCancelled += orderCancelled
+                client.orderCompleted += orderCompleted
+            }
+
+            val A = new Trader("A")
+            val B = new Trader("B")
 
             val V1 = 9
 
-            val token = client sendCancellableLimitOrder (side, initialPrice, V1)
+            val token = A.client sendCancellableLimitOrder (side, initialPrice, V1)
 
             def step(): Unit = {
                 scheduler advance up_down + epsilon
             }
-
-            val original = orderSent
 
             step()
         }
@@ -59,10 +68,10 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             val C = V1 - 1
 
-            onCancelled expects Cancelled(side, C)
-            orderCancelled expects (original, C)
+            A.onCancelled expects Cancelled(side, C)
+            A.orderCancelled expects (A.orderSent, C)
 
-            client cancel (token, C)
+            A.client cancel (token, C)
 
             step()
         }
@@ -70,15 +79,15 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
         it should "be completely cancelled" in new Initial {
             val C = V1 + 1
 
-            onCancelled expects Cancelled(side, V1)
-            orderCancelled expects (original, V1)
-            orderCompleted expects original
+            A.onCancelled expects Cancelled(side, V1)
+            A.orderCancelled expects (A.orderSent, V1)
+            A.orderCompleted expects A.orderSent
 
-            client cancel (token, C)
+            A.client cancel (token, C)
 
             step()
 
-            client cancel (token, C)
+            A.client cancel (token, C)  // nop
 
         }
 
@@ -86,15 +95,15 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             val C = V1 - 1
 
-            onTraded expects Traded(initialPrice signed side, C)
-            onTraded expects Traded(initialPrice signed side.opposite, C)
+            A.onTraded expects Traded(initialPrice signed side, C)
+            B.onTraded expects Traded(initialPrice signed side.opposite, C)
 
-            orderTraded expects (original, Traded(initialPrice signed side, C))
+            A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, C))
 
-            client sendMarketOrder (side.opposite, C)
+            B.client sendMarketOrder (side.opposite, C)
 
-            orderTraded expects (orderSent, Traded(initialPrice signed side.opposite, C))
-            orderCompleted expects orderSent
+            B.orderTraded expects (B.orderSent, Traded(initialPrice signed side.opposite, C))
+            B.orderCompleted expects B.orderSent
 
             step()
         }
@@ -103,18 +112,18 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             val C = V1 + 1
 
-            onTraded expects Traded(initialPrice signed side, V1)
-            onTraded expects Traded(initialPrice signed side.opposite, V1)
-            onCancelled expects Cancelled(side.opposite, C - V1)
+            A.onTraded expects Traded(initialPrice signed side, V1)
+            B.onTraded expects Traded(initialPrice signed side.opposite, V1)
+            B.onCancelled expects Cancelled(side.opposite, C - V1)
 
-            orderTraded expects (original, Traded(initialPrice signed side, V1))
-            orderCompleted expects original
+            A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, V1))
+            A.orderCompleted expects A.orderSent
 
-            client sendMarketOrder (side.opposite, C)
+            B.client sendMarketOrder (side.opposite, C)
 
-            orderTraded expects (orderSent, Traded(initialPrice signed side.opposite, V1))
-            orderCancelled expects (orderSent, C - V1)
-            orderCompleted expects orderSent
+            B.orderTraded expects (B.orderSent, Traded(initialPrice signed side.opposite, V1))
+            B.orderCancelled expects (B.orderSent, C - V1)
+            B.orderCompleted expects B.orderSent
 
             step()
         }
@@ -123,15 +132,15 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             val C = V1 - 1
 
-            onTraded expects Traded(initialPrice signed side, C)
-            onTraded expects Traded(initialPrice signed side.opposite, C)
+            A.onTraded expects Traded(initialPrice signed side, C)
+            B.onTraded expects Traded(initialPrice signed side.opposite, C)
 
-            orderTraded expects (original, Traded(initialPrice signed side, C))
+            A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, C))
 
-            client sendLimitOrder (side.opposite, initialPrice, C)
+            B.client sendLimitOrder (side.opposite, initialPrice, C)
 
-            orderTraded expects (orderSent, Traded(initialPrice signed side.opposite, C))
-            orderCompleted expects orderSent
+            B.orderTraded expects (B.orderSent, Traded(initialPrice signed side.opposite, C))
+            B.orderCompleted expects B.orderSent
 
             step()
         }
@@ -140,15 +149,15 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
 
             val C = V1 + 1
 
-            onTraded expects Traded(initialPrice signed side, V1)
-            onTraded expects Traded(initialPrice signed side.opposite, V1)
+            A.onTraded expects Traded(initialPrice signed side, V1)
+            B.onTraded expects Traded(initialPrice signed side.opposite, V1)
 
-            orderTraded expects (original, Traded(initialPrice signed side, V1))
-            orderCompleted expects original
+            A.orderTraded expects (A.orderSent, Traded(initialPrice signed side, V1))
+            A.orderCompleted expects A.orderSent
 
-            client sendLimitOrder (side.opposite, initialPrice, C)
+            B.client sendLimitOrder (side.opposite, initialPrice, C)
 
-            orderTraded expects (orderSent, Traded(initialPrice signed side.opposite, V1))
+            B.orderTraded expects (B.orderSent, Traded(initialPrice signed side.opposite, V1))
 
             step()
         }
