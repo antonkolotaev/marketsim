@@ -25,8 +25,22 @@ object MacMemoBuild extends Build {
             ),
             parallelExecution in Test := false,
             scalacOptions := Seq("-feature", "-deprecation", "-Xlog-implicits")
-        )
-    )
+        ))
+
+    lazy val generic = Project(
+        "generic",
+        file("generic"),
+        settings = buildSettings ++ Seq(
+            libraryDependencies ++= Seq(
+                "org.scala-lang" % "scala-reflect" % ScalaVersion,
+                "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
+                "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
+            ),
+            parallelExecution in Test := false,
+            scalacOptions := Seq("-feature", "-deprecation", "-Xlog-implicits"))
+    ).aggregate(macros)
+
+
     // Enabling debug project-wide. Can't find a better way to pass options to scalac.
-    System.setProperty("macmemo.debug", "true")
+    //System.setProperty("macmemo.debug", "true")
 }
