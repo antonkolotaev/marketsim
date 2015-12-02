@@ -1,0 +1,26 @@
+package marketsim
+package ops
+
+import org.scalatest.FlatSpec
+import com.softwaremill.macmemo.memoize
+import scala.concurrent.duration._
+
+class MemoSpec extends FlatSpec {
+
+    var volatile = 12
+
+    @memoize(maxSize = 10, expiresAfter = 1 hour)
+    def f(x : Int) = x * volatile
+
+    "memoized function" should "return the same value for the same parameter" in {
+
+        val before = f(1)
+
+        volatile = 9
+
+        val after = f(1)
+
+        assert(before == after)
+
+    }
+}
