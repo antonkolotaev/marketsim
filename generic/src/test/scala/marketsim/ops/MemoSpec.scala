@@ -1,11 +1,14 @@
 package marketsim
 package ops
 
+import marketsim.GlobalCache.Builder
 import org.scalatest.FlatSpec
 import com.softwaremill.macmemo.memoize
 import scala.concurrent.duration._
 
 class MemoSpec extends FlatSpec {
+
+    implicit val cache : com.softwaremill.macmemo.MemoCacheBuilder = new Builder
 
     var volatile = 12
 
@@ -21,6 +24,8 @@ class MemoSpec extends FlatSpec {
         val after = f(1)
 
         assert(before == after)
+
+        //println(cache)
 
     }
 }
