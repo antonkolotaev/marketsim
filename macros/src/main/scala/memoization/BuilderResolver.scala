@@ -1,6 +1,10 @@
-package com.softwaremill.macmemo
+package memoization
 
 import scala.language.experimental.macros
+
+/**
+ * Based on MacMemo https://github.com/kciesielski/macmemo
+ */
 
 object BuilderResolver {
 

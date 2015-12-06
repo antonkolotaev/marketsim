@@ -1,4 +1,4 @@
-package com.softwaremill.macmemo
+package memoization
 
 object GlobalCache
 {

@@ -1,4 +1,9 @@
-package com.softwaremill.macmemo
+package memoization
+
+/**
+ * Based on MacMemo https://github.com/kciesielski/macmemo
+ */
+
 
 import scala.reflect.macros._
 
@@ -37,8 +42,8 @@ object memoizeMacro {
           enclosureFullName + cachedMethodId.methodName.toString))
       }
 
-      q"""lazy val ${cachedMethodId.generatedMemoValName}: com.softwaremill.macmemo.Cache[List[Any]] =
-         com.softwaremill.macmemo.BuilderResolver.resolve($buildCacheBucketId).build($buildCacheBucketId)"""
+      q"""lazy val ${cachedMethodId.generatedMemoValName}: memoization.Cache[List[Any]] =
+         memoization.BuilderResolver.resolve($buildCacheBucketId).build($buildCacheBucketId)"""
 
     }
 

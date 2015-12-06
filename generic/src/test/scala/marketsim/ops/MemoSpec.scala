@@ -1,12 +1,10 @@
 package marketsim
 package ops
 
-import com.softwaremill.macmemo.{GlobalCache, memo}
+import memoization.{memo, GlobalCache}
 import org.scalatest.FlatSpec
 
 class MemoSpec extends FlatSpec {
-
-    //implicit val cache : com.softwaremill.macmemo.MemoCacheBuilder = new Builder
 
     var volatile = 12
 

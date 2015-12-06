@@ -1,7 +1,11 @@
-package com.softwaremill.macmemo
+package memoization
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.experimental.macros
+
+/**
+ * Based on MacMemo https://github.com/kciesielski/macmemo
+ */
 
 @compileTimeOnly("enable macro paradise to expand macro annotations")
 class memo

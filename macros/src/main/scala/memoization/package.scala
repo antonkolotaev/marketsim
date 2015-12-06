@@ -1,6 +1,9 @@
-package com.softwaremill
+package object memoization {
 
-package object macmemo {
+    /**
+     * Based on MacMemo https://github.com/kciesielski/macmemo
+     */
+
 
     trait Cache[V] {
 

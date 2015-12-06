@@ -1,9 +1,9 @@
-package com.softwaremill.macmemo
+package memoization
 
 /**
  * Taken from MacWire https://github.com/adamw/macwire
  */
-private[macmemo] class Debug {
+private[memoization] class Debug {
   var ident = 0
 
   def apply(msg: => String) {
