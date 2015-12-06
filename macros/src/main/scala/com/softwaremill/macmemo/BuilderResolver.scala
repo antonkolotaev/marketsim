@@ -4,9 +4,9 @@ import scala.language.experimental.macros
 
 object BuilderResolver {
 
-  def resolve2(methodFullName: String): MemoCacheBuilder2 = macro builderResolverMacro_impl2
+  def resolve(methodFullName: String): MemoCacheBuilder = macro builderResolverMacro_impl
 
-  def builderResolverMacro_impl2(c: scala.reflect.macros.whitebox.Context)(methodFullName: c.Expr[String]): c.Expr[MemoCacheBuilder2] = {
+  def builderResolverMacro_impl(c: scala.reflect.macros.whitebox.Context)(methodFullName: c.Expr[String]): c.Expr[MemoCacheBuilder] = {
     import c.universe._
 
     def bringDefaultBuilder: Tree = {
@@ -18,11 +18,11 @@ object BuilderResolver {
       }.tree
     }
 
-    val builderTree = c.inferImplicitValue(typeOf[MemoCacheBuilder2]) match {
+    val builderTree = c.inferImplicitValue(typeOf[MemoCacheBuilder]) match {
       case EmptyTree => bringDefaultBuilder
       case foundBuilderTree => foundBuilderTree
     }
 
-    c.Expr[MemoCacheBuilder2](Block(List(), builderTree))
+    c.Expr[MemoCacheBuilder](Block(List(), builderTree))
   }
 }

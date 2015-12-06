@@ -5,7 +5,7 @@ import scala.reflect.macros._
 object memoizeMacro {
   private val debug = new Debug()
 
-  def impl2(c: blackbox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
+  def impl(c: blackbox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
     case class MemoIdentifier(methodName: TermName, generatedMemoValName: TermName)
@@ -38,7 +38,7 @@ object memoizeMacro {
       }
 
       q"""lazy val ${cachedMethodId.generatedMemoValName}: com.softwaremill.macmemo.Cache[List[Any]] =
-         com.softwaremill.macmemo.BuilderResolver.resolve2($buildCacheBucketId).build($buildCacheBucketId)"""
+         com.softwaremill.macmemo.BuilderResolver.resolve($buildCacheBucketId).build($buildCacheBucketId)"""
 
     }
 
