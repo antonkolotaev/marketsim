@@ -4,9 +4,9 @@ import scala.language.experimental.macros
 
 object BuilderResolver {
 
-  def resolve(methodFullName: String): MemoCacheBuilder = macro builderResolverMacro_impl
+  def resolve2(methodFullName: String): MemoCacheBuilder2 = macro builderResolverMacro_impl2
 
-  def builderResolverMacro_impl(c: scala.reflect.macros.whitebox.Context)(methodFullName: c.Expr[String]): c.Expr[MemoCacheBuilder] = {
+  def builderResolverMacro_impl2(c: scala.reflect.macros.whitebox.Context)(methodFullName: c.Expr[String]): c.Expr[MemoCacheBuilder2] = {
     import c.universe._
 
     def bringDefaultBuilder: Tree = {
@@ -14,16 +14,15 @@ object BuilderResolver {
       val msg = s"Cannot find custom memo builder for '$mfn' - default builder will be used"
       c.info(c.enclosingPosition, msg, false)
       reify {
-        MemoCacheBuilder.guavaMemoCacheBuilder
+        GlobalCache.Builder
       }.tree
     }
 
-    val builderTree = c.inferImplicitValue(typeOf[MemoCacheBuilder]) match {
+    val builderTree = c.inferImplicitValue(typeOf[MemoCacheBuilder2]) match {
       case EmptyTree => bringDefaultBuilder
       case foundBuilderTree => foundBuilderTree
     }
 
-    c.Expr[MemoCacheBuilder](Block(List(), builderTree))
+    c.Expr[MemoCacheBuilder2](Block(List(), builderTree))
   }
-
 }

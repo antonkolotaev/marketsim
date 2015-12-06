@@ -1,18 +1,5 @@
 package com.softwaremill.macmemo
 
-import java.util.concurrent.{Callable, TimeUnit}
-
-import com.google.common.cache.CacheBuilder
-
-/**
- * Memoization parameters container.
- *
- * @param maxSize maximum cache capacity
- * @param expiresAfterMillis expiration time
- * @param concurrencyLevel allowed concurrency among update operations.
- */
-case class MemoizeParams(maxSize: Long, expiresAfterMillis: Long, concurrencyLevel: Option[Int])
-
 trait Cache[V] {
 
   /**
@@ -27,46 +14,33 @@ trait Cache[V] {
 
 }
 
-/**
- * Cache instance builder, used to customize underlying storage mechanism.
- */
-trait MemoCacheBuilder {
+trait MemoCacheBuilder2 {
 
-  /**
-   * This method builds new instance of a Cache implementation when annotated method is executed for the first time.
-   * Returned Cache instance will be scoped for particular enclosure instance and method.
-   *
-   * @param bucketId cache bucked identifier - currently enclosing type's path and simple name + method name.
-   * @param params @memoize annotation's parameters: maximum cache size, expiration time and so on.
-   * @tparam V type of a cached value - an annotated method's return type.
-   * @return new Cache instance, scoped for particular enclosure instance method.
-   */
-  def build[V <: Object](bucketId: String, params: MemoizeParams): Cache[V]
+  def build[V <: Object](bucketId: String): Cache[V]
 
 }
 
-object MemoCacheBuilder {
+object GlobalCache
+{
+  class MethodCache[V] extends Cache[V]
+  {
+    private val cache = collection.mutable.Map.empty[List[Any], V]
 
-  /**
-   * Default cache provider
-   */
-  val guavaMemoCacheBuilder: MemoCacheBuilder = new MemoCacheBuilder {
+    def get(key : List[Any], compute : => V) =
+      cache getOrElseUpdate (key, compute)
 
-    override def build[V <: Object](bucketId: String, params: MemoizeParams): Cache[V] = {
-      lazy val builder = CacheBuilder.newBuilder()
-        .maximumSize(params.maxSize)
-        .expireAfterWrite(params.expiresAfterMillis, TimeUnit.MILLISECONDS)
-
-      lazy val cache = params.concurrencyLevel.map(builder.concurrencyLevel(_)).getOrElse(builder).build[List[Any], V]()
-
-      new Cache[V] {
-        override def get(key: List[Any], computeValue: => V): V = cache.get(key, new Callable[V] {
-          override def call(): V = computeValue
-        })
-      }
-
-    }
-
+    override def toString = cache.keys map { _ mkString ("{",",","}") } mkString ("[", ",", "]")
   }
+
+  object Builder extends MemoCacheBuilder2 {
+
+    private val caches = collection.mutable.Map.empty[String, MethodCache[_]]
+
+    override def build[V <: Object](bucketId: String): Cache[V] =
+      (caches getOrElseUpdate (bucketId, new MethodCache[V])).asInstanceOf[MethodCache[V]]
+
+    override def toString = caches map { case (k,v) => s"$k : $v" } mkString "\n"
+  }
+
 
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/generic.iml" filepath="$PROJECT_DIR$/.idea/modules/generic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/generic-build.iml" filepath="$PROJECT_DIR$/.idea/modules/generic-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/macros.iml" filepath="$PROJECT_DIR$/.idea/modules/macros.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/macros-build.iml" filepath="$PROJECT_DIR$/.idea/modules/macros-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/marketsim.iml" filepath="$PROJECT_DIR$/.idea/modules/marketsim.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/marketsim-build.iml" filepath="$PROJECT_DIR$/.idea/modules/marketsim-build.iml" />
+    </modules>
+  </component>
+</project>
