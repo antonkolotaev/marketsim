@@ -10,7 +10,7 @@ import scala.reflect.macros._
 object memoizeMacro {
   private val debug = new Debug()
 
-  def impl(c: blackbox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
+  def impl(c: blackbox.Context)(annottees: c.Expr[Any]*) = {
     import c.universe._
 
     case class MemoIdentifier(methodName: TermName, generatedMemoValName: TermName)
@@ -61,7 +61,7 @@ object memoizeMacro {
         val cachedMethodIdentifier = MemoIdentifier.apply(name, TermName(c.freshName(s"memo_${name}_")))
         val memoVal = createMemoVal(cachedMethodIdentifier, returnTypeTree)
         val newFunctionDef = injectCacheUsage(cachedMethodIdentifier, functionDefinition)
-        (functionDefinition, (newFunctionDef :: rest) :+ memoVal)
+        (functionDefinition, memoVal +: (newFunctionDef :: rest))
       case _ => reportInvalidAnnotationTarget(); (EmptyTree, inputs)
     }
 

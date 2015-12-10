@@ -9,7 +9,7 @@ class MemoSpec extends FlatSpec {
     var volatile = 12
 
     @memo
-    def f(x : Int) = x * volatile
+    def f(x : Int) : Int = x * volatile
 
     "memoized function" should "return the same value for the same parameter" in {
 
@@ -18,6 +18,8 @@ class MemoSpec extends FlatSpec {
         volatile = 9
 
         val after = f(1)
+
+        val g : Int => Int = f
 
         assert(before == after)
 
