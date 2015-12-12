@@ -7,7 +7,7 @@ private[memoization] class Debug {
   var ident = 0
 
   def apply(msg: => String) {
-    if (enabled) {
+    if (true || enabled) {
       val prefix = "   " * ident
       println(s"$prefix[debug] $msg")
     }

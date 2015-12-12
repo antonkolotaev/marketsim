@@ -2,6 +2,12 @@
 
 package object marketsim {
 
+    trait Context
+
+    type Unbound[T] = Context => T
+
+    def unbound[T](x : T) = (ctx : Context) => x
+
     case class Time(x: Long) {
         def <(other: Time) = x < other.x
 

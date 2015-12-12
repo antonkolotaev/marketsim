@@ -57,8 +57,9 @@ object memoizeMacro {
     val (_, expandees) = inputs match {
       case (functionDefinition: DefDef) :: rest =>
         debug(s"Found annotated function [${functionDefinition.name}]")
-        val DefDef(_, name: TermName, _, _, returnTypeTree, _) = functionDefinition
-        val cachedMethodIdentifier = MemoIdentifier.apply(name, TermName(c.freshName(s"memo_${name}_")))
+        val DefDef(_, name: TermName, p, r, returnTypeTree, q) = functionDefinition
+        val NAME = name + q.toString()
+        val cachedMethodIdentifier = MemoIdentifier.apply(NAME, TermName(c.freshName(s"memo_${NAME}_")))
         val memoVal = createMemoVal(cachedMethodIdentifier, returnTypeTree)
         val newFunctionDef = injectCacheUsage(cachedMethodIdentifier, functionDefinition)
         (functionDefinition, memoVal +: (newFunctionDef :: rest))

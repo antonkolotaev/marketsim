@@ -1,23 +1,38 @@
 package marketsim
 package ops
 
-object Conversions {
+import memoization.memo
+
+object Casts {
 
     import reactive._
 
+    implicit def toUnbound[T]: Conversion[T, Unbound[T]] =
+        new Conversion[T, Unbound[T]] {
+            @memo def convert(x: T) : Unbound[T] = {
+                unbound(x)
+            }
+        }
+
     implicit def toOptionId[T]: Conversion[T, Option[T]] =
         new Conversion[T, Option[T]] {
-            def convert(x: T) : Option[T] = Some(x)
+            @memo def convert(x: T) : Option[T] = {
+                Some(x)
+            }
         }
 
-    implicit def toOptionId_ctx[C,T]: Conversion[C => T, C => Option[T]] =
-        new Conversion[C => T, C => Option[T]] {
-            def convert(x: C => T) : C => Option[T] = (c : C) => Some(x(c))
+    implicit def toOptionId_ctx[C,T]: Conversion[Unbound[T], Unbound[Option[T]]] =
+        new Conversion[Unbound[T], Unbound[Option[T]]] {
+            @memo def convert(x: Unbound[T]) : Unbound[Option[T]] = {
+                (c : Context) => Some(x(c))
+            }
         }
 
-    implicit def toOptionId_ctx2[C,T]: Conversion[T, C => Option[T]] =
-        new Conversion[T, C => Option[T]] {
-            def convert(x: T) = c => Some(x)
+    implicit def toOptionId_ctx2[C,T]: Conversion[T, Unbound[Option[T]]] =
+        new Conversion[T, Unbound[Option[T]]] {
+            @memo def convert(x: T) : Unbound[Option[T]] = {
+                unbound(Some(x) : Option[T])
+            }
         }
 
     implicit def toSignal[T]: Conversion[T, Signal[T]] =
