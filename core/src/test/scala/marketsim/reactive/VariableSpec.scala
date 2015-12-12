@@ -1,5 +1,4 @@
-package marketsim
-package reactive
+package marketsim.reactive
 
 class VariableSpec extends TestBase {
 

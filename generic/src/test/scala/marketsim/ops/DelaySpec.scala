@@ -2,10 +2,9 @@ package marketsim
 package ops
 
 
-import marketsim.core._
+import marketsim.reactive._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
-import marketsim.reactive.VariableOpt
 
 class DelaySpec extends FlatSpec with MockFactory {
 

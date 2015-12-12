@@ -1,9 +1,9 @@
 package marketsim
 package trader
 
-import marketsim.reactive.Variable
 import ops._
 import orderbook._
+import reactive._
 
 object ProfitEstimation
 {

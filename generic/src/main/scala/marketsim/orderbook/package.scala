@@ -1,7 +1,5 @@
 package marketsim
 
-import marketsim.core.Scheduler
-
 package object orderbook {
 
     trait TickMapper {

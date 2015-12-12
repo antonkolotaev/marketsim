@@ -3,6 +3,7 @@ package ops
 
 import memoization.memo
 import org.scalatest.FlatSpec
+
 import reactive._
 
 class PlusSpec extends FlatSpec
@@ -19,12 +20,12 @@ class PlusSpec extends FlatSpec
 
     implicit def toOptionId[T]: Conversion[T, Option[T]] =
         new Conversion[T, Option[T]] {
-            @memo def convert(x: T) : Option[T] = Some(x)
+            def convert(x: T) : Option[T] = Some(x)
         }
 
     implicit def toOptionId_ctx[C,T]: Conversion[C => T, C => Option[T]] =
         new Conversion[C => T, C => Option[T]] {
-            @memo def convert(x: C => T) : C => Option[T] = c => Some(x(c))
+            def convert(x: C => T) : C => Option[T] = c => Some(x(c))
         }
 
     implicit def toOptionId_ctx2[C,T]: Conversion[T, C => Option[T]] =

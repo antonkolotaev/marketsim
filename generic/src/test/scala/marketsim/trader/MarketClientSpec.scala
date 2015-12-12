@@ -3,8 +3,8 @@ package trader
 
 import marketsim.orderbook.{Cancelled, Traded, AbstractOrder}
 import marketsim.orderbook.linear._
-import marketsim.reactive.Unary
 import marketsim.ops._
+import marketsim.reactive._
 
 
 class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
@@ -12,7 +12,7 @@ class MarketClientSpec extends marketsim.orderbook.linear.common.Base {
     Side.choices foreach { side =>
 
         class Initial {
-            val scheduler = core.Scheduler.recreate()
+            val scheduler = Scheduler.recreate()
 
             val tickMapper = new orderbook.LinearMapper(cents(1))
             val initialPrice = Ticks(100)

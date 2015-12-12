@@ -1,4 +1,5 @@
 
+
 package object marketsim {
 
     case class Time(x: Long) {

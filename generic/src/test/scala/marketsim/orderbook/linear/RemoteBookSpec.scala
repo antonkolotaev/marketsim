@@ -3,7 +3,7 @@ package orderbook
 package linear
 
 import marketsim.orderbook.linear.common._
-import marketsim.reactive.Unary
+import marketsim.ops._
 
 class RemoteBookSpec extends Base {
 
@@ -11,7 +11,7 @@ class RemoteBookSpec extends Base {
 
         class Initial {
 
-            val scheduler = core.Scheduler.recreate()
+            val scheduler = Scheduler.recreate()
 
             val tickMapper = new LinearMapper(cents(1))
             val initialPrice = Ticks(100)
@@ -49,7 +49,7 @@ class RemoteBookSpec extends Base {
 
             val E = QueueState(Nil)
 
-            import marketsim.ops._
+            import marketsim.reactive._
 
             def toQueueState(queue: AbstractOrderQueue) =
                 Unary(queue.priceLevels, "toQueue") {
@@ -61,14 +61,14 @@ class RemoteBookSpec extends Base {
                 mockFunction[(QueueState, QueueState, Time), Unit]("onChangedLocally")
 
             toQueueState(localQueue) and toQueueState(localQueueOpposite) += {
-                case (q, p) => onChangedLocally(q, p, core.Scheduler.currentTime)
+                case (q, p) => onChangedLocally(q, p, Scheduler.currentTime)
             }
 
             val onChangedRemotely =
                 mockFunction[(QueueState, QueueState, Time), Unit]("onChangedRemotely")
 
             toQueueState(remoteQueue) and toQueueState(remoteQueueOpposite) += {
-                case (q, p) => onChangedRemotely(q, p, core.Scheduler.currentTime)
+                case (q, p) => onChangedRemotely(q, p, Scheduler.currentTime)
             }
 
             val onTraded =
@@ -105,7 +105,7 @@ class RemoteBookSpec extends Base {
                 def Completed() = events Completed()
             }
 
-            def after(dt: Duration) = core.Scheduler.currentTime + dt
+            def after(dt: Duration) = Scheduler.currentTime + dt
 
             val V1 = 9
 

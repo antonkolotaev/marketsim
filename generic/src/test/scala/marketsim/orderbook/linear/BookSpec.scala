@@ -10,7 +10,7 @@ class BookSpec extends Base {
 
         class Initial {
 
-            val scheduler = core.Scheduler.recreate()
+            val scheduler = Scheduler.recreate()
             val epsilon = Duration(1)
 
             def step() = scheduler advance epsilon

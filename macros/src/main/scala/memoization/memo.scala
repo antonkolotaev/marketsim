@@ -11,5 +11,5 @@ import scala.language.experimental.macros
 class memo
     extends StaticAnnotation {
 
-  def macroTransform(annottees: Any*) = macro memoizeMacro.impl
+  def macroTransform(annottees: Any*): Any = macro memoizeMacro.impl
 }

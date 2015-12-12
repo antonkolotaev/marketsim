@@ -2,7 +2,7 @@ package marketsim
 package trader
 
 import marketsim.orderbook._
-import marketsim.reactive.Event
+import marketsim.reactive._
 
 class MarketClient(val orderbook : AbstractOrderBook) extends OrderListener
 {

@@ -37,7 +37,7 @@ class Variable[T](initialValue : T, label : String) extends Signal[T](initialVal
 
     def set(x : T) = {
         setWithoutCommit(x)
-        marketsim.core.Scheduler commitAtStepEnd this
+        marketsim.Scheduler commitAtStepEnd this
     }
 
     def commit() = {

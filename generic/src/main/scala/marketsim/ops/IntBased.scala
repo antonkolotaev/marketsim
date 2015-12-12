@@ -1,8 +1,6 @@
 package marketsim
 package ops
 
-import marketsim.reactive._
-
 trait IntBased[T]
 {
     def plus(x : T, y : T) : T
@@ -20,6 +18,8 @@ trait HasConversion[From, To]
 
 object overloads
 {
+    import reactive._
+
     def const[T](x : T) = new Variable[T](x, x.toString)
 
     implicit val IntIsIntBased = new IntBased[Int] {

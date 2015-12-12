@@ -113,8 +113,6 @@ package object ops {
         def >(b: reactive.Signal[A]) = reactive.Binary(a, b, ">") { case (x, y) => implicitly[Ordering[A]].gt(x, y) }
     }
 
-    import core._
-
     class Delay[A](a: reactive.Signal[A], dt: Duration) extends reactive.Variable[A](a(), s"$a delayed $dt") {
         override lazy val inputs = a :: Nil
 

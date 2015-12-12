@@ -43,13 +43,13 @@ object common {
             val onCancelled = mockFunction[Quantity, Time, Unit](name + ".onCancelled")
             val onCompleted = mockFunction[Time, Unit](name + ".onCompleted")
 
-            override def handle(traded: Traded) = onTraded(traded, core.Scheduler.currentTime)
+            override def handle(traded: Traded) = onTraded(traded, Scheduler.currentTime)
 
-            override def handle(cancelled: Cancelled) = onCancelled(cancelled.amount, core.Scheduler.currentTime)
+            override def handle(cancelled: Cancelled) = onCancelled(cancelled.amount, Scheduler.currentTime)
 
-            override def handle(completed: Completed) = onCompleted(core.Scheduler.currentTime)
+            override def handle(completed: Completed) = onCompleted(Scheduler.currentTime)
 
-            def after(dt: Duration) = core.Scheduler.currentTime + dt
+            def after(dt: Duration) = Scheduler.currentTime + dt
 
             def Traded(price: SignedTicks, tradeVolume: Quantity, incomingEvents: ListenerWithTime) = {
                 onTraded expects(orderbook.Traded(price, tradeVolume), after(up_down)) once()
