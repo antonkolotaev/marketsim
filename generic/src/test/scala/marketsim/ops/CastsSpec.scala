@@ -7,6 +7,7 @@ import org.scalatest.FlatSpec
 class CastsSpec extends FlatSpec with MockFactory {
 
     import Casts._
+    import reactive._
 
     val ctx = new Context {}
 
@@ -20,11 +21,35 @@ class CastsSpec extends FlatSpec with MockFactory {
 
     }
 
-    it should "cast to Unbound[Option[T]]" in {
+    it should "cast to Signal[T]" in {
 
         val original = 2
-        val converted = cast[Unbound[Option[Int]]](original)
-        assertResult(Some(2))(converted(ctx))
+        val converted = cast[Signal[Int]](original)
+        assertResult(2)(converted())
+
+    }
+
+    it should "cast to Signal[Option[T]]" in {
+
+        val original = 2
+        val converted = cast[Signal[Option[Int]]](original)
+        assertResult(Some(2))(converted())
+
+    }
+
+    it should "cast to Function[T]" in {
+
+        val original = 2
+        val converted = cast[() => Int](original)
+        assertResult(2)(converted())
+
+    }
+
+    it should "cast to Function[Option[T]]" in {
+
+        val original = 2
+        val converted = cast[() => Option[Int]](original)
+        assertResult(Some(2))(converted())
 
     }
 
@@ -35,6 +60,85 @@ class CastsSpec extends FlatSpec with MockFactory {
         assertResult(2)(converted(ctx))
 
     }
+    it should "cast to Unbound[Option[T]]" in {
+
+        val original = 2
+        val converted = cast[Unbound[Option[Int]]](original)
+        assertResult(Some(2))(converted(ctx))
+
+    }
+
+    it should "cast to Unbound[Signal[T]]" in {
+
+        val original = 2
+        val converted = cast[Unbound[Signal[Int]]](original)
+        assertResult(2)(converted(ctx)())
+
+    }
+
+    it should "cast to Unbound[Signal[Option[T]]]" in {
+
+        val original = 2
+        val converted = cast[Unbound[Signal[Option[Int]]]](original)
+        assertResult(Some(2))(converted(ctx)())
+
+    }
+
+    it should "cast to Unbound[() => T]" in {
+
+        val original = 2
+        val converted = cast[Unbound[() => Int]](original)
+        assertResult(2)(converted(ctx)())
+
+    }
+
+    it should "cast to Unbound[() => Option[T]]" in {
+
+        val original = 2
+        val converted = cast[Unbound[() => Option[Int]]](original)
+        assertResult(Some(2))(converted(ctx)())
+
+    }
+
+    "A value of type Option[T]" should "cast to Signal[Option[T]]" in {
+
+        val original = Some(2)
+        val converted = cast[Signal[Option[Int]]](original)
+        assertResult(Some(2))(converted())
+
+    }
+
+    it should "cast to Function[Option[T]]" in {
+
+        val original = Some(2)
+        val converted = cast[() => Option[Int]](original)
+        assertResult(Some(2))(converted())
+
+    }
+
+    it should "cast to Unbound[Option[T]]" in {
+
+        val original = Some(2)
+        val converted = cast[Unbound[Option[Int]]](original)
+        assertResult(Some(2))(converted(ctx))
+
+    }
+
+    it should "cast to Unbound[Signal[Option[T]]]" in {
+
+        val original = Some(2)
+        val converted = cast[Unbound[Signal[Option[Int]]]](original)
+        assertResult(Some(2))(converted(ctx)())
+
+    }
+
+    it should "cast to Unbound[() => Option[T]]" in {
+
+        val original = Some(2)
+        val converted = cast[Unbound[() => Option[Int]]](original)
+        assertResult(Some(2))(converted(ctx)())
+
+    }
 
     "A value of type Unbound[T]" should "cast to Unbound[Option[T]]" in {
 
@@ -43,4 +147,35 @@ class CastsSpec extends FlatSpec with MockFactory {
         assertResult(Some(2))(converted(ctx))
 
     }
+
+    it should "cast to Unbound[Signal[T]]" in {
+        val original = unbound(2)
+        val converted = cast[Unbound[Signal[Int]]](original)
+        assertResult(2)(converted(ctx)())
+    }
+
+    it should "cast to Unbound[Signal[Option[T]]]" in {
+
+        val original = unbound(2)
+        val converted = cast[Unbound[Signal[Option[Int]]]](original)
+        assertResult(Some(2))(converted(ctx)())
+
+    }
+
+    it should "cast to Unbound[() => T]" in {
+
+        val original = unbound(2)
+        val converted = cast[Unbound[() => Int]](original)
+        assertResult(2)(converted(ctx)())
+
+    }
+
+    it should "cast to Unbound[() => Option[T]]" in {
+
+        val original = unbound(2)
+        val converted = cast[Unbound[() => Option[Int]]](original)
+        assertResult(Some(2))(converted(ctx)())
+
+    }
+
 }
