@@ -4,7 +4,7 @@ package object ops {
 
     import language.implicitConversions
 
-    trait Conversion[-From, +To] {
+    trait Conversion[-From, To] {
         def convert(from: From): To
     }
 

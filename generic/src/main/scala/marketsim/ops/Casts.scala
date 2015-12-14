@@ -36,6 +36,11 @@ object Casts {
             }
         }
 
+    implicit def ot_sot[T]: Conversion[Option[T], Signal[Option[T]]] =
+        new Conversion[Option[T], Signal[Option[T]]] {
+            @memo def convert(x : Option[T]) : Signal[Option[T]] = Constant(x)
+        }
+
     implicit def t_st[T]: Conversion[T, Signal[T]] =
         new Conversion[T, Signal[T]] {
             @memo def convert(x : T) : Signal[T] = Constant(x)
@@ -75,6 +80,28 @@ object Casts {
             @memo def convert(x : Signal[T]) : Signal[Option[T]] = Unary(x,s"$x.opt") { y => Some(y) }
         }
 
+    implicit def st_usot[T]: Conversion[Signal[T], Unbound[Signal[Option[T]]]] =
+        new Conversion[Signal[T], Unbound[Signal[Option[T]]]] {
+            @memo def convert(x : Signal[T]) : Unbound[Signal[Option[T]]] = (c : Context) => Unary(x,s"$x.opt") { y => Some(y) }
+        }
+
+    implicit def ust_usot[T]: Conversion[Unbound[Signal[T]], Unbound[Signal[Option[T]]]] =
+        new Conversion[Unbound[Signal[T]], Unbound[Signal[Option[T]]]] {
+            @memo def convert(x : Unbound[Signal[T]]) : Unbound[Signal[Option[T]]] =
+                (c : Context) => Unary(x(c),s"$x.opt") { y => Some(y) }
+        }
+
+    implicit def ust_ufot[T]: Conversion[Unbound[Signal[T]], Unbound[() => Option[T]]] =
+        new Conversion[Unbound[Signal[T]], Unbound[() => Option[T]]] {
+            @memo def convert(x : Unbound[Signal[T]]) : Unbound[() => Option[T]] =
+                (c : Context) => () => Some(x(c)())
+        }
+
+    implicit def ust_uft[T]: Conversion[Unbound[Signal[T]], Unbound[() => T]] =
+        new Conversion[Unbound[Signal[T]], Unbound[() => T]] {
+            @memo def convert(x : Unbound[Signal[T]]) : Unbound[() => T] =
+                (c : Context) => () => x(c)()
+        }
 
     implicit def t_ft[T]: Conversion[T, () => T] =
         new Conversion[T, () => T] {
@@ -84,6 +111,11 @@ object Casts {
     implicit def t_uft[T]: Conversion[T, Unbound[() => T]] =
         new Conversion[T, Unbound[() => T]] {
             @memo def convert(x : T) : Unbound[() => T] = unbound(() => x)
+        }
+
+    implicit def t_ufot[T]: Conversion[T, Unbound[() => Option[T]]] =
+        new Conversion[T, Unbound[() => Option[T]]] {
+            @memo def convert(x : T) : Unbound[() => Option[T]] = unbound(() => Some(x))
         }
 
     implicit def ut_uft[T]: Conversion[Unbound[T], Unbound[() => T]] =
@@ -96,20 +128,35 @@ object Casts {
             @memo def convert(x : T) : () => Option[T] = () => Some(x)
         }
 
-    implicit def toOptionFunction2[T]: Conversion[() => T, () => Option[T]] =
+    implicit def ft_fot[T]: Conversion[() => T, () => Option[T]] =
         new Conversion[() => T, () => Option[T]] {
-            def convert(x : () => T) = () => Some(x())
+            @memo def convert(x : () => T) : () => Option[T] = () => Some(x())
         }
 
-    implicit def toFunction_sig[T]: Conversion[Signal[T], () => T] =
+    implicit def ft_ufot[T]: Conversion[() => T, Unbound[() => Option[T]]] =
+        new Conversion[() => T, Unbound[() => Option[T]]] {
+            @memo def convert(x : () => T) : Unbound[() => Option[T]] = (c : Context) => () => Some(x())
+        }
+
+    implicit def st_ft[T]: Conversion[Signal[T], () => T] =
         new Conversion[Signal[T], () => T] {
-            def convert(x : Signal[T]) = x
+            @memo def convert(x : Signal[T]) : () => T = x
         }
 
-    implicit def toOptionFunction_sig[T]: Conversion[Signal[T], () => Option[T]] =
+    implicit def st_fot[T]: Conversion[Signal[T], () => Option[T]] =
         new Conversion[Signal[T], () => Option[T]] {
-            def convert(x : Signal[T]) = () => Some(x())
+            @memo def convert(x : Signal[T]) : () => Option[T] = () => Some(x())
         }
 
+    implicit def st_ufot[T]: Conversion[Signal[T], Unbound[() => Option[T]]] =
+        new Conversion[Signal[T], Unbound[() => Option[T]]] {
+            @memo def convert(x : Signal[T]) : Unbound[() => Option[T]] = (c : Context) => () => Some(x())
+        }
 
+    implicit def ut_ufot[T]: Conversion[Unbound[T], Unbound[() => Option[T]]] =
+        new Conversion[Unbound[T], Unbound[() => Option[T]]] {
+            @memo def convert(x : Unbound[T]) : Unbound[() => Option[T]] = (c : Context) => () => Some(x(c))
+        }
+
+    val d = implicitly[Conversion[Unbound[Signal[Int]], Unbound[() => Int]]]
 }
