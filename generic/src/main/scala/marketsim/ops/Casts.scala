@@ -138,6 +138,11 @@ object Casts {
             @memo def convert(x : () => T) : Unbound[() => Option[T]] = (c : Context) => () => Some(x())
         }
 
+    implicit def uft_ufot[T]: Conversion[Unbound[() => T], Unbound[() => Option[T]]] =
+        new Conversion[Unbound[() => T], Unbound[() => Option[T]]] {
+            @memo def convert(x : Unbound[() => T]) : Unbound[() => Option[T]] = (c : Context) => () => Some(x(c)())
+        }
+
     implicit def st_ft[T]: Conversion[Signal[T], () => T] =
         new Conversion[Signal[T], () => T] {
             @memo def convert(x : Signal[T]) : () => T = x
@@ -158,5 +163,5 @@ object Casts {
             @memo def convert(x : Unbound[T]) : Unbound[() => Option[T]] = (c : Context) => () => Some(x(c))
         }
 
-    val d = implicitly[Conversion[Unbound[Signal[Int]], Unbound[() => Int]]]
+    val d = implicitly[Conversion[Unbound[() => Int], Unbound[() => Option[Int]]]]
 }

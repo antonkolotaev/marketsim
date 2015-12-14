@@ -108,7 +108,7 @@ class CastsSpec extends FlatSpec with MockFactory {
 
     }
 
-    it should "cast to Function[Option[T]]" in {
+    it should "cast to () => Option[T]" in {
 
         val original = Some(2)
         val converted = cast[() => Option[Int]](original)
@@ -201,7 +201,7 @@ class CastsSpec extends FlatSpec with MockFactory {
 
     }
 
-    "A value of type Function[T]" should "cast to Function[Option[T]]" in {
+    "A value of type () => T" should "cast to () => Option[T]" in {
 
         val original = () => 2
         val converted = cast[() => Option[Int]](original)
@@ -225,7 +225,7 @@ class CastsSpec extends FlatSpec with MockFactory {
 
     }
 
-    "A value of type Signal[Option[T]]" should "cast to Function[Option[T]]" in {
+    "A value of type Signal[Option[T]]" should "cast to () => Option[T]" in {
 
         val original = new Variable(Some(2) : Option[Int], "x")
         val converted = cast[() => Option[Int]](original)
@@ -241,7 +241,7 @@ class CastsSpec extends FlatSpec with MockFactory {
 
     }
 
-    it should "cast to Unbound[Function[Option[T]]]" in {
+    it should "cast to Unbound[() => Option[T]]" in {
 
         val original = new Variable(Some(2) : Option[Int], "x")
         val converted = cast[Unbound[() => Option[Int]]](original)
@@ -249,7 +249,7 @@ class CastsSpec extends FlatSpec with MockFactory {
 
     }
 
-    "A value of type Function[Option[T]]" should "cast to Unbound[Function[Option[T]]]" in {
+    "A value of type () => Option[T]" should "cast to Unbound[() => Option[T]]" in {
 
         val original = () => Some(2)
         val converted = cast[Unbound[() => Option[Int]]](original)
@@ -341,7 +341,7 @@ class CastsSpec extends FlatSpec with MockFactory {
 
     }
 
-    "A value of type Unbound[Function[T]]" should "cast to Unbound[Function[Option[T]]]" in {
+    "A value of type Unbound[() => T]" should "cast to Unbound[() => Option[T]]" in {
 
         val original = unbound(() => 2)
         val converted = cast[Unbound[() => Option[Int]]](original)
