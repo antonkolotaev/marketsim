@@ -18,20 +18,15 @@ class CastsSpec extends FlatSpec with MockFactory {
     val C = 2
 
     def optionInt[T](x : T)(implicit c : Conversion[T, Option[Int]]) = {
-        assertResult(Some(C))(cast[Option[Int]](C))
+        assertResult(Some(C))(cast[Option[Int]](x))
     }
 
     def signalInt[T](x : T)(implicit c : Conversion[T, Signal[Int]]) = {
-        val converted = cast[Signal[Int]](C)
+        val converted = cast[Signal[Int]](x)
         assertResult(C)(converted())
     }
 
-    def signalOptionInt[T](x : T)(implicit c : Conversion[T, Signal[Option[Int]]]) = {
-        val converted = cast[Signal[Option[Int]]](C)
-        assertResult(Some(C))(converted())
-    }
-
-    def signalOptionInt[T](x : T, changes : List[Int])(implicit c : Conversion[T, Signal[Option[Int]]]) =
+    def signalOptionInt[T](x : T, changes : Int*)(implicit c : Conversion[T, Signal[Option[Int]]]) =
     {
         val converted = cast[Signal[Option[Int]]](x)
         val handler = mockFunction[Option[Int], Unit]("!")
@@ -42,36 +37,31 @@ class CastsSpec extends FlatSpec with MockFactory {
     }
 
     def functionInt[T](x : T)(implicit c : Conversion[T, () => Int]) = {
-        val converted = cast[() => Int](C)
+        val converted = cast[() => Int](x)
         assertResult(C)(converted())
     }
 
     def functionOptionInt[T](x : T)(implicit c : Conversion[T, () => Option[Int]]) = {
-        val converted = cast[() => Option[Int]](C)
+        val converted = cast[() => Option[Int]](x)
         assertResult(Some(C))(converted())
     }
 
     def unboundInt[T](x : T)(implicit c : Conversion[T, Unbound[Int]]) = {
-        val converted = cast[Unbound[Int]](C)
+        val converted = cast[Unbound[Int]](x)
         assertResult(C)(converted(ctx))
     }
 
     def unboundOptionInt[T](x : T)(implicit c : Conversion[T, Unbound[Option[Int]]]) = {
-        val converted = cast[Unbound[Option[Int]]](C)
+        val converted = cast[Unbound[Option[Int]]](x)
         assertResult(Some(C))(converted(ctx))
     }
 
     def unboundSignalInt[T](x : T)(implicit c : Conversion[T, Unbound[Signal[Int]]]) = {
-        val converted = cast[Unbound[Signal[Int]]](C)
+        val converted = cast[Unbound[Signal[Int]]](x)
         assertResult(C)(converted(ctx)())
     }
 
-    def unboundSignalOptionInt[T](x : T)(implicit c : Conversion[T, Unbound[Signal[Option[Int]]]]) = {
-        val converted = cast[Unbound[Signal[Option[Int]]]](C)
-        assertResult(Some(C))(converted(ctx)())
-    }
-
-    def unboundSignalOptionInt[T](x : T, changes : List[Int])(implicit c : Conversion[T, Unbound[Signal[Option[Int]]]]) = {
+    def unboundSignalOptionInt[T](x : T, changes : Int*)(implicit c : Conversion[T, Unbound[Signal[Option[Int]]]]) = {
         val converted = cast[Unbound[Signal[Option[Int]]]](x)
         val handler = mockFunction[Option[Int], Unit]("!")
         converted(ctx) += handler
@@ -84,12 +74,12 @@ class CastsSpec extends FlatSpec with MockFactory {
     }
 
     def unboundFunctionInt[T](x : T)(implicit c : Conversion[T, Unbound[() => Int]]) = {
-        val converted = cast[Unbound[() => Int]](C)
+        val converted = cast[Unbound[() => Int]](x)
         assertResult(C)(converted(ctx)())
     }
 
     def unboundFunctionOptionInt[T](x : T)(implicit c : Conversion[T, Unbound[() => Option[Int]]]) = {
-        val converted = cast[Unbound[() => Option[Int]]](C)
+        val converted = cast[Unbound[() => Option[Int]]](x)
         assertResult(Some(C))(converted(ctx)())
     }
 
@@ -118,7 +108,7 @@ class CastsSpec extends FlatSpec with MockFactory {
     "A value of type Signal[T]" should "cast to Signal[Option[T]]" in {
 
         val original = signalC
-        signalOptionInt(original, 3 :: Nil)
+        signalOptionInt(original, 3)
         original setAndCommit 3
     }
 
@@ -161,7 +151,7 @@ class CastsSpec extends FlatSpec with MockFactory {
     "A value of type Unbound[Signal[T]]" should "cast to Unbound[Signal[Option[T]]]" in {
 
         val original = unbound(signalC)
-        unboundSignalOptionInt(original, 3 :: Nil)
+        unboundSignalOptionInt(original, 3)
 
         original(ctx) setAndCommit 3
     }
