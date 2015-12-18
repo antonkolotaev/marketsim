@@ -30,6 +30,8 @@ class Variable[T](initialValue : T, label : String) extends Signal[T](initialVal
         commit()
     }
 
+    def :=! (x : T) = setAndCommit(x)
+
     def setWithoutCommit(x : T) = {
         if (updateValue(x))
             invalidate()
