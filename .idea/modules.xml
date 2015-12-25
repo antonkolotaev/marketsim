@@ -2,12 +2,16 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core.iml" filepath="$PROJECT_DIR$/.idea/modules/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core-build.iml" filepath="$PROJECT_DIR$/.idea/modules/core-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/generic.iml" filepath="$PROJECT_DIR$/.idea/modules/generic.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/generic-build.iml" filepath="$PROJECT_DIR$/.idea/modules/generic-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/macros.iml" filepath="$PROJECT_DIR$/.idea/modules/macros.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/macros-build.iml" filepath="$PROJECT_DIR$/.idea/modules/macros-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/marketsim.iml" filepath="$PROJECT_DIR$/.idea/modules/marketsim.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/marketsim-build.iml" filepath="$PROJECT_DIR$/.idea/modules/marketsim-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ops.iml" filepath="$PROJECT_DIR$/.idea/modules/ops.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ops-build.iml" filepath="$PROJECT_DIR$/.idea/modules/ops-build.iml" />
     </modules>
   </component>
 </project>
