@@ -37,7 +37,7 @@ package object ops {
 
     }
 
-    trait PlusDefined[A, B] {
+    trait PlusDefined[-A, -B] {
         type Ret
 
         def plus(a: A, b: B): Ret

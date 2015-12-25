@@ -1,12 +1,10 @@
 package marketsim
 package ops
 
+import marketsim.reactive._
 import memoization.memo
-import org.scalatest.FlatSpec
 
-import reactive._
-
-class PlusSpec extends FlatSpec
+class PlusSpec
 {
 
     def add[A,B](a : A, b : B)(implicit e : PlusDefined[A,B]) =
@@ -17,8 +15,6 @@ class PlusSpec extends FlatSpec
     @memo() def f[T](x : T) : Option[T] = Some(x)
 
     def g[T] : T => Option[T] = f[T]
-
-    import Casts._
 
     implicit def rightConversion[A, B](implicit c: Conversion[A, B], ev: PlusDefined[B, B]): PlusDefined[A, B] =
         new PlusDefined[A, B] {
@@ -86,6 +82,12 @@ class PlusSpec extends FlatSpec
             }
         }
     }
+
+    implicit class RichSignal[T : Numeric](x : Signal[T])
+    {
+        def + [Y : Numeric](y : Signal[Y])(implicit c : Conversion[T,Y]) = Binary(x,y,"+") { case (p,r) => implicitly[Numeric[Y]].plus(c.convert(p), r) }
+    }
+
 /*    "1 + 2" should "give 3" in assert(add(1,2) == 3)
     "1L + 2L" should "give 3L" in assert(add(1L,2L) == 3L)
     "1.0 + 2.0" should "give 3.0" in assert(add(1.0,2.0) == 3.0)
@@ -96,7 +98,7 @@ class PlusSpec extends FlatSpec
     val some1 = Some(1) : Option[Int]
     val some1L = Some(1L) : Option[Long]
     val some2 = Some(2) : Option[Int] */
-
+/*
     val c1 = implicitly[PlusDefined[Int, Option[Int]]]
     val c2 = implicitly[PlusDefined[Option[Int], Int]]
 
@@ -126,7 +128,7 @@ class PlusSpec extends FlatSpec
 
     val d7 = implicitly[PlusDefined[() => Int, () => Option[Int]]]
     val d8 = implicitly[PlusDefined[() => Option[Int], () => Int]]
-
+*/
     /*    "Some(1) + 2" should "give Some(3)" in assert(add(some1, 2) == Some(3))
     
         "1.0 + Some(2)" should "give Some(3.0)" in assert(add(1.0, some2) == Some(3.0))

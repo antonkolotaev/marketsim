@@ -35,6 +35,7 @@ object Scheduler {
         private var toCommit = Set.empty[marketsim.reactive.Variable[_]]
 
         def currentTime = t
+        def currentSourceId = current_source_id
 
         def schedule(actionTime: Time, handler: () => Unit) {
             schedule(actionTime, next_id, handler)
@@ -108,6 +109,8 @@ object Scheduler {
     }
 
     def currentTime = instance.value.get.currentTime
+
+    def eventSourceId = (currentTime, instance.value.get.currentSourceId)
 
     def commitAtStepEnd(v: marketsim.reactive.Variable[_]) =
         instance.value.get add v

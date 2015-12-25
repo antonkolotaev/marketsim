@@ -61,4 +61,19 @@ package object marketsim {
 
     implicit val zeroUSD = cents(0)
 
+    case class CachedFunction[T](f : () => T) extends (() => T)
+    {
+        private var lastT = Scheduler.eventSourceId
+
+        private var cachedValue = f()
+
+        def apply() = {
+            val currentT = Scheduler.eventSourceId
+            if (currentT != lastT) {
+                cachedValue = f()
+                lastT = currentT
+            }
+            cachedValue
+        }
+    }
 }
