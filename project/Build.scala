@@ -53,7 +53,7 @@ object MacMemoBuild extends Build {
                 "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
             ),
             parallelExecution in Test := false,
-            scalacOptions := Seq("-feature", "-language:implicitConversions"))
+            scalacOptions := Seq("-feature", "-language:implicitConversions", "-Xlog-implicits"))
     ).dependsOn(macros)
 
     lazy val generic = Project(

@@ -10,23 +10,23 @@ trait EnsureChanges extends FlatSpec with MockFactory
 
     val ctx = new Context {}
 
-    def ensureSignalOptionInt(converted : Signal[Option[Int]], initial : Int, changes : (() => Unit, Int)*) : Unit =
+    def ensureSignalOption[T](converted : Signal[Option[T]], initial : T, changes : (() => Unit, T)*) : Unit =
     {
-        val handler = mockFunction[Option[Int], Unit]("!")
+        val handler = mockFunction[Option[T], Unit]("!")
         converted += handler
 
         assertResult(Some(initial))(converted())
-        changes foreach { case (action, ch) => {
+        changes foreach { case (action, ch) =>
             handler expects Some(ch) once ()
             action()
             val actual = converted()
             assertResult(Some(ch))(actual)
-        } }
+        }
     }
 
-    def ensureSignalInt(converted : Signal[Int], initial : Int, changes : (() => Unit, Int)*) : Unit =
+    def ensureSignal[T](converted : Signal[T], initial : T, changes : (() => Unit, T)*) : Unit =
     {
-        val handler = mockFunction[Int, Unit]("!")
+        val handler = mockFunction[T, Unit]("!")
         converted += handler
 
         assertResult(initial)(converted())
@@ -37,7 +37,7 @@ trait EnsureChanges extends FlatSpec with MockFactory
         }
     }
 
-    def ensureFunctionOptionInt(converted : () => Option[Int], initial : Int, changes : (() => Unit, Int)*) : Unit =
+    def ensureFunctionOption[T](converted : () => Option[T], initial : T, changes : (() => Unit, T)*) : Unit =
     {
         assertResult(Some(initial))(converted())
         changes foreach { case (action, expected) =>
@@ -56,16 +56,9 @@ trait EnsureChanges extends FlatSpec with MockFactory
         }
     }
 
-    def ensureFunctionInt(converted : () => Int, initial : Int, changes : (() => Unit, Int)*) : Unit =
-    {
-        ensureFunction(converted, initial, changes : _*)
-    }
-
     import reactive._
 
-    def cast[To] = new {
-        def apply[From](x : From)(implicit c : Conversion[From, To]) : To = c convert x
-    }
+    import ScalarConversion._
 
     trait A_FunctionInt
     {
@@ -89,13 +82,15 @@ trait EnsureChanges extends FlatSpec with MockFactory
 
     trait A_SignalInt
     {
-        val A = new Variable(C, "x")
-        val someA = cast[Signal[Option[Int]]](A)
+        val a = new Variable(C, "x")
+        val A = a : Signal[Int]
+        val someA = A.as[Signal[Option[Int]]]
         val unboundA = unbound(A)
 
         someA += { x => }
 
-        def changeA(x : Int) = (() => A :=! x, x)
+        def changeA(x : Int) = (() => a :=! x, x)
+        def changeA[T](x : Int, expected : T) = (() => a :=! x, expected)
     }
 
     val D = 3
@@ -112,7 +107,7 @@ trait EnsureChanges extends FlatSpec with MockFactory
     trait B_SignalInt
     {
         val B = new Variable(D, "y")
-        val someB = cast[Signal[Option[Int]]](B)
+        val someB = B.as[Signal[Option[Int]]]
         val unboundB = unbound(B)
 
         someB += { x =>  }

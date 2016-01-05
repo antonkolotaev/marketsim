@@ -3,144 +3,250 @@ package marketsim
 class ConversionSpec extends EnsureChanges {
 
     import reactive._
-    import Conversion._
+    import ScalarConversion._
 
-    def optionInt[T](x : T)(implicit c : Conversion[T, Option[Int]]) = {
-        assertResult(Some(C))(x.as[Option[Int]])
+    case class option[R](initial : R) {
+        def apply[T](x: T)(implicit c: ConversionUnbound[T, Option[R]]) = {
+            assertResult(Some(initial))(x.as[Option[R]])
+        }
     }
 
-    def signalInt[T](x : T)(implicit c : Conversion[T, Signal[Int]]) = {
-        val converted = x.as[Signal[Int]]
-        assertResult(C)(converted())
+    case class signal[R](initial : R) {
+        def apply[T](x: T)(implicit c: ConversionUnbound[T, Signal[R]]) = {
+            val converted = x.as[Signal[R]]
+            assertResult(initial)(converted())
+        }
     }
 
-    def signalOptionInt[T](x : T, initial : Int, changes : (() => Unit, Int)*)
-                          (implicit c : Conversion[T, Signal[Option[Int]]]) =
-    {
-        val converted = x.as[Signal[Option[Int]]]
-        ensureSignalOptionInt(converted, initial, changes : _*)
+    case class signalOption[R](initial : R) {
+        def apply[T](x: T, changes: (() => Unit, R)*)
+                    (implicit c: ConversionUnbound[T, Signal[Option[R]]]) = {
+            val converted = x.as[Signal[Option[R]]]
+            ensureSignalOption(converted, initial, changes: _*)
+        }
     }
 
-    def functionInt[T](x : T, initial : Int, changes : (() => Unit, Int)*)
-                      (implicit c : Conversion[T, () => Int]) = {
-        val converted = x.as[() => Int]
-        ensureFunctionInt(converted, initial, changes : _*)
+    case class function[R](initial : R) {
+        def apply[T](x: T, changes: (() => Unit, R)*)
+                    (implicit c: ConversionUnbound[T, () => R]) = {
+            val converted = x.as[() => R]
+            ensureFunction(converted, initial, changes: _*)
+        }
     }
 
-    def functionOptionInt[T](x : T, initial : Int, changes : (() => Unit, Int)*)
-                            (implicit c : Conversion[T, () => Option[Int]]) = {
-        val converted = x.as[() => Option[Int]]
-        ensureFunctionOptionInt(converted, initial, changes : _*)
+    case class functionOption[R](initial: R) {
+        def apply[T](x: T, changes: (() => Unit, R)*)
+                    (implicit c: ConversionUnbound[T, () => Option[R]]) = {
+            val converted = x.as[() => Option[R]]
+            ensureFunctionOption(converted, initial, changes: _*)
+        }
     }
 
-    def unboundInt[T](x : T)(implicit c : Conversion[T, Unbound[Int]]) = {
-        val converted = x.as[Unbound[Int]]
-        assertResult(C)(converted(ctx))
+    case class unboundT[R](initial : R) {
+        def apply[T](x: T)(implicit c: ConversionUnbound[T, Unbound[Int]]) = {
+            val converted = x.as[Unbound[Int]]
+            assertResult(initial)(converted(ctx))
+        }
     }
 
-    def unboundOptionInt[T](x : T)(implicit c : Conversion[T, Unbound[Option[Int]]]) = {
-        val converted = x.as[Unbound[Option[Int]]]
-        assertResult(Some(C))(converted(ctx))
+    case class unboundOption[R](initial : R) {
+        def apply[T](x : T)(implicit c : ConversionUnbound[T, Unbound[Option[Int]]]) = {
+            val converted = x.as[Unbound[Option[Int]]]
+            assertResult(Some(initial))(converted(ctx))
+        }
     }
 
-    def unboundSignalInt[T](x : T, initial : Int, changes : (() => Unit, Int)*)
-                           (implicit c : Conversion[T, Unbound[Signal[Int]]]) = {
-        val converted = x.as[Unbound[Signal[Int]]]
-        val bound = converted(ctx)
+    case class unboundSignal[R](initial : R) {
+        def apply[T](x: T, changes: (() => Unit, R)*)
+                    (implicit c: ConversionUnbound[T, Unbound[Signal[R]]]) = {
+            val converted = x.as[Unbound[Signal[R]]]
+            val bound = converted(ctx)
 
-        ensureSignalInt(bound, initial, changes : _*)
+            ensureSignal(bound, initial, changes: _*)
+        }
     }
 
-    def unboundSignalOptionInt[T](x : T, initial : Int, changes : (() => Unit, Int)*)
-                                 (implicit c : Conversion[T, Unbound[Signal[Option[Int]]]]) = {
-        val converted = x.as[Unbound[Signal[Option[Int]]]]
-        val bound = converted(ctx)
+    case class unboundSignalOption[R](initial: R) {
+        def apply[T](x: T, changes: (() => Unit, R)*)
+                    (implicit c: ConversionUnbound[T, Unbound[Signal[Option[R]]]]) = {
+            val converted = x.as[Unbound[Signal[Option[R]]]]
+            val bound = converted(ctx)
 
-        ensureSignalOptionInt(bound, initial, changes : _*)
+            ensureSignalOption(bound, initial, changes: _*)
+        }
     }
 
-    def unboundFunctionInt[T](x : T, initial : Int, changes : (() => Unit, Int)*)
-                             (implicit c : Conversion[T, Unbound[() => Int]]) = {
-        val converted = x.as[Unbound[() => Int]]
-        val bound = converted(ctx)
+    case class unboundFunction[R](initial : R) {
+        def apply[T](x: T, changes: (() => Unit, R)*)
+                    (implicit c: ConversionUnbound[T, Unbound[() => R]]) = {
+            val converted = x.as[Unbound[() => R]]
+            val bound = converted(ctx)
 
-        ensureFunctionInt(bound, initial, changes : _*)
+            ensureFunction(bound, initial, changes: _*)
+        }
     }
 
-    def unboundFunctionOptionInt[T](x : T, initial : Int, changes : (() => Unit, Int)*)
-                                   (implicit c : Conversion[T, Unbound[() => Option[Int]]]) = {
-        val converted = x.as[Unbound[() => Option[Int]]]
-        val bound = converted(ctx)
+    case class unboundFunctionOption[R](initial: R) {
+        def apply[T](x: T, changes: (() => Unit, R)*)
+                    (implicit c: ConversionUnbound[T, Unbound[() => Option[R]]]) = {
+            val converted = x.as[Unbound[() => Option[R]]]
+            val bound = converted(ctx)
 
-        ensureFunctionOptionInt(bound, initial, changes : _*)
+            ensureFunctionOption(bound, initial, changes: _*)
+        }
     }
 
-    "A value of type T" should "x.as to Option[T]"  in optionInt(C)
-    it should "x.as to Signal[T]"                   in signalInt(C)
-    it should "x.as to Signal[Option[T]]"           in signalOptionInt(C,C)
-    it should "x.as to Function[T]"                 in functionInt(C,C)
-    it should "x.as to Function[Option[T]]"         in functionOptionInt(C,C)
-    it should "x.as to Unbound[T]"                  in unboundInt(C)
-    it should "x.as to Unbound[Option[T]]"          in unboundOptionInt(C)
-    it should "x.as to Unbound[Signal[T]]"          in unboundSignalInt(C,C)
-    it should "x.as to Unbound[Signal[Option[T]]]"  in unboundSignalOptionInt(C,C)
-    it should "x.as to Unbound[() => T]"            in unboundFunctionInt(C,C)
-    it should "x.as to Unbound[() => Option[T]]"    in unboundFunctionOptionInt(C,C)
+    "A value of type Int" should "cast to Option[Int]"  in option[Int](C)(C)
+    it should "cast to Option[Double]"                  in option[Double](C)(C)
+    it should "cast to Signal[Int]"                     in signal[Int](C)(C)
+    it should "cast to Signal[Double]"                  in signal[Double](C)(C)
+    it should "cast to Signal[Option[Int]]"           in signalOption[Int](C)(C)
+    it should "cast to Signal[Option[Double]]"           in signalOption[Double](C)(C)
+    it should "cast to Function[Int]"                 in function[Int](C)(C)
+    it should "cast to Function[Double]"                 in function[Double](C)(C)
+    it should "cast to Function[Option[Int]]"         in functionOption[Int](C)(C)
+    it should "cast to Function[Option[Double]]"         in functionOption[Double](C)(C)
+    it should "cast to Unbound[Int]"                  in unboundT[Int](C)(C)
+    it should "cast to Unbound[Double]"             in unboundT[Double](C)(C)
+    it should "cast to Unbound[Option[Int]]"          in unboundOption[Int](C)(C)
+    it should "cast to Unbound[Option[Double]]"          in unboundOption[Double](C)(C)
+    it should "cast to Unbound[Signal[Int]]"          in unboundSignal[Int](C)(C)
+    it should "cast to Unbound[Signal[Double]]"          in unboundSignal[Double](C)(C)
+    it should "cast to Unbound[Signal[Option[Int]]]"  in unboundSignalOption[Int](C)(C)
+    it should "cast to Unbound[Signal[Option[Double]]]"  in unboundSignalOption[Double](C)(C)
+    it should "cast to Unbound[() => Int]"            in unboundFunction[Int](C)(C)
+    it should "cast to Unbound[() => Double]"            in unboundFunction[Double](C)(C)
+    it should "cast to Unbound[() => Option[Int]]"    in unboundFunctionOption[Int](C)(C)
+    it should "cast to Unbound[() => Option[Double]]"    in unboundFunctionOption[Double](C)(C)
 
-    val someC = Some(C)
+    val someC = Some(C) : Option[Int]
 
-    "A value of type Option[T]" should "x.as to Signal[Option[T]]"  in signalOptionInt(someC,C)
-    it should "x.as to () => Option[T]"                             in functionOptionInt(someC,C)
-    it should "x.as to Unbound[Option[T]]"                          in unboundOptionInt(someC)
-    it should "x.as to Unbound[Signal[Option[T]]]"                  in unboundSignalOptionInt(someC,C)
-    it should "x.as to Unbound[() => Option[T]]"                    in unboundFunctionOptionInt(someC,C)
+    "A value of type Option[Int]" should "cast to Signal[Option[Int]]"  in signalOption[Int](C)(someC)
+    it should "cast to Signal[Option[Double]]"  in signalOption[Double](C)(someC)
+    it should "cast to () => Option[Int]"                             in functionOption[Int](C)(someC)
+    it should "cast to () => Option[Double]"                             in functionOption[Double](C)(someC)
+    it should "cast to Unbound[Option[Int]]"                          in unboundOption[Int](C)(someC)
+    it should "cast to Unbound[Option[Double]]"                          in unboundOption[Double](C)(someC)
+    it should "cast to Unbound[Signal[Option[Int]]]"                  in unboundSignalOption[Int](C)(someC)
+    it should "cast to Unbound[Signal[Option[Double]]]"                  in unboundSignalOption[Double](C)(someC)
+    it should "cast to Unbound[() => Option[Int]]"                    in unboundFunctionOption[Int](C)(someC)
+    it should "cast to Unbound[() => Option[Double]]"                    in unboundFunctionOption[Double](C)(someC)
 
-    "A value of type Signal[T]" should "x.as to Signal[Option[T]]" in new A_SignalInt { signalOptionInt(A,C, changeA(3)) }
+    "A value of type Signal[Int]" should "cast to Signal[Option[Int]]" in new A_SignalInt { signalOption[Int](C)(A, changeA(3)) }
+    it should "cast to Signal[Option[Double]]" in new A_SignalInt { signalOption[Double](C)(A, changeA(3, 3.0)) }
+    it should "cast to Function[Int]"                 in new A_SignalInt { function[Int](C)(A,changeA(4)) }
+    it should "cast to Function[Double]"                 in new A_SignalInt { function[Double](C)(A,changeA(4, 4.0)) }
+    it should "cast to Function[Option[Int]]"         in new A_SignalInt { functionOption[Int](C)(A, changeA(5)) }
+    it should "cast to Function[Option[Double]]"         in new A_SignalInt { functionOption[Double](C)(A, changeA(5, 5.0)) }
+    it should "cast to Unbound[Signal[Int]]"          in new A_SignalInt { unboundSignal[Int](C)(A,changeA(6)) }
+    it should "cast to Unbound[Signal[Double]]"          in new A_SignalInt { unboundSignal[Double](C)(A,changeA(6,6.0)) }
+    it should "cast to Unbound[Signal[Option[Int]]]"  in new A_SignalInt { unboundSignalOption[Int](C)(A,changeA(7)) }
+    it should "cast to Unbound[Signal[Option[Double]]]"  in new A_SignalInt { unboundSignalOption[Double](C)(A,changeA(7,7.0)) }
+    it should "cast to Unbound[() => Int]"            in new A_SignalInt { unboundFunction[Int](C)(A,changeA(8)) }
+    it should "cast to Unbound[() => Double]"            in new A_SignalInt { unboundFunction[Double](C)(A,changeA(8,8.0)) }
+    it should "cast to Unbound[() => Option[Int]]"    in new A_SignalInt { unboundFunctionOption[Int](C)(A,changeA(9)) }
+    it should "cast to Unbound[() => Option[Double]]"    in new A_SignalInt { unboundFunctionOption[Double](C)(A,changeA(9,9.0)) }
 
-    it should "x.as to Function[T]"                 in new A_SignalInt { functionInt(A,C, changeA(4)) }
-    it should "x.as to Function[Option[T]]"         in new A_SignalInt { functionOptionInt(A,C, changeA(5)) }
-    it should "x.as to Unbound[Signal[T]]"          in new A_SignalInt { unboundSignalInt(A,C, changeA(6)) }
-    it should "x.as to Unbound[Signal[Option[T]]]"  in new A_SignalInt { unboundSignalOptionInt(A,C, changeA(7)) }
-    it should "x.as to Unbound[() => T]"            in new A_SignalInt { unboundFunctionInt(A,C, changeA(8)) }
-    it should "x.as to Unbound[() => Option[T]]"    in new A_SignalInt { unboundFunctionOptionInt(A,C, changeA(9)) }
+    "A value of type () => Int" should "cast to () => Option[Int]"  in new A_FunctionInt { functionOption[Int](C)(A,changeA(10)) }
+    it should "cast to () => Option[Double]"  in new A_FunctionInt { functionOption[Double](C)(A,changeAx(10, 10.0)) }
+    it should "cast to Unbound[() => Int]"                        in new A_FunctionInt { unboundFunction[Int](C)(A,changeA(11)) }
+    it should "cast to Unbound[() => Double]"                        in new A_FunctionInt { unboundFunction[Double](C)(A,changeAx(11, 11.0)) }
+    it should "cast to Unbound[() => Option[Int]]"                in new A_FunctionInt { unboundFunctionOption[Int](C)(A, changeA(12)) }
+    it should "cast to Unbound[() => Option[Double]]"                in new A_FunctionInt { unboundFunctionOption[Double](C)(A, changeAx(12, 12.0)) }
 
-    "A value of type () => T" should "x.as to () => Option[T]"  in new A_FunctionInt { functionOptionInt(A,C, changeA(10)) }
-    it should "x.as to Unbound[() => T]"                        in new A_FunctionInt { unboundFunctionInt(A,C, changeA(11)) }
-    it should "x.as to Unbound[() => Option[T]]"                in new A_FunctionInt { unboundFunctionOptionInt(A,C, changeA(12)) }
-
-    "A value of type Signal[Option[T]]" should "x.as to () => Option[T]" in new A_SignalInt {//
-        functionOptionInt(someA,C, changeA(13))
+    "A value of type Signal[Option[Int]]" should "cast to () => Option[Int]" in new A_SignalInt {
+        functionOption[Int](C)(someA,changeA(13))
     }
+/*    it should "cast to () => Option[Double]" in new A_SignalInt {
+        functionOption[Double](C)(someA,changeA(13, 13.0))
+    }*/
 
-    it should "x.as to Unbound[Signal[Option[T]]]" in new A_SignalInt { unboundSignalOptionInt(someA,C, changeA(14)) }
-    it should "x.as to Unbound[() => Option[T]]" in new A_SignalInt { unboundFunctionOptionInt(someA,C, changeA(15)) }
+    it should "cast to Unbound[Signal[Option[Int]]]" in new A_SignalInt { unboundSignalOption[Int](C)(someA,changeA(14)) }
+    it should "cast to Unbound[() => Option[Int]]" in new A_SignalInt { unboundFunctionOption[Int](C)(someA,changeA(15)) }
 
-    "A value of type () => Option[T]" should "x.as to Unbound[() => Option[T]]" in new A_FunctionInt {
-        unboundFunctionOptionInt(someA,C, changeA(16))
+    "A value of type () => Option[Int]" should "cast to Unbound[() => Option[Int]]" in new A_FunctionInt {
+        unboundFunctionOption[Int](C)(someA,changeA(16))
     }
 
     val unboundC = unbound(C)
 
-    "A value of type Unbound[T]" should "x.as to Unbound[Option[T]]" in unboundOptionInt(unboundC)
-    it should "x.as to Unbound[Signal[T]]" in unboundSignalInt(unboundC,C)
-    it should "x.as to Unbound[Signal[Option[T]]]" in unboundSignalOptionInt(unboundC,C)
-    it should "x.as to Unbound[() => T]" in unboundFunctionInt(unboundC,C)
-    it should "x.as to Unbound[() => Option[T]]" in unboundFunctionOptionInt(unboundC,C)
+    "A value of type Unbound[Int]" should "cast to Unbound[Option[Int]]" in unboundOption[Int](C)(unboundC)
+    it should "cast to Unbound[Signal[Int]]" in unboundSignal[Int](C)(unboundC)
+    it should "cast to Unbound[Signal[Option[Int]]]" in unboundSignalOption[Int](C)(unboundC)
+    it should "cast to Unbound[() => Int]" in unboundFunction[Int](C)(unboundC)
+    it should "cast to Unbound[() => Option[Int]]" in unboundFunctionOption[Int](C)(unboundC)
 
     val unboundOptionC = unbound(Some(2))
 
-    "A value of type Unbound[Option[T]]" should "x.as to Unbound[Signal[Option[T]]]" in unboundSignalOptionInt(unboundOptionC,C)
-    it should "x.as to Unbound[() => Option[T]]" in unboundFunctionOptionInt(unboundOptionC,C)
+    "A value of type Unbound[Option[Int]]" should "cast to Unbound[Signal[Option[Int]]]" in unboundSignalOption[Int](C)(unboundOptionC)
+    it should "cast to Unbound[() => Option[Int]]" in unboundFunctionOption[Int](C)(unboundOptionC)
 
-    "A value of type Unbound[Signal[T]]" should "x.as to Unbound[Signal[Option[T]]]" in new A_SignalInt {
-        unboundSignalOptionInt(unbound(A),C, changeA(17))
+    "A value of type Unbound[Signal[Int]]" should "cast to Unbound[Signal[Option[Int]]]" in new A_SignalInt {
+        unboundSignalOption[Int](C)(unbound(A),changeA(17))
     }
 
-    it should "x.as to Unbound[() => T]" in new A_SignalInt { unboundFunctionInt(unboundA,C, changeA(18)) }
-    it should "x.as to Unbound[() => Option[T]]" in new A_SignalInt { unboundSignalOptionInt(unboundA,C, changeA(19)) }
+    it should "cast to Unbound[() => Int]" in new A_SignalInt { unboundFunction[Int](C)(unboundA, changeA(18)) }
+    it should "cast to Unbound[() => Option[Int]]" in new A_SignalInt { unboundSignalOption[Int](C)(unboundA,changeA(19)) }
 
-    "A value of type Unbound[() => T]" should "x.as to Unbound[() => Option[T]]" in new A_FunctionInt {
-        unboundFunctionOptionInt(unboundA,C, changeA(20))
+    "A value of type Unbound[() => Int]" should "cast to Unbound[() => Option[Int]]" in new A_FunctionInt {
+        unboundFunctionOption[Int](C)(unboundA,changeA(20))
     }
+
+    def optCast[R] = new { def apply[T](x : T)(implicit c : ConversionOpt[T,R]) = c convert x }
+
+    "Int" should "optCast to Option[Double]" in assertResult(optCast[Option[Double]](1))(Some(1.0))
+    "Int" should "optCast to Double" in assertResult(optCast[Double](1))(1.0)
+    "Option[Int]" should "optCast to Option[Double]" in assertResult(optCast[Option[Double]](Some(1)))(Some(1.0))
+
+    def fsCast[R] = new { def apply[T](x : T)(implicit c : ConversionFuncSig[T,R]) = c convert x }
+
+    "Int" should "fsCast to Option[Double]" in assertResult(fsCast[Option[Double]](1))(Some(1.0))
+    "Int" should "fsCast to Double" in assertResult(fsCast[Double](1))(1.0)
+    "Option[Int]" should "fsCast to Option[Double]" in assertResult(fsCast[Option[Double]](Some(1)))(Some(1.0))
+
+    "() => Int" should "fsCast to () => Option[Double]" in
+        assertResult(fsCast[() => Option[Double]](() => 1).apply())(Some(1.0))
+
+    "() => Int" should "fsCast to () => Double" in
+        assertResult(fsCast[() => Double](() => 1).apply())(1.0)
+
+    "() => Option[Int]" should "fsCast to () => Option[Double]" in
+        assertResult(fsCast[() => Option[Double]](() => Some(1)).apply())(Some(1.0))
+
+    "Int" should "fsCast to () => Option[Double]" in
+        assertResult(fsCast[() => Option[Double]](1).apply())(Some(1.0))
+
+    "Int" should "fsCast to () => Double" in
+        assertResult(fsCast[() => Double](1).apply())(1.0)
+
+    "Option[Int]" should "fsCast to () => Option[Double]" in
+        assertResult(fsCast[() => Option[Double]](Some(1)).apply())(Some(1.0))
+
+    "Signal[Int]" should "fsCast to Signal[Option[Double]]" in
+        assertResult(fsCast[Signal[Option[Double]]](Constant(1)).apply())(Some(1.0))
+
+    "Signal[Int]" should "fsCast to Signal[Double]" in
+        assertResult(fsCast[Signal[Double]](Constant(1)).apply())(1.0)
+
+    "Signal[Option[Int]]" should "fsCast to Signal[Option[Double]]" in
+        assertResult(fsCast[Signal[Option[Double]]](Constant(Some(1))).apply())(Some(1.0))
+
+    "Int" should "fsCast to Signal[Option[Double]]" in
+        assertResult(fsCast[() => Option[Double]](1).apply())(Some(1.0))
+
+    "Int" should "fsCast to Signal[Double]" in
+        assertResult(fsCast[Signal[Double]](1).apply())(1.0)
+
+    "Option[Int]" should "fsCast to Signal[Option[Double]]" in
+        assertResult(fsCast[Signal[Option[Double]]](Some(1)).apply())(Some(1.0))
+
+    "Signal[Int]" should "fsCast to () => Option[Double]" in
+        assertResult(fsCast[() => Option[Double]](Constant(1)).apply())(Some(1.0))
+
+    "Signal[Int]" should "fsCast to () => Double" in
+        assertResult(fsCast[() => Double](Constant(1)).apply())(1.0)
+
+    "Signal[Option[Int]]" should "fsCast to () => Option[Double]" in
+        assertResult(fsCast[() => Option[Double]](Constant(Some(1))).apply())(Some(1.0))
 
 }

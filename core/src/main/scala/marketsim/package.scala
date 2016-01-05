@@ -76,4 +76,9 @@ package object marketsim {
             cachedValue
         }
     }
+
+    implicit class Rich[T](x : T)
+    {
+        def as[R](implicit c : ConversionUnbound[T, R]) = c convert x
+    }
 }
