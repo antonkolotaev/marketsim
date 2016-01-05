@@ -36,24 +36,14 @@ trait ToFuncSig {
     ConversionFuncSig[reactive.Signal[T], reactive.Signal[R]] =
         new ConversionFuncSig[reactive.Signal[T], reactive.Signal[R]] {
 
-            @memo
-            def impl(x: reactive.Signal[T])(implicit m : Manifest[R]) : reactive.Signal[R] = {
-                reactive.Unary(x,s"$x.as[Signal[$m]]"){ s.convert }
-            }
-
-            def convert(x: reactive.Signal[T]) = impl(x)
+            def convert(x: reactive.Signal[T]) = reactive.Unary(x,s"$x.as[Signal[$m]]"){ s.convert }
         }
 
     implicit def fsScalarToSignal[T,R](implicit s : ConversionOpt[T,R],
                                        m : Manifest[R]): ConversionFuncSig[T, reactive.Signal[R]] =
         new ConversionFuncSig[T, reactive.Signal[R]] {
 
-            @memo
-            def impl(x: T)(implicit m : Manifest[R]) : reactive.Signal[R] = {
-                reactive.Constant(s convert x)
-            }
-
-            def convert(x: T) = impl(x)
+            def convert(x: T) = reactive.Constant(s convert x)
         }
 
     implicit def fsSignalToFunction[T,R](implicit s : ConversionOpt[T,R],

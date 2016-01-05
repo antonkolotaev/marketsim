@@ -20,6 +20,8 @@ object GlobalCache
             (caches getOrElseUpdate (bucketId, new MethodCache[V])).asInstanceOf[MethodCache[V]]
 
         override def toString = caches map { case (k,v) => s"$k : $v" } mkString "\n"
+
+        def clear() : Unit = { caches.clear() }
     }
 
 

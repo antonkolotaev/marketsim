@@ -1,11 +1,20 @@
 package marketsim
 
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.FlatSpec
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Suite}
 
 package object reactive {
 
-    trait TestBase extends FlatSpec with MockFactory {
+    trait CleanMemo extends BeforeAndAfterEach
+    { self : Suite =>
+
+        override def beforeEach() {
+            println(this)
+            memoization.GlobalCache.Builder clear ()
+        }
+    }
+
+    trait TestBase extends FlatSpec with MockFactory with CleanMemo {
         def variable[T](initialValue: T) = new {
 
             class Var extends Variable(initialValue, initialValue.toString)

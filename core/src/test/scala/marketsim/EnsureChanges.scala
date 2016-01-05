@@ -4,7 +4,7 @@ import marketsim.reactive.Signal
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 
-trait EnsureChanges extends FlatSpec with MockFactory
+trait EnsureChanges extends FlatSpec with MockFactory with reactive.CleanMemo
 {
     val C = 2
 

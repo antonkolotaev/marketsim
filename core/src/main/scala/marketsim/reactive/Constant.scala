@@ -1,10 +1,18 @@
 package marketsim.reactive
 
-case class Constant[T](x : T) extends Signal[T](x)
+import memoization.memo
+
+class Constant[T](x : T) extends Signal[T](x)
 {
     def inputs = Nil
 
     def validate(notifyExternal : Boolean) {}
 
     override def toString() = x.toString
+}
+
+object Constant
+{
+    @memo
+    def apply[T](x : T) : Constant[T] = new Constant[T](x)
 }

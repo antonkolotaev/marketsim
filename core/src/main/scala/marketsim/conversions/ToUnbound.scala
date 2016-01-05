@@ -16,11 +16,7 @@ trait ToUnbound {
                                               m : Manifest[R]): ConversionUnbound[T, Unbound[R]] =
         new ConversionUnbound[T, Unbound[R]]
         {
-            @memo
-            def impl(x: T)(implicit m : Manifest[R]) : Unbound[R] = {
-                (ctx : Context) => s convert x
-            }
-            def convert(x: T) = impl(x)
+            def convert(x: T) = unbound(s convert x)
         }
 
     implicit def unboundId[T,R](implicit s : ConversionFuncSig[T,R],

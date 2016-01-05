@@ -1,5 +1,7 @@
 package marketsim.reactive
 
+import memoization.memo
+
 /**
  * Computable observable for a conditional expression
  * @param condition -- input observable of boolean type for the condition
@@ -7,9 +9,9 @@ package marketsim.reactive
  * @param elseBranch -- input observable for negative case
  * @tparam Result -- type of values involved
  */
-case class IfThenElse[Result](condition  : Signal[Boolean],
-                              ifBranch   : Signal[Result],
-                              elseBranch : Signal[Result])
+class IfThenElse[Result](condition  : Signal[Boolean],
+                         ifBranch   : Signal[Result],
+                         elseBranch : Signal[Result])
     extends Signal[Result](if (condition()) ifBranch() else elseBranch())
 {
     private var cachedCondition = condition()
@@ -51,4 +53,14 @@ case class IfThenElse[Result](condition  : Signal[Boolean],
     }
 
     override def toString() = s"if $condition then $ifBranch else $elseBranch"
+}
+
+object IfThenElse {
+
+    @memo
+    def apply[Result](condition  : Signal[Boolean],
+                      ifBranch   : Signal[Result],
+                      elseBranch : Signal[Result]) : IfThenElse[Result] =
+        new IfThenElse[Result](condition, ifBranch, elseBranch)
+
 }
