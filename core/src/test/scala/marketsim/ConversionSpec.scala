@@ -3,7 +3,6 @@ package marketsim
 class ConversionSpec extends EnsureChanges {
 
     import reactive._
-    import ScalarConversion._
 
     case class option[R](initial : R) {
         def apply[T](x: T)(implicit c: ConversionUnbound[T, Option[R]]) = {
@@ -95,6 +94,8 @@ class ConversionSpec extends EnsureChanges {
             ensureFunctionOption(bound, initial, changes: _*)
         }
     }
+
+    import conversions._
 
     "A value of type Int" should "cast to Option[Int]"  in option[Int](C)(C)
     it should "cast to Option[Double]"                  in option[Double](C)(C)

@@ -58,8 +58,6 @@ trait EnsureChanges extends FlatSpec with MockFactory
 
     import reactive._
 
-    import ScalarConversion._
-
     trait A_FunctionInt
     {
         var V = C
@@ -79,6 +77,8 @@ trait EnsureChanges extends FlatSpec with MockFactory
         def changeA(x : Double) = (() => V = x, x)
         def changeAx[Y](x : Double, expected : Y) = (() => V = x, expected)
     }
+
+    import conversions._
 
     trait A_SignalInt
     {
