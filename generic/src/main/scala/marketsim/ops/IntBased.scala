@@ -20,8 +20,6 @@ object overloads
 {
     import reactive._
 
-    def const[T](x : T) = new Variable[T](x, x.toString)
-
     implicit val IntIsIntBased = new IntBased[Int] {
         def plus(x : Int, y : Int) = x + y
         def minus(x : Int, y : Int) = x - y
@@ -54,9 +52,9 @@ object overloads
         def + (y : Option[T]) =
             y map { z => ev.plus(x,z) }
         def + (y : reactive.Signal[T]) =
-            reactive.Binary(const(x), y, "+") { case (a,b) => ev.plus(a,b) }
+            reactive.Binary(reactive.Constant(x), y, "+") { case (a,b) => ev.plus(a,b) }
         def + (y : reactive.Signal[Option[T]])(implicit d : Manifest[T]) =
-            reactive.Binary(const(x), y, "+") { case (a,b) => b map { z => ev.plus(a,z) } }
+            reactive.Binary(reactive.Constant(x), y, "+") { case (a,b) => b map { z => ev.plus(a,z) } }
         def + (y : () => T) =
             () => { ev.plus(x, y()) }
         def + (y : () => Option[T])(implicit d : Manifest[T]) =

@@ -81,4 +81,18 @@ package object marketsim {
     {
         def as[R](implicit c : ConversionUnbound[T, R]) = c convert x
     }
+
+    object Const {
+        @memo
+        def apply[T](x : T) : (() => T) = new (() => T) {
+            def apply() = x
+        }
+    }
+
+    object Compose {
+        @memo
+        def apply[T,R](f : () => T, g : T => R) : (() => R) = new (() => R) {
+            def apply() = g(f())
+        }
+    }
 }

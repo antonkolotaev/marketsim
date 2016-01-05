@@ -1,8 +1,6 @@
 package marketsim
 package conversions
 
-import memoization.memo
-
 trait ToFuncSig {
 
     implicit def fsIdScalar[T,R](implicit s : ConversionOpt[T,R]): ConversionFuncSig[T, R] =
@@ -15,21 +13,13 @@ trait ToFuncSig {
     implicit def fsScalarToFunction[T,R](implicit s : ConversionOpt[T,R], m : Manifest[R]): ConversionFuncSig[T, () => R] =
         new ConversionFuncSig[T, () => R]
         {
-            def convert(x: T) = impl(x)
-
-            @memo
-            def impl(x : T)(implicit m : Manifest[R]) : () => R = () => s convert x
+            def convert(x: T) = Compose(Const(x), s.convert)
         }
 
     implicit def fsIdFunction[T,R](implicit s : ConversionOpt[T,R], m : Manifest[R]): ConversionFuncSig[() => T, () => R] =
         new ConversionFuncSig[() => T, () => R] {
 
-            @memo
-            def impl(x: () => T)(implicit m : Manifest[R]) : () => R = {
-                () => s convert x()
-            }
-
-            def convert(x: () => T) = impl(x)
+            def convert(x: () => T) = Compose(x, s.convert)
         }
 
     implicit def fsIdSignal[T,R](implicit s : ConversionOpt[T,R], m : Manifest[R]):
@@ -50,12 +40,7 @@ trait ToFuncSig {
                                          m : Manifest[R]): ConversionFuncSig[reactive.Signal[T], () => R] =
         new ConversionFuncSig[reactive.Signal[T], () => R]
         {
-            @memo
-            def impl(x: reactive.Signal[T])(implicit m : Manifest[R]) : () => R = {
-                () => s convert x()
-            }
-
-            def convert(x: reactive.Signal[T]) = impl(x)
+            def convert(x: reactive.Signal[T]) = Compose(x, s.convert)
         }
 
 
