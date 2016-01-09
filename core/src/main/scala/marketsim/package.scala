@@ -89,6 +89,15 @@ package object marketsim {
         }
     }
 
+    implicit class RichSignalOption[T](x : reactive.Signal[Option[T]])
+    {
+        @memo
+        def isSome(implicit m : Manifest[T]) : reactive.Signal[Boolean] = reactive.Unary(x, s"$x.isSome") { _.nonEmpty }
+
+        @memo
+        def getSome(implicit m : Manifest[T]) : reactive.Signal[T] = reactive.Unary(x, s"$x.getSome") { _.get }
+    }
+
     object Const {
         @memo
         def apply[T](x : T) : (() => T) = new (() => T) {
