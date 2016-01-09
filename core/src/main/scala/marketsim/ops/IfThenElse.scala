@@ -19,9 +19,6 @@ object IfThenElse {
         reactive.IfThenElse(condition, thenBranch, elseBranch)
     }
 
-    def IsSome[T](x : reactive.Signal[Option[T]])(implicit m : Manifest[T]) = reactive.Unary(x, s"$x.IsSome") { _.nonEmpty }
-    def GetSome[T](x : reactive.Signal[Option[T]])(implicit m : Manifest[T]) = reactive.Unary(x, s"$x.IsSome") { _.get }
-
     def SignalOpt[T](condition  : reactive.Signal[Option[Boolean]],
                      thenBranch : reactive.Signal[Option[T]],
                      elseBranch : reactive.Signal[Option[T]])

@@ -13,9 +13,7 @@ class ConversionSpec extends EnsureChanges {
 
     case class signal[R](initial : R) {
         def apply[T](x: T)(implicit c: ConversionUnbound[T, Signal[R]]) = {
-            val converted = x.as[Signal[R]]
-            val converted2 = x.as[Signal[R]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Signal[R]]
             assertResult(initial)(converted())
         }
     }
@@ -23,9 +21,7 @@ class ConversionSpec extends EnsureChanges {
     case class signalOption[R](initial : R) {
         def apply[T](x: T, changes: (() => Unit, R)*)
                     (implicit c: ConversionUnbound[T, Signal[Option[R]]]) = {
-            val converted = x.as[Signal[Option[R]]]
-            val converted2 = x.as[Signal[Option[R]]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Signal[Option[R]]]
             ensureSignalOption(converted, initial, changes: _*)
         }
     }
@@ -33,9 +29,7 @@ class ConversionSpec extends EnsureChanges {
     case class function[R](initial : R) {
         def apply[T](x: T, changes: (() => Unit, R)*)
                     (implicit c: ConversionUnbound[T, () => R]) = {
-            val converted = x.as[() => R]
-            val converted2 = x.as[() => R]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[() => R]
             ensureFunction(converted, initial, changes: _*)
         }
     }
@@ -43,27 +37,21 @@ class ConversionSpec extends EnsureChanges {
     case class functionOption[R](initial: R) {
         def apply[T](x: T, changes: (() => Unit, R)*)
                     (implicit c: ConversionUnbound[T, () => Option[R]]) = {
-            val converted = x.as[() => Option[R]]
-            val converted2 = x.as[() => Option[R]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[() => Option[R]]
             ensureFunctionOption(converted, initial, changes: _*)
         }
     }
 
     case class unboundT[R](initial : R) {
         def apply[T](x: T)(implicit c: ConversionUnbound[T, Unbound[Int]]) = {
-            val converted = x.as[Unbound[Int]]
-            val converted2 = x.as[Unbound[Int]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Unbound[Int]]
             assertResult(initial)(converted(ctx))
         }
     }
 
     case class unboundOption[R](initial : R) {
         def apply[T](x : T)(implicit c : ConversionUnbound[T, Unbound[Option[Int]]]) = {
-            val converted = x.as[Unbound[Option[Int]]]
-            val converted2 = x.as[Unbound[Option[Int]]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Unbound[Option[Int]]]
             assertResult(Some(initial))(converted(ctx))
         }
     }
@@ -71,9 +59,7 @@ class ConversionSpec extends EnsureChanges {
     case class unboundSignal[R](initial : R) {
         def apply[T](x: T, changes: (() => Unit, R)*)
                     (implicit c: ConversionUnbound[T, Unbound[Signal[R]]]) = {
-            val converted = x.as[Unbound[Signal[R]]]
-            val converted2 = x.as[Unbound[Signal[R]]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Unbound[Signal[R]]]
             val bound = converted(ctx)
 
             ensureSignal(bound, initial, changes: _*)
@@ -83,9 +69,7 @@ class ConversionSpec extends EnsureChanges {
     case class unboundSignalOption[R](initial: R) {
         def apply[T](x: T, changes: (() => Unit, R)*)
                     (implicit c: ConversionUnbound[T, Unbound[Signal[Option[R]]]]) = {
-            val converted = x.as[Unbound[Signal[Option[R]]]]
-            val converted2 = x.as[Unbound[Signal[Option[R]]]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Unbound[Signal[Option[R]]]]
             val bound = converted(ctx)
 
             ensureSignalOption(bound, initial, changes: _*)
@@ -95,9 +79,7 @@ class ConversionSpec extends EnsureChanges {
     case class unboundFunction[R](initial : R) {
         def apply[T](x: T, changes: (() => Unit, R)*)
                     (implicit c: ConversionUnbound[T, Unbound[() => R]]) = {
-            val converted = x.as[Unbound[() => R]]
-            val converted2 = x.as[Unbound[() => R]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Unbound[() => R]]
             val bound = converted(ctx)
 
             ensureFunction(bound, initial, changes: _*)
@@ -107,9 +89,7 @@ class ConversionSpec extends EnsureChanges {
     case class unboundFunctionOption[R](initial: R) {
         def apply[T](x: T, changes: (() => Unit, R)*)
                     (implicit c: ConversionUnbound[T, Unbound[() => Option[R]]]) = {
-            val converted = x.as[Unbound[() => Option[R]]]
-            val converted2 = x.as[Unbound[() => Option[R]]]
-            assert(converted eq converted2)
+            val converted = x.asTestRefEq[Unbound[() => Option[R]]]
             val bound = converted(ctx)
 
             ensureFunctionOption(bound, initial, changes: _*)

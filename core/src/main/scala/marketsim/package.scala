@@ -80,6 +80,13 @@ package object marketsim {
     implicit class Rich[T](x : T)
     {
         def as[R](implicit c : ConversionUnbound[T, R]) = c convert x
+
+        def asTestRefEq[R <: AnyRef](implicit c : ConversionUnbound[T, R]) = {
+            val converted = as[R]
+            val converted2 = as[R]
+            assert(converted eq converted2)
+            converted
+        }
     }
 
     object Const {
