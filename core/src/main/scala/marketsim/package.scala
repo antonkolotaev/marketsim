@@ -6,7 +6,7 @@ package object marketsim {
 
     type Unbound[T] = Context => T
 
-    @memo def unbound[T](x : T)(implicit m : Manifest[T]) : Context => T = (ctx : Context) => x
+    @memo def unbound[T](x : T) : Context => T = (ctx : Context) => x
 
     case class Time(x: Long) {
         def <(other: Time) = x < other.x
@@ -93,6 +93,13 @@ package object marketsim {
         @memo
         def apply[T,R](f : () => T, g : T => R) : (() => R) = new (() => R) {
             def apply() = g(f())
+        }
+    }
+
+    object Compose1 {
+        @memo
+        def apply[S,T,R](f : S => T, g : T => R) : (S => R) = new (S => R) {
+            def apply(x : S) = g(f(x))
         }
     }
 }

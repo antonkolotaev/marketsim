@@ -16,7 +16,7 @@ trait ToUnbound {
                                               m : Manifest[R]): ConversionUnbound[T, Unbound[R]] =
         new ConversionUnbound[T, Unbound[R]]
         {
-            val convert = (x: T) => unbound(s convert x)
+            val convert = Compose1(s.convert, unbound[R])
         }
 
     implicit def unboundId[T,R](implicit s : ConversionFuncSig[T,R],
