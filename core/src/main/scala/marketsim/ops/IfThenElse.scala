@@ -1,6 +1,8 @@
 package marketsim
 package ops
 
+import memoization.memo
+
 object IfThenElse {
 
     def Opt[T](condition  : Option[Boolean],
@@ -12,39 +14,39 @@ object IfThenElse {
     }
 
     def Signal[T](condition  : reactive.Signal[Boolean],
-                  thenBranch : reactive.Signal[T],
-                  elseBranch : reactive.Signal[T])
-                 (implicit m : Manifest[T]) =
-    {
-        reactive.IfThenElse(condition, thenBranch, elseBranch)
-    }
+                  thenBranch : reactive.Signal[T])
+                 (implicit m : Manifest[T]) = new
+        {
+            def Else(elseBranch : reactive.Signal[T]) =
+                reactive.IfThenElse(condition, thenBranch, elseBranch)
+        }
 
     def SignalOpt[T](condition  : reactive.Signal[Option[Boolean]],
-                     thenBranch : reactive.Signal[Option[T]],
-                     elseBranch : reactive.Signal[Option[T]])
-                    (implicit m : Manifest[T]) =
+                     thenBranch : reactive.Signal[Option[T]])
+                    (implicit m : Manifest[T]) = new
     {
-        reactive.IfThenElse(IsSome(condition),
-            Signal(GetSome(condition), thenBranch, elseBranch),
-            reactive.Constant(None : Option[T]))
+        def Else(elseBranch : reactive.Signal[Option[T]]) =
+            reactive.IfThenElse(condition.isSome,
+                Signal(condition.getSome, thenBranch).Else(elseBranch),
+                reactive.Constant(None : Option[T]))
     }
 
-    case class Func[T](condition  : () => Boolean,
-                       thenBranch : () => T,
-                       elseBranch : () => T)
-                      (implicit m : Manifest[T]) extends (() => T)
+    def Func[T](condition  : () => Boolean,
+                thenBranch : () => T)
+                (implicit m : Manifest[T]) = new
     {
-        def apply() =
-            if (condition()) thenBranch() else elseBranch()
+        @memo
+        def Else(elseBranch : () => T) : () => T =
+            () => if (condition()) thenBranch() else elseBranch()
     }
 
-    case class FuncOpt[T](condition  : () => Option[Boolean],
-                          thenBranch : () => Option[T],
-                          elseBranch : () => Option[T])
-                         (implicit m : Manifest[T]) extends (() => Option[T])
+    def FuncOpt[T](condition  : () => Option[Boolean],
+                   thenBranch : () => Option[T])
+                  (implicit m : Manifest[T]) = new
     {
-        def apply() =
-            condition() flatMap { c => if (c) thenBranch() else elseBranch() }
+        @memo
+        def Else(elseBranch : () => Option[T]) : () => Option[T] =
+            () => condition() flatMap { c => if (c) thenBranch() else elseBranch() }
     }
 
     def UnboundOpt[T](condition  : Unbound[Option[Boolean]],
@@ -60,7 +62,7 @@ object IfThenElse {
                        elseBranch : Unbound[() => T])
                       (implicit m : Manifest[T]) : Unbound[() => T] =
     {
-        (ctx : Context) => Func(condition(ctx), thenBranch(ctx), elseBranch(ctx))
+        (ctx : Context) => Func(condition(ctx), thenBranch(ctx)).Else(elseBranch(ctx))
     }
 
     def UnboundFuncOpt[T](condition  : Unbound[() => Option[Boolean]],
@@ -68,7 +70,7 @@ object IfThenElse {
                           elseBranch : Unbound[() => Option[T]])
                          (implicit m : Manifest[T]) : Unbound[() => Option[T]] =
     {
-        (ctx : Context) => FuncOpt(condition(ctx), thenBranch(ctx), elseBranch(ctx))
+        (ctx : Context) => FuncOpt(condition(ctx), thenBranch(ctx)).Else(elseBranch(ctx))
     }
 
 }

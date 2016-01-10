@@ -98,6 +98,28 @@ package object marketsim {
         def getSome(implicit m : Manifest[T]) : reactive.Signal[T] = reactive.Unary(x, s"$x.getSome") { _.get }
     }
 
+    implicit class RichBooleanSignal(x : reactive.Signal[Boolean])
+    {
+        def Then[T : Manifest](thenBranch : reactive.Signal[T]) = ops.IfThenElse.Signal(x, thenBranch)
+    }
+
+    implicit class RichOptionBooleanSignal(x : reactive.Signal[Option[Boolean]])
+    {
+        def Then[T : Manifest](thenBranch : reactive.Signal[Option[T]]) = ops.IfThenElse.SignalOpt(x, thenBranch)
+    }
+
+    implicit class RichBooleanFunc(x : () => Boolean)
+    {
+        def Then[T : Manifest](thenBranch : () => T) = ops.IfThenElse.Func(x, thenBranch)
+    }
+
+    implicit class RichOptionBooleanFunc(x : () => Option[Boolean])
+    {
+        def Then[T : Manifest](thenBranch : () => Option[T]) = ops.IfThenElse.FuncOpt(x, thenBranch)
+    }
+
+    def some[T](x : T) : Option[T] = Some(x)
+
     object Const {
         @memo
         def apply[T](x : T) : (() => T) = new (() => T) {
