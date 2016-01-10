@@ -78,7 +78,7 @@ trait EnsureChanges extends FlatSpec with MockFactory with reactive.CleanMemo
         def changeAx[Y](x : Double, expected : Y) = (() => V = x, expected)
     }
 
-    import conversions._
+    import conversions.Implicits._
 
     trait A_SignalInt
     {

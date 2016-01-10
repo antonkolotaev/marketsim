@@ -96,7 +96,7 @@ class ConversionSpec extends EnsureChanges {
         }
     }
 
-    import conversions._
+    import conversions.Implicits._
 
     "A value of type Int" should "cast to Option[Int]"  in option[Int](C)(C)
     it should "cast to Option[Double]"                  in option[Double](C)(C)
