@@ -98,6 +98,15 @@ package object marketsim {
         def getSome(implicit m : Manifest[T]) : reactive.Signal[T] = reactive.Unary(x, s"$x.getSome") { _.get }
     }
 
+    implicit class RichOptionBoolean(x : Option[Boolean])
+    {
+        def Then[T : Manifest](thenBranch : Option[T]) = new
+            {
+                def Else(elseBranch : Option[T]) =
+                    x flatMap { c => if (c) thenBranch else elseBranch }
+            }
+    }
+
     implicit class RichBooleanSignal(x : reactive.Signal[Boolean])
     {
         def Then[T : Manifest](thenBranch : reactive.Signal[T]) = ops.IfThenElse.Signal(x, thenBranch)
@@ -110,12 +119,39 @@ package object marketsim {
 
     implicit class RichBooleanFunc(x : () => Boolean)
     {
-        def Then[T : Manifest](thenBranch : () => T) = ops.IfThenElse.Func(x, thenBranch)
+        def Then[T : Manifest](thenBranch : () => T) =
+            new { def Else(elseBranch : () => T) = ops.IfThenElse.Function(x, thenBranch, elseBranch) }
     }
 
     implicit class RichOptionBooleanFunc(x : () => Option[Boolean])
     {
         def Then[T : Manifest](thenBranch : () => Option[T]) = ops.IfThenElse.FuncOpt(x, thenBranch)
+    }
+
+    implicit class RichUnboundOptionBoolean(x : Unbound[Option[Boolean]])
+    {
+        def Then[T : Manifest](thenBranch : Unbound[Option[T]]) =
+            new { def Else(elseBranch : Unbound[Option[T]]) = ops.IfThenElse.UnboundOpt(x, thenBranch, elseBranch) }
+    }
+
+    implicit class RichUnboundBooleanSignal(x : Unbound[reactive.Signal[Boolean]])
+    {
+        def Then[T : Manifest](thenBranch : Unbound[reactive.Signal[T]]) = ops.IfThenElse.UnboundSignal(x, thenBranch)
+    }
+
+    implicit class RichUnboundOptionBooleanSignal(x : Unbound[reactive.Signal[Option[Boolean]]])
+    {
+        def Then[T : Manifest](thenBranch : Unbound[reactive.Signal[Option[T]]]) = ops.IfThenElse.UnboundSignalOpt(x, thenBranch)
+    }
+
+    implicit class RichUnboundBooleanFunc(x : Unbound[() => Boolean])
+    {
+        def Then[T : Manifest](thenBranch : Unbound[() => T]) = ops.IfThenElse.UnboundFunc(x, thenBranch)
+    }
+
+    implicit class RichUnboundOptionBooleanFunc(x : Unbound[() => Option[Boolean]])
+    {
+        def Then[T : Manifest](thenBranch : Unbound[() => Option[T]]) = ops.IfThenElse.UnboundFuncOpt(x, thenBranch)
     }
 
     def some[T](x : T) : Option[T] = Some(x)

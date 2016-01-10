@@ -3,6 +3,86 @@ package ops
 
 class IfThenElseSpec extends EnsureChanges {
 
+    "IfThenElse of options" should "be an option" in {
+        var C = some(false)
+        var T = some(1)
+        var E = some(9)
+        def R = C Then T Else E
+        val R1 = C Then T Else E
+        // checking that Option[Double] doesn't interfere with Option[Int]
+        val Td = some(1.0)
+        val Ed = some(9.0)
+        val Rd = C Then Td Else Ed
+        val R1d = C Then Td Else Ed
+        assert(Rd eq R1d)
+        assert(R eq R1)
+
+        assertResult(R)(Some(9))
+
+        E = Some(7)
+        assertResult(R)(Some(7))
+
+        C = Some(true)
+        assertResult(R)(Some(1))
+
+        C = None
+        assertResult(R)(None)
+
+        C = Some(true)
+        T = Some(3)
+        assertResult(R)(Some(3))
+
+        E = None
+        assertResult(R)(Some(3))
+
+        C = Some(false)
+        assertResult(R)(None)
+    }
+
+    "IfThenElse of unbound options" should "be an unbound option" in {
+        var c = some(false)
+        var t = some(1)
+        var e = some(9)
+        def C = unbound(c)
+        def T = unbound(t)
+        def E = unbound(e)
+        def R = C Then T Else E
+        val R1 = C Then T Else E
+        // checking that Option[Double] doesn't interfere with Option[Int]
+        val Td = some(1.0)
+        val Ed = some(9.0)
+        val Rd = unbound(c) Then unbound(Td) Else unbound(Ed)
+        val R1d = unbound(c) Then unbound(Td) Else unbound(Ed)
+        assert(Rd eq R1d)
+        assert(R eq R1)
+
+        val ctx = new Context {}
+
+        assertResult(R(ctx))(Some(9))
+
+        e = Some(7)
+        assertResult(E(ctx))(Some(7))
+        assertResult(R(ctx))(Some(7))
+
+        c = Some(true)
+        assertResult(C(ctx))(Some(true))
+        assertResult(T(ctx))(Some(1))
+        assertResult(R(ctx))(Some(1))
+
+        c = None
+        assertResult(R(ctx))(None)
+
+        c = Some(true)
+        t = Some(3)
+        assertResult(R(ctx))(Some(3))
+
+        e = None
+        assertResult(R(ctx))(Some(3))
+
+        c = Some(false)
+        assertResult(R(ctx))(None)
+    }
+
     "IfThenElse of signals" should "be a signal" in {
         val C = new reactive.Variable(false, "C")
         val T = new reactive.Variable(1, "T")
