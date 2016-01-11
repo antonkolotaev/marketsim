@@ -1,9 +1,12 @@
 package marketsim
 package conversions
 
+import memoization.memo
+
 trait ToScalar {
 
-    implicit def id[T] : ScalarConversion[T,T] = new ScalarConversion[T,T] {
+    @memo
+    implicit def id[T : Manifest] : ScalarConversion[T,T] = new ScalarConversion[T,T] {
         val convert = (x : T) => x
     }
 

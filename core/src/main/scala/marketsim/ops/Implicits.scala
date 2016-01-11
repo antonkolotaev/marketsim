@@ -5,6 +5,8 @@ import memoization.memo
 
 object Implicits {
 
+    import conversions.Implicits._
+
     @memo
     private def isSomeImplF[T](x : () => Option[T])
                               (implicit m : Manifest[T]) : () => Boolean =
@@ -40,13 +42,23 @@ object Implicits {
     implicit class RichOptionBoolean(x : Option[Boolean])
     {
         def Then[T : Manifest](thenBranch : Option[T]) =
-            new {  def Else(elseBranch : Option[T]) = ops.IfThenElse.Opt(x, thenBranch, elseBranch)    }
+            new {
+                def Else[R : Manifest](elseBranch : R)
+                           (implicit c : ConversionOpt[R, Option[T]]) = {
+                    ops.IfThenElse.Opt(x, thenBranch, c convert elseBranch)
+                }
+            }
     }
 
     implicit class RichBooleanSignal(x : reactive.Signal[Boolean])
     {
         def Then[T : Manifest](thenBranch : reactive.Signal[T]) =
-            new { def Else(elseBranch : reactive.Signal[T]) = reactive.IfThenElse(x, thenBranch, elseBranch) }
+            new {
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionUnbound[R, reactive.Signal[T]]) = {
+                    reactive.IfThenElse(x, thenBranch, c convert elseBranch)
+                }
+            }
     }
 
     implicit class RichOptionBooleanSignal(x : reactive.Signal[Option[Boolean]])

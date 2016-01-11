@@ -9,7 +9,7 @@ package object reactive {
     { self : Suite =>
 
         override def beforeEach() {
-            println(this)
+            //println(this)
             memoization.GlobalCache.Builder clear ()
         }
     }
