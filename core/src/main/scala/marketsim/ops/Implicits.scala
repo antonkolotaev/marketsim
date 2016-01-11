@@ -15,7 +15,7 @@ object Implicits {
     @memo
     private def isSomeImplS[T](x : reactive.Signal[Option[T]])
                               (implicit m : Manifest[T]) : reactive.Signal[Boolean] =
-        reactive.Unary(x, s"$x.isSome") { _.nonEmpty }
+        reactive.Unary(x, s"isSome") { _.nonEmpty }
 
     @memo
     private def getSomeImplF[T](x : () => Option[T])
@@ -25,7 +25,7 @@ object Implicits {
     @memo
     def getSomeImplS[T](x : reactive.Signal[Option[T]])
                        (implicit m : Manifest[T]) : reactive.Signal[T] =
-        reactive.Unary(x, s"$x.getSome") { _.get }
+        reactive.Unary(x, s"getSome") { _.get }
 
     implicit class RichFunctionOption[T](x : () => Option[T])
     {

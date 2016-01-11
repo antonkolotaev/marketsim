@@ -28,11 +28,11 @@ trait ToFuncSig {
         }
 
     @memo
-    implicit def fsIdSignal[T,R](implicit s : ConversionOpt[T,R], m : Manifest[T]):
+    implicit def fsIdSignal[T,R](implicit s : ConversionOpt[T,R], m : Manifest[R]):
     ConversionFuncSig[reactive.Signal[T], reactive.Signal[R]] =
         new ConversionFuncSig[reactive.Signal[T], reactive.Signal[R]] {
 
-            val convert = (x: reactive.Signal[T]) => reactive.Unary(x,s"$x.as[Signal[$m]]"){ s.convert }
+            val convert = (x: reactive.Signal[T]) => reactive.Unary(x,s"($x).as[Signal[$m]]"){ s.convert }
         }
 
     @memo

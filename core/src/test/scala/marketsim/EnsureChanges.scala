@@ -22,6 +22,8 @@ trait EnsureChanges extends FlatSpec with MockFactory with reactive.CleanMemo
             val actual = converted()
             assertResult(Some(ch))(actual)
         }
+
+        converted -= handler
     }
 
     def ensureSignal[T](converted : Signal[T], initial : T, changes : (() => Unit, T)*) : Unit =
@@ -35,6 +37,8 @@ trait EnsureChanges extends FlatSpec with MockFactory with reactive.CleanMemo
             action()
             assertResult(ch)(converted())
         }
+
+        converted -= handler
     }
 
     def ensureFunctionOption[T](converted : () => Option[T], initial : T, changes : (() => Unit, T)*) : Unit =

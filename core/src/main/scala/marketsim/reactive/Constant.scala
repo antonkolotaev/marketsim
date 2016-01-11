@@ -14,5 +14,5 @@ class Constant[T](x : T) extends Signal[T](x)
 object Constant
 {
     @memo
-    def apply[T](x : T) : Constant[T] = new Constant[T](x)
+    def apply[T](x : T) : Signal[T] = new Constant[T](x)
 }
