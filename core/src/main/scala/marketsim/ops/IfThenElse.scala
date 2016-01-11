@@ -5,6 +5,8 @@ import memoization.memo
 
 object IfThenElse {
 
+    import Implicits._
+
     def Opt[T](condition  : Option[Boolean],
                thenBranch : Option[T],
                elseBranch : Option[T])

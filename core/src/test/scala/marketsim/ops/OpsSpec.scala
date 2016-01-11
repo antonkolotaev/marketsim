@@ -3,14 +3,19 @@ package ops
 
 class OpsSpec extends EnsureChanges {
 
+    import Implicits._
+
     "_.isSome" should "be an unary boolean signal" in {
         {
-            val v = new reactive.Variable(Some(1) : Option[Int], "v")
+            val v = new reactive.Variable(some(1), "v")
+            val w = new reactive.Variable(none[Int], "w")
             def change(x : Option[Int], expected : Boolean) = (() => v :=! x, expected)
+            val s1 = w.isSome
             val s = v.isSome
             val s2 = v.isSome
             assert(s eq s2)
             ensureSignal(s, true, change(None, false), change(Some(3), true))
+            //ensureSignal(s1, false, change(Some(7), true), change(None, false))
         }
         {
             val v = new reactive.Variable(Some(1.0) : Option[Double], "v")

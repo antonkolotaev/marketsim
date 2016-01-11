@@ -3,6 +3,8 @@ package ops
 
 class IfThenElseSpec extends EnsureChanges {
 
+    import ops.Implicits._
+
     "IfThenElse of options" should "be an option" in {
         var C = some(false)
         var T = some(1)
