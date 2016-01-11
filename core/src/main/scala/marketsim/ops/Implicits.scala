@@ -55,7 +55,7 @@ object Implicits {
         def Then[T : Manifest](thenBranch : reactive.Signal[T]) =
             new {
                 def Else[R](elseBranch : R)
-                           (implicit c : ConversionUnbound[R, reactive.Signal[T]]) = {
+                           (implicit c : ConversionFuncSig[R, reactive.Signal[T]]) = {
                     reactive.IfThenElse(x, thenBranch, c convert elseBranch)
                 }
             }
@@ -65,38 +65,61 @@ object Implicits {
     {
         def Then[T : Manifest](thenBranch : reactive.Signal[Option[T]]) =
             new {
-                def Else(elseBranch : reactive.Signal[Option[T]]) =
-                    x.isSome Then (x.getSome Then thenBranch Else elseBranch) Else reactive.Constant[Option[T]](None)
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionFuncSig[R, reactive.Signal[Option[T]]]) =
+                    (x.isSome
+                        Then (x.getSome
+                                Then thenBranch
+                                Else (c convert elseBranch))
+                        Else reactive.Constant[Option[T]](None))
             }
     }
 
     implicit class RichBooleanFunc(x : () => Boolean)
     {
         def Then[T : Manifest](thenBranch : () => T) =
-            new { def Else(elseBranch : () => T) = ops.IfThenElse.Function(x, thenBranch, elseBranch) }
+            new {
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionFuncSig[R, () => T]) =
+                    ops.IfThenElse.Function(x, thenBranch, c convert elseBranch)
+            }
     }
 
     implicit class RichOptionBooleanFunc(x : () => Option[Boolean])
     {
         def Then[T : Manifest](thenBranch : () => Option[T]) =
             new {
-                def Else(elseBranch : () => Option[T]) =
-                    x.isSome Then (x.getSome Then thenBranch Else elseBranch) Else Const[Option[T]](None)
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionFuncSig[R, () => Option[T]]) =
+                    (x.isSome
+                        Then (x.getSome
+                                    Then thenBranch
+                                    Else (c convert elseBranch))
+                        Else Const(none[T]))
             }
     }
 
     implicit class RichUnboundOptionBoolean(x : Unbound[Option[Boolean]])
     {
         def Then[T : Manifest](thenBranch : Unbound[Option[T]]) =
-            new { def Else(elseBranch : Unbound[Option[T]]) = ops.IfThenElse.UnboundOpt(x, thenBranch, elseBranch) }
+            new {
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionUnbound[R, Unbound[Option[T]]]) =
+                {
+                    ops.IfThenElse.UnboundOpt(x, thenBranch, c convert elseBranch)
+                }
+            }
     }
 
     implicit class RichUnboundBooleanSignal(x : Unbound[reactive.Signal[Boolean]])
     {
         def Then[T : Manifest](thenBranch : Unbound[reactive.Signal[T]]) =
             new {
-                def Else(elseBranch : Unbound[reactive.Signal[T]]) =
-                    ops.IfThenElse.UnboundSignal(x, thenBranch, elseBranch)
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionUnbound[R, Unbound[reactive.Signal[T]]]) =
+                {
+                    ops.IfThenElse.UnboundSignal(x, thenBranch, c convert elseBranch)
+                }
             }
     }
 
@@ -104,8 +127,11 @@ object Implicits {
     {
         def Then[T : Manifest](thenBranch : Unbound[reactive.Signal[Option[T]]]) =
             new {
-                def Else(elseBranch: Unbound[reactive.Signal[Option[T]]]) =
-                    ops.IfThenElse.UnboundSignalOpt(x, thenBranch, elseBranch)
+                def Else[R](elseBranch: R)
+                           (implicit c : ConversionUnbound[R, Unbound[reactive.Signal[Option[T]]]]) =
+                {
+                    ops.IfThenElse.UnboundSignalOpt(x, thenBranch, c convert elseBranch)
+                }
             }
     }
 
@@ -113,8 +139,11 @@ object Implicits {
     {
         def Then[T : Manifest](thenBranch : Unbound[() => T]) =
             new {
-                def Else(elseBranch : Unbound[() => T]) =
-                    ops.IfThenElse.UnboundFunc(x, thenBranch, elseBranch)
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionUnbound[R, Unbound[() => T]]) =
+                {
+                    ops.IfThenElse.UnboundFunc(x, thenBranch, c convert elseBranch)
+                }
             }
     }
 
@@ -122,8 +151,11 @@ object Implicits {
     {
         def Then[T : Manifest](thenBranch : Unbound[() => Option[T]]) =
             new {
-                def Else(elseBranch : Unbound[() => Option[T]]) =
-                    ops.IfThenElse.UnboundFuncOpt(x, thenBranch, elseBranch)
+                def Else[R](elseBranch : R)
+                           (implicit c : ConversionUnbound[R, Unbound[() => Option[T]]]) =
+                {
+                    ops.IfThenElse.UnboundFuncOpt(x, thenBranch, c convert elseBranch)
+                }
             }
     }
 

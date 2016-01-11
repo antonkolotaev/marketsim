@@ -88,22 +88,22 @@ class IfThenElseSpec extends EnsureChanges {
 
     "IfThenElse of signals" should "be a signal" in {
         val C = new reactive.Variable(false, "C")
-        val T = new reactive.Variable(1, "T")
+        val T = new reactive.Variable(1.0, "T")
         val E = new reactive.Variable(9, "E")
         val R = C Then T Else E
         val R1 = C Then T Else E
         // checking that Signal[Double] doesn't interfere with Signal[Int]
-        //val Td = new reactive.Variable(1.0, "T")
-        //val Ed = new reactive.Variable(9.0, "E")
-        //val Rd = C Then Td Else Ed
-        //val R1d = C Then Td Else Ed
-        //assert(Rd eq R1d)
-        //assert(R eq R1)
-        def changeC(x : Boolean, expected : Int) = (() => C :=! x, expected)
-        def changeT(x : Int, expected : Int) = (() => T :=! x, expected)
-        def changeE(x : Int, expected : Int) = (() => E :=! x, expected)
+        val Td = new reactive.Variable(1.0, "T")
+        val Ed = new reactive.Variable(9.0, "E")
+        val Rd = C Then Td Else Ed
+        val R1d = C Then Td Else Ed
+        assert(Rd eq R1d)
+        assert(R eq R1)
+        def changeC(x : Boolean, expected : Double) = (() => C :=! x, expected)
+        def changeT(x : Double, expected : Double) = (() => T :=! x, expected)
+        def changeE(x : Int, expected : Double) = (() => E :=! x, expected)
 
-        ensureSignal(R, 9, changeC(true, 1), changeT(3, 3), changeC(false, 9), changeE(7, 7))
+        ensureSignal(R, 9.0, changeC(true, 1.0), changeT(3.5, 3.5), changeC(false, 9.0), changeE(7, 7.0))
     }
 
     "IfThenElse of option signals" should "be an option signal" in {
