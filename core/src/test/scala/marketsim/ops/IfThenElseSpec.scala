@@ -241,10 +241,14 @@ class IfThenElseSpec extends EnsureChanges {
         {
             ensureFunction(R, Some(9.0),
                 changeC(Some(true), Some(1.0)),
+                changeC(None, None),
+                changeC(Some(true), Some(1.0)),
                 changeT(Some(3.5), Some(3.5)),
+                changeT(None, None),
                 changeT(Some(1.0), Some(1.0)),
                 changeC(Some(false), Some(9.0)),
-                changeE(Some(7), Some(7.0)))
+                changeE(Some(7), Some(7.0)),
+                changeE(None, None))
 
             ensureFunction(Ri, Some(9.0),
                 changeC(Some(true), Some(1.0)),

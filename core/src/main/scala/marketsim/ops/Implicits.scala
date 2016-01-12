@@ -7,6 +7,70 @@ object Implicits {
 
     import conversions.Implicits._
 
+    trait HasMinus[T]
+    {
+        def minus(x : T, y : T) : T
+    }
+
+    @memo
+    implicit def numericHasMinus[T](implicit m : Numeric[T]) : HasMinus[T] = new HasMinus[T] {
+        def minus(x : T, y : T) = m minus (x,y)
+    }
+
+    @memo
+    implicit def optionHasMinus[T](implicit ev : HasMinus[T]) : HasMinus[Option[T]] =
+        new HasMinus[Option[T]] {
+            def minus(x : Option[T], y : Option[T]) : Option[T] = (x,y) match {
+                case (Some(a), Some(b)) => Some(ev.minus(a,b))
+                case _ => None
+            }
+        }
+
+    implicit class RichOption[T](x : Option[T])
+    {
+        def - (y : Option[T])(implicit m : HasMinus[Option[T]]) = m minus (x,y)
+    }
+
+    @memo
+    def MinusFunc[T](x : () => T, y : () => T)(implicit m : HasMinus[T]) : () => T =
+    {
+        () => m minus (x(), y())
+    }
+
+    @memo
+    def MinusSignal[T](x : reactive.Signal[T],
+                       y : reactive.Signal[T])(implicit m : HasMinus[T]) : reactive.Signal[T] =
+    {
+        reactive.Binary(x,y,"-") { case (a,b) => m minus (a,b) }
+    }
+
+    implicit class RichFunction[T](x : () => T)
+    {
+        def - [R](y : R)
+                 (implicit m : HasMinus[T],
+                           c : ConversionFuncSig[R, () => T])
+            = MinusFunc(x,c convert y)
+
+        /*def -: [R](y : R)
+                  (implicit m : HasMinus[R],
+                            c : ConversionUnbound[() => T, R])
+        = MinusFunc[R](c convert x,y) */
+    }
+
+    implicit class RichSignal[T](x : reactive.Signal[T])
+    {
+        def - [R](y : R)
+                 (implicit m : HasMinus[T],
+                  c : ConversionFuncSig[R, reactive.Signal[T]])
+        = MinusSignal(x,c convert y)
+
+        /*def -: [R](y : R)
+                  (implicit m : HasMinus[R],
+                            c : ConversionUnbound[() => T, R])
+        = MinusFunc[R](c convert x,y) */
+    }
+
+
     @memo
     private def isSomeImplF[T](x : () => Option[T])
                               (implicit m : Manifest[T]) : () => Boolean =

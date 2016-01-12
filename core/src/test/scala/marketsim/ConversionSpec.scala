@@ -159,9 +159,9 @@ class ConversionSpec extends EnsureChanges {
     "A value of type Signal[Option[Int]]" should "cast to () => Option[Int]" in new A_SignalInt {
         functionOption[Int](C)(someA,changeA(13))
     }
-/*    it should "cast to () => Option[Double]" in new A_SignalInt {
+    it should "cast to () => Option[Double]" in new A_SignalInt {
         functionOption[Double](C)(someA,changeA(13, 13.0))
-    }*/
+    }
 
     it should "cast to Unbound[Signal[Option[Int]]]" in new A_SignalInt { unboundSignalOption[Int](C)(someA,changeA(14)) }
     it should "cast to Unbound[() => Option[Int]]" in new A_SignalInt { unboundFunctionOption[Int](C)(someA,changeA(15)) }
