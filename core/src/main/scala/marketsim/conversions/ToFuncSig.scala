@@ -14,7 +14,7 @@ trait ToFuncSig {
         }
 
     @memo
-    implicit def fsScalarToFunction[T,R](implicit s : ConversionOpt[T,R]): ConversionFuncSig[T, () => R] =
+    implicit def fsScalarToFunction[T : Manifest,R](implicit s : ConversionOpt[T,R]): ConversionFuncSig[T, () => R] =
         new ConversionFuncSig[T, () => R]
         {
             val convert = (x: T) => Compose(Const(x), s.convert)
@@ -36,7 +36,7 @@ trait ToFuncSig {
         }
 
     @memo
-    implicit def fsScalarToSignal[T,R](implicit s : ConversionOpt[T,R]): ConversionFuncSig[T, reactive.Signal[R]] =
+    implicit def fsScalarToSignal[T,R : Manifest](implicit s : ConversionOpt[T,R]): ConversionFuncSig[T, reactive.Signal[R]] =
         new ConversionFuncSig[T, reactive.Signal[R]]
         {
             val convert = (x: T) => reactive.Constant(s convert x)

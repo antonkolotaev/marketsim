@@ -45,7 +45,7 @@ object overloads
     implicit def toOption[T](x : T): Option[T] = Some(x)
     implicit def toSignal[T](x : T): Signal[T] = new Variable(x, x.toString)
 
-    implicit class RichIntBased[T](x : T)(implicit ev : IntBased[T])
+    implicit class RichIntBased[T : Manifest](x : T)(implicit ev : IntBased[T])
     {
         def + (y : T) =
             ev.plus(x,y)
@@ -54,7 +54,7 @@ object overloads
         def + (y : reactive.Signal[T]) =
             reactive.Binary(reactive.Constant(x), y, "+") { case (a,b) => ev.plus(a,b) }
         def + (y : reactive.Signal[Option[T]])(implicit d : Manifest[T]) =
-            reactive.Binary(reactive.Constant(x), y, "+") { case (a,b) => b map { z => ev.plus(a,z) } }
+            reactive.Binary(reactive.Constant(x)(d), y, "+") { case (a,b) => b map { z => ev.plus(a,z) } }
         def + (y : () => T) =
             () => { ev.plus(x, y()) }
         def + (y : () => Option[T])(implicit d : Manifest[T]) =
