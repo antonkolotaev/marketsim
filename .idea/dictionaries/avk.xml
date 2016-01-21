@@ -2,6 +2,8 @@
   <dictionary name="avk">
     <words>
       <w>memoized</w>
+      <w>typeclass</w>
+      <w>typeclasses</w>
     </words>
   </dictionary>
 </component>

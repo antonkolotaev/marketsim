@@ -11,6 +11,7 @@ package object reactive {
         override def beforeEach() {
             //println(this)
             memoization.GlobalCache.Builder clear ()
+            Scheduler.recreate()
         }
     }
 

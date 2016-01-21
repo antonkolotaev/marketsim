@@ -108,6 +108,8 @@ object Scheduler {
         s
     }
 
+    def testStep() = { instance.value.get.advance(Duration(1)) }
+
     def currentTime = instance.value.get.currentTime
 
     def eventSourceId = (currentTime, instance.value.get.currentSourceId)

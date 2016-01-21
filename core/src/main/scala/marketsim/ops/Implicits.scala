@@ -3,7 +3,7 @@ package ops
 
 import memoization.memo
 
-object Implicits extends Minus {
+object Implicits extends Minus.Implicits {
 
     import conversions.Implicits._
 

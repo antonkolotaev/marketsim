@@ -61,7 +61,7 @@ package object marketsim {
 
     implicit val zeroUSD = cents(0)
 
-    case class CachedFunction[T](f : () => T) extends (() => T)
+    class CachedFunction[T](f : () => T) extends (() => T)
     {
         private var lastT = Scheduler.eventSourceId
 
@@ -75,6 +75,12 @@ package object marketsim {
             }
             cachedValue
         }
+    }
+
+    object CachedFunction
+    {
+        @memo
+        def apply[T](f : () => T) : (() => T) = new CachedFunction(f)
     }
 
     implicit class Rich[T](x : T)
