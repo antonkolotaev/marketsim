@@ -3,7 +3,7 @@ package ops
 
 import memoization.memo
 
-object Minus {
+trait Minus {
 
     trait OnScalar[A,B,R]
     {
@@ -195,4 +195,8 @@ object Minus {
             val minus = (a : Unbound[A], b : B) => unboundImpl(a,unbound(b))
         }
 
+    implicit class RichTWithMinus[A](x : A)
+    {
+        def - [B,R](y : B)(implicit m : OnUnbound[A,B,R]) = m minus (x,y)
+    }
 }

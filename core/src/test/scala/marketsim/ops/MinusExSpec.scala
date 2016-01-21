@@ -1,23 +1,28 @@
 package marketsim
 package ops
 
-import marketsim.ops.Minus._
+import marketsim.ops.Implicits._
 
 class MinusExSpec extends EnsureChanges {
 
     def minus[A,B,R](a : A, b : B)(implicit m : OnUnbound[A,B,R]) = m minus(a,b)
 
-    "9 - 4 - 2" should "be 3" in assertResult(minus(minus(9, 4), 2))(3)
-    "9.5 - 4 - 2" should "be 3.5" in assertResult(minus(minus(9.5, 4), 2))(3.5)
-    "9 - 4.5 - 2" should "be 2.5" in assertResult(minus(minus(9, 4.5), 2))(2.5)
-    "9.5 - 4.5 - 2" should "be 3" in assertResult(minus(minus(9.5, 4.5), 2))(3.0)
+    "9 - 4 - 2 (minus)" should "be 3" in assertResult(minus(minus(9, 4), 2))(3)
+    "9.5 - 4 - 2  (minus)" should "be 3.5" in assertResult(minus(minus(9.5, 4), 2))(3.5)
+    "9 - 4.5 - 2  (minus)" should "be 2.5" in assertResult(minus(minus(9, 4.5), 2))(2.5)
+    "9.5 - 4.5 - 2  (minus)" should "be 3" in assertResult(minus(minus(9.5, 4.5), 2))(3.0)
 
-    "Some(9.5) - Some(4.5) - Some(2)" should "be Some(3)" in assertResult(minus(minus(Some(9.5), Some(4.5)), Some(2)))(Some(3.0))
-    "Some(9.5) - 4.5 - Some(2)" should "be Some(3)" in assertResult(minus(minus(Some(9.5), 4.5), Some(2)))(Some(3.0))
-    "9.5 - Some(4.5) - Some(2)" should "be Some(3)" in assertResult(minus(minus(9.5, Some(4.5)), Some(2)))(Some(3.0))
+    "9 - 4 - 2" should "be 3" in assertResult(9 - 4 - 2)(3)
+    "9.5 -. 4 - 2" should "be 3.5" in assertResult(9.5 - 4 - 2)(3.5)
+    "9 - 4.5 - 2" should "be 2.5" in assertResult(9 - 4.5 - 2)(2.5)
+    "9.5 - 4.5 - 2" should "be 3" in assertResult(9.5 - 4.5 - 2)(3.0)
 
-    "None - 2 - None" should "be None" in assertResult(minus(minus(none[Double], 2), none[Int]))(None)
-    "None - 3 - Some(2)" should "be None" in assertResult(minus(minus(none[Double], 3), some(2)))(None)
+    "Some(9.5) - Some(4.5) - Some(2)" should "be Some(3)" in assertResult(Some(9.5) - Some(4.5) - Some(2))(Some(3.0))
+    "Some(9.5) - 4.5 - Some(2)" should "be Some(3)" in assertResult(Some(9.5) - 4.5 - Some(2))(Some(3.0))
+    "9.5 - Some(4.5) - Some(2)" should "be Some(3)" in assertResult(9.5 - Some(4.5) - Some(2))(Some(3.0))
+
+    "None - 2 - None" should "be None" in assertResult(none[Double] - 2 - none[Int])(None)
+    "None - 3 - Some(2)" should "be None" in assertResult(none[Double] - 3 - some(2))(None)
 
     "Signal[Option[Double]] - Signal[Int]" should "be a Signal[Option[Double]]" in {
 
@@ -28,10 +33,10 @@ class MinusExSpec extends EnsureChanges {
         val c = new reactive.Variable(some(3), "C")
         val C = c : reactive.Signal[Option[Int]]
 
-        val R = minus(minus(A, B), C)
-        val Ri = minus(minus(A, B), 3)
-        val iR = minus(Some(1.0), B)
-        val R1 = minus(minus(A, B), C)
+        val R = A - B - C
+        val Ri = A - B - 3
+        val iR = Some(1.0) - B
+        val R1 = A - B - C
         assert(R eq R1)
 
         def changeA(x : Option[Double], expected : Option[Double]) = (() => a :=! x, expected)
@@ -79,10 +84,10 @@ class MinusExSpec extends EnsureChanges {
 
     "() => Option[Double]] - () => Int" should "be a () => Option[Double]" in new FunctionsAndSignals {
 
-        val R = minus(minus(A, B), C)
-        val Ri = minus(minus(A, B), 3)
-        val iR = minus(Some(1.0), B)
-        val R1 = minus(minus(A, B), C)
+        val R = A - B - C
+        val Ri = A - B - 3
+        val iR = Some(1.0) - B
+        val R1 = A - B - C
         assert(R eq R1)
 
         ensureFunction(R, Some(-4.0),
@@ -109,9 +114,9 @@ class MinusExSpec extends EnsureChanges {
 
     "() => Option[Double]] - reactive.Signal[Int]" should "be a () => Option[Double]" in new FunctionsAndSignals {
 
-        val Rs = minus(minus(As, B), C)
-        val Ris = minus(minus(A, Bs), 3)
-        val R1s = minus(minus(As, B), C)
+        val Rs = As - B - C
+        val Ris = A - Bs - 3
+        val R1s = As - B - C
         assert(Rs eq R1s)
 
         ensureFunction(Rs, Some(-4.0),
@@ -134,9 +139,9 @@ class MinusExSpec extends EnsureChanges {
 
     "Unbound[() => Option[Double]] - Unbound[reactive.Signal[Int]]" should "be a Unbound[() => Option[Double]]" in new FunctionsAndSignals {
 
-        val Rs = minus(minus(unbound(As), B), unbound(C))
-        val Ris = minus(minus(A, unbound(Bs)), 3)
-        val R1s = minus(minus(unbound(As), unbound(B)), unbound(C))
+        val Rs = unbound(As) - B - unbound(C)
+        val Ris = A - unbound(Bs) - 3
+        val R1s = unbound(As) - unbound(B) - unbound(C)
         assert(Rs eq R1s)
 
         ensureFunction(Rs(ctx), Some(-4.0),

@@ -7,8 +7,6 @@ import scala.language.implicitConversions
 
 class MinusSpec extends FlatSpec {
 
-    import Implicits._
-
     trait ScalarConversion[-From, +To]
     {
         def convert(from : From) : To
@@ -49,18 +47,6 @@ class MinusSpec extends FlatSpec {
     "Int" should "cast to Option[Double]" in assertResult(convert[Option[Double]](1))(Some(1.0))
     "Option[Int]" should "cast to Option[Double]" in assertResult(convert[Option[Double]](Some(1)))(Some(1.0))
 
-
-    implicit class RichOption[T](x : Option[T])
-    {
-        def - (y : Option[T])(implicit m : HasMinus[Option[T]]) = m.minus(x,y)
-        def - [R](y : R)(implicit m : HasMinus[Option[T]], c : ScalarConversion[R, Option[T]], t : Manifest[R]) = m.minus(x, c convert y)
-        def - [R](y : R)(implicit m : HasMinus[R], c : ScalarConversion[Option[T], R]) = m.minus(c convert x, y)
-    }
-
-    implicit class RichInt(x : Int)
-    {
-        def - [R](y : R)(implicit m : HasMinus[R], c : ScalarConversion[Int, R]) = m.minus(c convert x, y)
-    }
 
     trait IntLike[T]
     {
