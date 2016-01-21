@@ -1,9 +1,6 @@
 package marketsim
 package ops
-
-import marketsim.reactive._
-import memoization.memo
-
+/*
 class PlusSpec
 {
 
@@ -135,3 +132,4 @@ class PlusSpec
     
         "Some(1L) + Some(2)" should "give Some(3.0)" in assert(add(some1L, some2) == Some(3.0)) */
 }
+*/
