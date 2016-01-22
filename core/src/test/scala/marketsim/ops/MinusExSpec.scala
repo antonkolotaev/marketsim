@@ -24,12 +24,6 @@ class MinusExSpec extends EnsureChanges {
     "None - 2 - None" should "be None" in assertResult(none[Double] - 2 - none[Int])(None)
     "None - 3 - Some(2)" should "be None" in assertResult(none[Double] - 3 - some(2))(None)
 
-    def change[T,R](v : reactive.Variable[T], x : T, expected : R) =
-        (() => {
-            Scheduler.testStep()
-            v :=! x
-        }, expected)
-
     "Signal[Option[Double]] - Signal[Int]" should "be a Signal[Option[Double]]" in {
 
         val a = new reactive.Variable(some(1.0), "A")
@@ -45,9 +39,9 @@ class MinusExSpec extends EnsureChanges {
         val R1 = A - B - C
         assert(R eq R1)
 
-        def changeA(x : Option[Double], expected : Option[Double]) = change(a, x, expected)
-        def changeB(x : Int,            expected : Option[Double]) = change(b, x, expected)
-        def changeC(x : Option[Int],    expected : Option[Double]) = change(c, x, expected)
+        def changeA = change[Option[Double], Option[Double]](a)_
+        def changeB = change[Int, Option[Double]](b)_
+        def changeC = change[Option[Int], Option[Double]](c)_
 
         ensureSignal(R, Some(-4.0),
             changeA(None, None),
@@ -83,9 +77,9 @@ class MinusExSpec extends EnsureChanges {
         val C = c : () => Option[Int]
         val Cs = c //: reactive.Signal[Option[Int]]
 
-        def changeA(x : Option[Double], expected : Option[Double]) = change(a, x, expected)
-        def changeB(x : Quantity,            expected : Option[Double]) = change(b, x, expected)
-        def changeC(x : Option[Quantity],    expected : Option[Double]) = change(c, x, expected)
+        def changeA = change[Option[Double], Option[Double]](a)_
+        def changeB = change[Int, Option[Double]](b)_
+        def changeC = change[Option[Int], Option[Double]](c)_
     }
 
     "() => Option[Double]] - () => Int" should "be a () => Option[Double]" in new FunctionsAndSignals {

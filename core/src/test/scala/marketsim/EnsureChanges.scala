@@ -10,6 +10,12 @@ trait EnsureChanges extends FlatSpec with MockFactory with reactive.CleanMemo
 
     val ctx = new Context {}
 
+    def change[T,R](v : reactive.Variable[T])(x : T, expected : R) =
+        (() => {
+            Scheduler.testStep()
+            v :=! x
+        }, expected)
+
     def ensureSignalOption[T](converted : Signal[Option[T]], initial : T, changes : (() => Unit, T)*) : Unit =
     {
         val handler = mockFunction[Option[T], Unit]("!")

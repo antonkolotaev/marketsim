@@ -6,6 +6,8 @@ import memoization.memo
 object Implicits
     extends Minus.Implicits
     with Plus.Implicits
+    with Mul.Implicits
+    with Div.Implicits
 {
 
     import conversions.Implicits._
