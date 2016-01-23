@@ -135,7 +135,7 @@ object Div {
         implicit def div_optionOption[A, B, R](implicit m: OnScalar[A, B, R]): OnOption[Option[A], Option[B], Option[R]] =
             new OnOption[Option[A], Option[B], Option[R]] {
                 val div = (a: Option[A], b: Option[B]) => (a, b) match {
-                    case (Some(x), Some(y)) => Some(m div(x, y))
+                    case (Some(x), Some(y)) if y != 0 => Some(m div(x, y))
                     case _ => None
                 }
             }
@@ -144,7 +144,7 @@ object Div {
         implicit def div_scalarOption[A, B, R](implicit m: OnScalar[A, B, R]): OnOption[A, Option[B], Option[R]] =
             new OnOption[A, Option[B], Option[R]] {
                 val div = (a: A, b: Option[B]) => b match {
-                    case Some(y) => Some(m div(a, y))
+                    case Some(y) if y != 0 => Some(m div(a, y))
                     case _ => None
                 }
             }
@@ -153,7 +153,7 @@ object Div {
         implicit def div_optionScalar[A, B, R](implicit m: OnScalar[A, B, R]): OnOption[Option[A], B, Option[R]] =
             new OnOption[Option[A], B, Option[R]] {
                 val div = (a: Option[A], b: B) => a match {
-                    case Some(x) => Some(m div(x, b))
+                    case Some(x) if b != 0 => Some(m div(x, b))
                     case _ => None
                 }
             }

@@ -21,6 +21,10 @@ class DivSpec extends EnsureChanges {
     "Some(9.5) / 4.5 / Some(2)" should "be Some(3)" in assertResult(Some(9.5) / 4.5 / Some(2))(Some(9.5 / 4.5 / 2))
     "9.5 / Some(4.5) / Some(2)" should "be Some(3)" in assertResult(9.5 / Some(4.5) / Some(2))(Some(9.5 / 4.5 / 2))
 
+    "Some(9.5) / Some(0) / Some(2)" should "be Some(3)" in assertResult(Some(9.5) / Some(0) / Some(2))(None)
+    "Some(9.5) / 0 / Some(2)" should "be Some(3)" in assertResult(Some(9.5) / 0 / Some(2))(None)
+    "9.5 / Some(0) / Some(2)" should "be Some(3)" in assertResult(9.5 / Some(0) / Some(2))(None)
+
     "None / 2 / None" should "be None" in assertResult(none[Double] / 2 / none[Int])(None)
     "None / 3 / Some(2)" should "be None" in assertResult(none[Double] / 3 / some(2))(None)
 
@@ -149,6 +153,7 @@ class DivSpec extends EnsureChanges {
             changeA(some(9), some(9.0 / 2 / 3)),
             changeA(some(24.0), some(24.0 / 2 / 3)),
             changeB(5, some(24.0 / 5 / 3)),
+            changeB(0, None),
             changeB(2, some(24.0 / 2 / 3)),
             changeC(None, None),
             changeC(some(2), some(24.0 / 2 / 2)),
