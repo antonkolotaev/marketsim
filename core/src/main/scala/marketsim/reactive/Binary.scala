@@ -17,7 +17,7 @@ object Binary {
                            b : Signal[B],
                            label : String)
                           (f : (A,B) => Result) : BinaryBase[A,B,Result] =
-        new BinaryBase[A,B,Result](a, b, f(a(), b()), label)
+        new BinaryBase(a, b, f(a(), b()), label)
     {
         protected def F(a : A, b : B) = f(a,b)
     }
