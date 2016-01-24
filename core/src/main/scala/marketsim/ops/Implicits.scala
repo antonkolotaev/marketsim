@@ -9,6 +9,7 @@ object Implicits
     with Mul.Implicits
     with Div.Implicits
     with And.Implicits
+    with Or.Implicits
 {
 
     import conversions.Implicits._
