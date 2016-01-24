@@ -10,6 +10,7 @@ object Implicits
     with Div.Implicits
     with And.Implicits
     with Or.Implicits
+    with Not.Implicits
 {
 
     import conversions.Implicits._
