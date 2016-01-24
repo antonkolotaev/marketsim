@@ -21,5 +21,4 @@ object Binary {
     {
         protected def F(a : A, b : B) = f(a,b)
     }
-
 }

@@ -121,4 +121,5 @@ package object marketsim {
             def apply(x : S) = g(f(x))
         }
     }
+
 }

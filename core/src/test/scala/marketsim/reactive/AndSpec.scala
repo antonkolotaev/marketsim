@@ -3,11 +3,11 @@ package reactive
 
 class AndSpec extends TestBase {
 
-    case class Id(a : Signal[Boolean]) extends UnaryBase(a, a(), "id")
+    case class Id[T](a : Signal[T]) extends UnaryBase(a, a(), "id")
     {
-        val evaluated = new Event[Boolean]
+        val evaluated = new Event[T]
 
-        def F(x : Boolean) = {
+        def F(x : T) = {
             evaluated fire x
             x
         }
@@ -40,5 +40,32 @@ class AndSpec extends TestBase {
         a :=! true
         assertResult(R())(true)
     }
+/*
+    it should "be evaluated iff a is true (scalar AND option case)" in {
+        val a = new Variable(true, "a")
+        val A = Id(a)
+        val ah = mockFunction[Boolean, Unit]("A")
+        A.evaluated += ah
 
+        val b = new Variable(some(true), "b")
+        val B = Id(b)
+        val bh = mockFunction[Option[Boolean], Unit]("B")
+        B.evaluated += bh
+
+        val R = And(A,B)
+
+        assertResult(R())(Some(true))
+
+        ah expects false
+        a :=! false
+        assertResult(R())(Some(false))
+
+        b :=! Some(false)
+        assertResult(R())(Some(false))
+
+        b :=! Some(true)
+        ah expects true
+        a :=! true
+        assertResult(R())(true)
+    } */
 }

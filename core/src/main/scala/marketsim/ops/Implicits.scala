@@ -8,6 +8,7 @@ object Implicits
     with Plus.Implicits
     with Mul.Implicits
     with Div.Implicits
+    with And.Implicits
 {
 
     import conversions.Implicits._

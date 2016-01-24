@@ -4,6 +4,7 @@ import memoization.memo
 
 object And
 {
+
     @memo
     def apply(a : Signal[Boolean], b : Signal[Boolean]) : Signal[Boolean] =
         new Signal[Boolean](a() && b())
@@ -19,4 +20,5 @@ object And
 
             override def toString() = s"($a && $b)"
         }
+
 }
